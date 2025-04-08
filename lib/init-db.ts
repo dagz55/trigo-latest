@@ -1,141 +1,82 @@
 import { supabase } from './supabase-client'
 
+// This function assumes migrations have run and tables ('todas', 'locations') exist.
+// It primarily checks if the default TODA and a specific location exist,
+// and inserts them only if they are missing. This makes it safe to run
+// during application startup without causing errors or duplicate data.
 export async function initializeDatabase() {
+  console.log('Initializing database: Checking for default data...');
   try {
-    // First check if the TODA table exists
-    const { error: todaTableError } = await supabase
-      .from('toda')
-      .select('count')
-      .limit(1)
-    
-    // If TODA table doesn't exist, create it first
-    if (todaTableError?.code === '42P01') {
-      console.log('Creating TODA table...')
-      
-      const { error: createTodaError } = await supabase.rpc('exec_sql', {
-        sql: `
-          CREATE TABLE IF NOT EXISTS public.toda (
-            id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-            name VARCHAR NOT NULL,
-            code VARCHAR NOT NULL UNIQUE,
-            city VARCHAR NOT NULL,
-            barangay VARCHAR NOT NULL,
-            terminal_address TEXT NOT NULL,
-            contact_number VARCHAR,
-            president_name VARCHAR,
-            status VARCHAR NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
-            created_at TIMESTAMPTZ DEFAULT NOW(),
-            updated_at TIMESTAMPTZ DEFAULT NOW()
-          );
+    let todaId: string | undefined;
 
-          CREATE INDEX IF NOT EXISTS idx_toda_city ON public.toda(city);
-          CREATE INDEX IF NOT EXISTS idx_toda_barangay ON public.toda(barangay);
-          CREATE INDEX IF NOT EXISTS idx_toda_status ON public.toda(status);
-        `
-      })
+    // 1. Check for the default TODA ('TK4-TODA')
+    const { data: defaultToda, error: fetchTodaError } = await supabase
+      .from('todas') // Use correct table name 'todas'
+      .select('id') // Only select id
+      .eq('code', 'TK4-TODA')
+      .maybeSingle(); // Use maybeSingle to handle null result gracefully
 
-      if (createTodaError) {
-        console.error('Error creating TODA table:', createTodaError)
-        return
-      }
+    if (fetchTodaError) {
+      console.error('Error checking for default TODA:', fetchTodaError);
+      // Don't proceed if we can't even check for the TODA
+      return;
+    }
 
-      console.log('TODA table created successfully')
-
-      // Insert default TODA
-      const { error: insertTodaError } = await supabase
-        .from('toda')
+    if (!defaultToda) {
+      console.log("Default TODA ('TK4-TODA') not found. Attempting to insert (assuming table exists)...");
+      // Insert default TODA if it doesn't exist (migration should handle this ideally)
+      const { data: insertedToda, error: insertTodaError } = await supabase
+        .from('todas')
         .insert([
           {
             name: 'Talon Kuatro Tricycle Operators and Drivers Association',
             code: 'TK4-TODA',
             city: 'Las Piñas City',
             barangay: 'Talon Kuatro',
-            terminal_address: '19 Rose of Heaven Drive corner Periwinkle St., Talon Village, Talon 4, Las Piñas City',
-            contact_number: '+63-915-123-4567',
-            president_name: 'Juan Dela Cruz',
-            status: 'active'
+            // Add other necessary fields as defined in your 'todas' table schema if needed
+            // terminal_address: '...', contact_number: '...', president_name: '...', status: 'active'
           }
         ])
+        .select('id') // Select the inserted row to get the ID
+        .single(); // Expecting a single row
 
       if (insertTodaError) {
-        console.error('Error inserting default TODA:', insertTodaError)
-        return
+        console.error('Error inserting default TODA:', insertTodaError);
+        // Don't proceed if insertion fails
+        return;
       }
-
-      console.log('Default TODA inserted successfully')
+      console.log('Default TODA inserted successfully.');
+      todaId = insertedToda.id;
+    } else {
+      console.log("Default TODA ('TK4-TODA') already exists.");
+      todaId = defaultToda.id;
     }
 
-    // Then check if the locations table exists
-    const { error: locationsTableError } = await supabase
+    // If we couldn't get a todaId, stop here.
+    if (!todaId) {
+        console.error('Failed to obtain default TODA ID. Cannot proceed with location check.');
+        return;
+    }
+
+    // 2. Check for the specific initial location
+    const { data: existingLocation, error: checkLocationError } = await supabase
       .from('locations')
-      .select('count')
-      .limit(1)
-    
-    // If locations table doesn't exist, create it
-    if (locationsTableError?.code === '42P01') {
-      console.log('Creating locations table...')
-      
-      const { error: createLocationsError } = await supabase.rpc('exec_sql', {
-        sql: `
-          CREATE TABLE IF NOT EXISTS public.locations (
-            id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-            name VARCHAR NOT NULL,
-            address TEXT NOT NULL,
-            latitude DOUBLE PRECISION NOT NULL,
-            longitude DOUBLE PRECISION NOT NULL,
-            city VARCHAR NOT NULL,
-            barangay VARCHAR NOT NULL,
-            type VARCHAR NOT NULL CHECK (type IN ('pickup', 'dropoff', 'terminal')),
-            toda_id UUID REFERENCES public.toda(id),
-            created_at TIMESTAMPTZ DEFAULT NOW(),
-            updated_at TIMESTAMPTZ DEFAULT NOW()
-          );
-          
-          CREATE INDEX IF NOT EXISTS idx_locations_city ON public.locations(city);
-          CREATE INDEX IF NOT EXISTS idx_locations_barangay ON public.locations(barangay);
-          CREATE INDEX IF NOT EXISTS idx_locations_type ON public.locations(type);
-          CREATE INDEX IF NOT EXISTS idx_locations_toda_id ON public.locations(toda_id);
-        `
-      })
-
-      if (createLocationsError) {
-        console.error('Error creating locations table:', createLocationsError)
-        return
-      }
-
-      console.log('Locations table created successfully')
-    }
-
-    // Get the default TODA
-    const { data: toda, error: todaError } = await supabase
-      .from('toda')
-      .select('*')
-      .eq('code', 'TK4-TODA')
-      .single()
-
-    if (todaError || !toda) {
-      console.error('Error fetching default TODA:', todaError)
-      return
-    }
-
-    // Check if we have our test location
-    const { data: existingLocation, error: checkError } = await supabase
-      .from('locations')
-      .select('*, toda(*)')
+      .select('id') // Only select id
+      .eq('name', 'Rose of Heaven Drive Corner')
       .eq('city', 'Las Piñas City')
       .eq('barangay', 'Talon Kuatro')
-      .maybeSingle()
+      .eq('toda_id', todaId) // Check against the correct TODA ID
+      .maybeSingle();
 
-    if (checkError && checkError.code !== 'PGRST116') {
-      console.error('Error checking existing location:', checkError)
-      return
+    if (checkLocationError) {
+      console.error('Error checking for initial location:', checkLocationError);
+      return;
     }
 
     if (!existingLocation) {
-      console.log('Inserting initial location...')
-      
-      // Insert our test location
-      const { error: insertError } = await supabase
+      console.log("'Rose of Heaven Drive Corner' location not found. Attempting to insert...");
+      // Insert the location if it doesn't exist
+      const { error: insertLocationError } = await supabase
         .from('locations')
         .insert([
           {
@@ -145,22 +86,23 @@ export async function initializeDatabase() {
             longitude: 120.9826,
             city: 'Las Piñas City',
             barangay: 'Talon Kuatro',
-            type: 'terminal',
-            toda_id: toda.id
+            type: 'terminal', // Ensure this matches your enum/type if applicable
+            toda_id: todaId // Use the obtained todaId
           }
-        ])
+        ]);
 
-      if (insertError) {
-        console.error('Error inserting initial location:', insertError)
-        return
+      if (insertLocationError) {
+        console.error('Error inserting initial location:', insertLocationError);
+        return;
       }
-
-      console.log('Initial location data inserted successfully')
+      console.log('Initial location data inserted successfully.');
     } else {
-      console.log('Test location already exists:', existingLocation)
+      console.log("'Rose of Heaven Drive Corner' location already exists.");
     }
 
+    console.log('Database initialization check complete.');
+
   } catch (error) {
-    console.error('Unexpected error initializing database:', error)
+    console.error('Unexpected error during database initialization check:', error);
   }
-} 
+}
