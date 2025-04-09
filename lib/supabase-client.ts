@@ -57,14 +57,16 @@ console.log(`Supabase client initialized with URL: ${supabaseUrl.substring(0, 20
 
 // Helper function to get default TODA
 export async function getDefaultToda() {
+  const defaultTodaName = 'Talon Kuatro Tricycle Operators and Drivers Association'; // Define name
   const { data, error } = await supabase
-    .from('toda')
+    .from('todas') // Corrected table name from 'toda' to 'todas'
     .select('*')
-    .eq('code', 'TK4-TODA')
+    .eq('name', defaultTodaName) // Use name instead of code
+    // .eq('code', 'TK4-TODA') // Remove code check
     .single()
 
   if (error) {
-    console.error('Error fetching default TODA:', error)
+    console.error(`Error fetching default TODA ('${defaultTodaName}'):`, error) // Update log message
     throw error // Propagate the error
   }
 
@@ -77,10 +79,9 @@ export async function getLocationsByToda(todaId: string) {
     .from('locations')
     .select(`
       *,
-      toda (
+      todas ( /* Corrected relationship name */
         id,
         name,
-        code,
         city,
         barangay,
         terminal_address,
@@ -106,10 +107,9 @@ export async function getLocationsByCity(city: string) {
     .from('locations')
     .select(`
       *,
-      toda (
+      todas ( /* Corrected relationship name */
         id,
         name,
-        code,
         city,
         barangay,
         terminal_address,
@@ -135,10 +135,9 @@ export async function getLocationsByBarangay(barangay: string) {
     .from('locations')
     .select(`
       *,
-      toda (
+      todas ( /* Corrected relationship name */
         id,
         name,
-        code,
         city,
         barangay,
         terminal_address,
@@ -204,7 +203,7 @@ export async function insertInitialLocation() {
   const { data, error: insertError } = await supabase
     .from('locations')
     .insert(newLocationData)
-    .select('*, toda(*)') // Select full data after insert
+    .select('*, todas(*)') // Corrected relationship name & Select full data after insert
     .single()
 
   if (insertError) {

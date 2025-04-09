@@ -22,8 +22,17 @@ export function SavedLocations({ onSelect }: SavedLocationsProps) {
           loc.barangay === 'Talon Kuatro'
         ).slice(0, 8) // Limit to 8 locations for better display
         setSavedLocations(filteredLocations)
-      } catch (error) {
-        console.error("Error fetching saved locations:", error)
+      } catch (error: any) { // Add type 'any' to access properties
+        console.error("Error fetching saved locations. Raw error:", error);
+        // Log specific properties if available (common in Supabase errors)
+        if (error && typeof error === 'object') {
+          console.error("Error details:", {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code,
+          });
+        }
       } finally {
         setLoading(false)
       }
@@ -79,4 +88,3 @@ export function SavedLocations({ onSelect }: SavedLocationsProps) {
     </Card>
   )
 }
-
