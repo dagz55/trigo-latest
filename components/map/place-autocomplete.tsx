@@ -2,10 +2,10 @@
 
 import type React from "react"
 
-import { useRef, useState } from "react"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { MapPin } from "lucide-react"
+import { useRef, useState } from "react"
 
 interface PlaceAutocompleteProps extends React.InputHTMLAttributes<HTMLInputElement> {
   onPlaceSelect?: (place: {
@@ -24,24 +24,24 @@ export function PlaceAutocomplete({ className, onPlaceSelect, ...props }: PlaceA
   const [inputValue, setInputValue] = useState("")
 
   const demoPlaces = [
-    "SM Mall of Asia, Pasay",
-    "Rizal Park, Manila",
-    "Intramuros, Manila",
-    "Bonifacio Global City, Taguig",
-    "Greenbelt, Makati",
-    "Eastwood City, Quezon City",
-    "Divisoria Market, Manila",
-    "University of the Philippines, Quezon City",
-    "Ateneo de Manila University, Quezon City",
+    "FnF HQ",
+    "Ophir",
+    "Vape Shop",
+    "Sari-sari store",
+    "Public School",
+    "Refilling Station",
+    "Apartment for rent",
+    "House for sale",
+    "Basketball court",
   ]
 
   // Nearby locations
   const nearbyLocations = [
-    "Ayala Triangle Gardens (0.3 km)",
-    "Glorietta Mall (0.5 km)",
-    "Greenbelt Mall (0.7 km)",
-    "SM Makati (0.9 km)",
-    "Landmark Makati (1.1 km)",
+    "Terminal (0.3 km)",
+    "Exit point A (0.5 km)",
+    "Exit point B (0.7 km)",
+    "Exit point C (0.9 km)",
+    "Exit point D (1.1 km)",
   ]
 
   // Demo mode functionality

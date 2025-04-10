@@ -14,13 +14,8 @@ export type TodaStatus = 'active' | 'inactive'
 export type Toda = {
   id: string
   name: string
-  code: string
   city: string
   barangay: string
-  terminal_address: string
-  contact_number?: string
-  president_name?: string
-  status: TodaStatus
   created_at?: string
   updated_at?: string
 }
@@ -79,15 +74,11 @@ export async function getLocationsByToda(todaId: string) {
     .from('locations')
     .select(`
       *,
-      todas ( /* Corrected relationship name */
+      todas (
         id,
         name,
         city,
-        barangay,
-        terminal_address,
-        contact_number,
-        president_name,
-        status
+        barangay
       )
     `)
     .eq('toda_id', todaId)
@@ -107,15 +98,11 @@ export async function getLocationsByCity(city: string) {
     .from('locations')
     .select(`
       *,
-      todas ( /* Corrected relationship name */
+      todas (
         id,
         name,
         city,
-        barangay,
-        terminal_address,
-        contact_number,
-        president_name,
-        status
+        barangay
       )
     `)
     .eq('city', city)
@@ -135,15 +122,11 @@ export async function getLocationsByBarangay(barangay: string) {
     .from('locations')
     .select(`
       *,
-      todas ( /* Corrected relationship name */
+      todas (
         id,
         name,
         city,
-        barangay,
-        terminal_address,
-        contact_number,
-        president_name,
-        status
+        barangay
       )
     `)
     .eq('barangay', barangay)
@@ -419,7 +402,7 @@ export async function updateRideStatus(
   cancellation_reason?: string
 ): Promise<void> {
   const updates: any = { status }
-  
+
   if (status === 'accepted') {
     updates.accepted_at = new Date().toISOString()
     updates.trider_id = trider_id

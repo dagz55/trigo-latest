@@ -1,29 +1,39 @@
 "use client"
 
-import { GoogleMap } from "@/components/map/google-map"
+// import { GoogleMap } from "@/components/map/google-map"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { LoadingOverlay } from "@/components/ui/loading-overlay"
 import { useUser } from "@/contexts/user-context"
 // import { useToast } from "@/hooks/use-toast" // Remove useToast hook
-import { toast } from "sonner" // Import toast directly
 import { getLocationsByCity, supabase, type Location } from "@/lib/supabase-client"
 import { Calendar, Check, Clock, Loader2, MapPin, Navigation, X } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
+import { toast } from "sonner"; // Import toast directly
 // Import the TerminalExits component
 import { TerminalExits } from "@/components/passenger/terminal-exits"
 // Import the SavedLocations component
 import { SavedLocations } from "@/components/passenger/saved-locations"
+// Import dynamically
+import dynamic from 'next/dynamic'
+
+const MapboxMap = dynamic(() => 
+  import('@/components/map/mapbox-map').then(mod => mod.MapboxMap), 
+  { 
+    ssr: false, // Ensure it only renders client-side
+    loading: () => <div className="flex items-center justify-center h-full bg-muted text-muted-foreground">Loading Map...</div> 
+  }
+)
 
 export function PassengerBooking() {
   // const { toast } = useToast() // Remove useToast hook usage
@@ -64,7 +74,7 @@ export function PassengerBooking() {
       try {
         // Fetch locations for Las Piñas City, Talon Kuatro
         // getLocationsByCity now throws error on failure
-        const cityLocations = await getLocationsByCity('Las Piñas City')
+        const cityLocations = await getLocationsByCity('Las Piñas City') // Remove type assertion
         const talonKuatroLocations = cityLocations.filter(loc => loc.barangay === 'Talon Kuatro')
         console.log(`Fetched ${talonKuatroLocations.length} locations for Talon Kuatro.`)
 
@@ -123,8 +133,8 @@ export function PassengerBooking() {
       console.log("Fetching terminal exits...")
       try {
         // getLocationsByCity now throws error on failure
-        const locations = await getLocationsByCity('Las Piñas City')
-        const terminals = locations.filter(loc =>
+        const allCityLocations = await getLocationsByCity('Las Piñas City') // Remove type assertion and keep rename
+        const terminals = allCityLocations.filter(loc =>
           loc.type === 'terminal' &&
           loc.barangay === 'Talon Kuatro'
         )
@@ -336,33 +346,78 @@ export function PassengerBooking() {
   }
 
   // Confirm booking
-  const handleConfirmBooking = async () => { // Make async for potential real API call
+  const handleConfirmBooking = async () => {
+    if (!user || !selectedPickup || !selectedDropoff) {
+      toast.error("Booking Error", {
+        description: "Missing user or location information.",
+      })
+      return
+    }
+
     setIsLoading(true)
     console.log("Confirming booking...")
 
-    // Simulate API call - Replace with actual backend call
-    // Example: const ride = await createRideRequest(user.id, toda_id, selectedPickup.id, selectedDropoff.id, calculatedFare, calculatedDistance)
-    try {
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate network delay
+    // Generate a unique booking code locally first (can be refined)
+    const generatedCode = Math.random().toString(36).substring(2, 8).toUpperCase()
 
-      // Generate a random booking code (replace with actual code from backend response)
-      const code = Math.random().toString(36).substring(2, 8).toUpperCase()
-      setBookingCode(code)
+    const bookingData = {
+      passenger_id: user.id,
+      pickup_location_id: selectedPickup.id, // Assuming selectedPickup has an ID from the 'locations' table
+      dropoff_location_id: selectedDropoff.id, // Assuming selectedDropoff has an ID from the 'locations' table
+      status: 'pending', // Initial status
+      estimated_fare: estimatedFare, // Use the state value
+      estimated_time: estimatedTime, // Use the state value
+      booking_code: generatedCode, // Use the generated code
+      // Add pickup/dropoff details directly if needed, or rely on relation IDs
+      pickup_name: selectedPickup.name,
+      pickup_address: selectedPickup.address,
+      pickup_latitude: selectedPickup.latitude,
+      pickup_longitude: selectedPickup.longitude,
+      dropoff_name: selectedDropoff.name,
+      dropoff_address: selectedDropoff.address,
+      dropoff_latitude: selectedDropoff.latitude,
+      dropoff_longitude: selectedDropoff.longitude,
+      // toda_id: selectedPickup.toda_id, // Assuming pickup location determines the TODA
+    }
+
+    console.log("Attempting to insert booking:", bookingData)
+
+    try {
+      const { data, error } = await supabase
+        .from('bookings') // Ensure 'bookings' is the correct table name
+        .insert([bookingData])
+        .select() // Select the inserted row to get the actual data back
+        .single() // Expecting a single row back
+
+      if (error) {
+        console.error("Supabase insert error:", error)
+        throw error // Throw error to be caught below
+      }
+
+      if (!data) {
+        throw new Error("Booking data was not returned after insert.")
+      }
+
+      console.log("Booking successfully inserted:", data)
+
+      // Use the actual booking code from the database if it's generated there, otherwise use the local one
+      const actualBookingCode = data.booking_code || generatedCode
+      setBookingCode(actualBookingCode)
       setBookingSuccess(true)
 
-      console.log("Booking successful. Code:", code)
       // Use direct toast import
       toast.success("Booking Successful", {
-        description: `Your ride has been booked. Booking code: ${code}`,
+        description: `Your ride has been booked. Booking code: ${actualBookingCode}`,
       })
+
     } catch (error: any) {
-        console.error("Error during booking confirmation:", error)
-        toast.error("Booking Failed", {
-            description: error.message || "Could not confirm your booking. Please try again."
-        })
-        setShowConfirmation(false); // Close confirmation dialog on error
+      console.error("Error during booking confirmation:", error)
+      toast.error("Booking Failed", {
+        description: error.message || "Could not confirm your booking. Please try again.",
+      })
+      setShowConfirmation(false) // Close confirmation dialog on error
     } finally {
-        setIsLoading(false)
+      setIsLoading(false)
     }
   }
 
@@ -672,7 +727,8 @@ export function PassengerBooking() {
           </CardHeader>
           <CardContent className="p-0 overflow-hidden rounded-b-lg">
             <div className="relative w-full h-[400px] rounded-lg overflow-hidden">
-              <GoogleMap
+              {/* Use the MapboxMap component */}
+              <MapboxMap
                 center={mapCenter}
                 markers={mapMarkers}
                 height="400px"

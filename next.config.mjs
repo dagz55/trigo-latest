@@ -21,6 +21,8 @@ const nextConfig = {
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
   },
+  // Target CommonJS distributions
+  transpilePackages: ['react-map-gl/dist/cjs', 'mapbox-gl/dist/cjs'],
 }
 
 mergeConfig(nextConfig, userConfig)

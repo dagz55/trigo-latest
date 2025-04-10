@@ -15,16 +15,29 @@ export function SavedLocations({ onSelect }: SavedLocationsProps) {
 
   useEffect(() => {
     const fetchLocations = async () => {
+      setLoading(true); // Ensure loading state is set at the beginning
       try {
-        const locations = await getLocationsByCity('Las Piñas City')
-        const filteredLocations = locations.filter(loc => 
-          loc.type === 'pickup' && 
-          loc.barangay === 'Talon Kuatro'
-        ).slice(0, 8) // Limit to 8 locations for better display
-        setSavedLocations(filteredLocations)
-      } catch (error: any) { // Add type 'any' to access properties
-        console.error("Error fetching saved locations. Raw error:", error);
-        // Log specific properties if available (common in Supabase errors)
+        const locationsResult = await getLocationsByCity('las_pinas_city');
+
+        // Check if the result indicates an error (e.g., not an array, or has error property)
+        // This handles the case where the function might return an error object directly
+        if (!Array.isArray(locationsResult)) {
+          // Handle cases where the result is not the expected array (likely an error)
+          console.error("Error fetching saved locations or invalid data format:", locationsResult);
+          setSavedLocations([]);
+        } else {
+          // Proceed assuming locationsResult is Location[]
+          // Use type assertion via unknown to satisfy TypeScript here
+          const locations = locationsResult as unknown as Location[];
+          const filteredLocations = locations.filter((loc: Location) => // Explicitly type 'loc'
+            loc.type === 'pickup' &&
+            loc.barangay === 'Talon Kuatro'
+          ).slice(0, 8); // Limit to 8 locations for better display
+          setSavedLocations(filteredLocations);
+        }
+      } catch (error: any) { // Catch any unexpected errors during the async operation
+        console.error("Unexpected error in fetchLocations:", error);
+        // Log specific properties if available
         if (error && typeof error === 'object') {
           console.error("Error details:", {
             message: error.message,
@@ -33,13 +46,14 @@ export function SavedLocations({ onSelect }: SavedLocationsProps) {
             code: error.code,
           });
         }
+        setSavedLocations([]); // Ensure state is cleared on unexpected errors
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchLocations()
-  }, [])
+    fetchLocations();
+  }, []);
 
   const getLocationIcon = (name: string) => {
     const lowerName = name.toLowerCase()

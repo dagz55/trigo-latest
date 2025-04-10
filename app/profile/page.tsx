@@ -1,20 +1,28 @@
 "use client"
 
-import { useState } from "react"
+import { Header } from "@/components/layout/header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { LoadingOverlay } from "@/components/ui/loading-overlay"
+import { LoadingPage } from "@/components/ui/loading-page"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useUser } from "@/contexts/user-context"
-import { useRouter } from "next/navigation"
-import { MapPin, User, LogOut, Home, Briefcase, Star, ArrowLeft } from "lucide-react"
-import Link from "next/link"
-import { GoogleMap } from "@/components/map/google-map"
 import { useToast } from "@/hooks/use-toast"
-import { LoadingPage } from "@/components/ui/loading-page"
-import { LoadingOverlay } from "@/components/ui/loading-overlay"
-import { Header } from "@/components/layout/header"
+import { ArrowLeft, Briefcase, Home, LogOut, MapPin, Star, User } from "lucide-react"
+import dynamic from 'next/dynamic'
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+
+const MapboxMap = dynamic(() => 
+  import('@/components/map/mapbox-map').then(mod => mod.MapboxMap), 
+  { 
+    ssr: false, // Ensure it only renders client-side
+    loading: () => <div className="flex items-center justify-center h-[150px] bg-muted text-muted-foreground">Loading Map...</div> 
+  }
+)
 
 export default function ProfilePage() {
   const { user, updateUserProfile, logout, loading } = useUser()
@@ -173,10 +181,11 @@ export default function ProfilePage() {
 
                       {user?.homeLocation ? (
                         <div className="space-y-3">
-                          <GoogleMap
+                          <MapboxMap
                             center={{ lat: user.homeLocation.lat, lng: user.homeLocation.lng }}
                             markers={[{ lat: user.homeLocation.lat, lng: user.homeLocation.lng, title: "Home" }]}
                             height="150px"
+                            zoom={16}
                           />
                           <div className="p-3 bg-muted rounded-md">
                             <div className="flex items-start">
@@ -208,10 +217,11 @@ export default function ProfilePage() {
 
                       {user?.workLocation ? (
                         <div className="space-y-3">
-                          <GoogleMap
+                          <MapboxMap
                             center={{ lat: user.workLocation.lat, lng: user.workLocation.lng }}
                             markers={[{ lat: user.workLocation.lat, lng: user.workLocation.lng, title: "Work" }]}
                             height="150px"
+                            zoom={16}
                           />
                           <div className="p-3 bg-muted rounded-md">
                             <div className="flex items-start">
@@ -307,7 +317,10 @@ export default function ProfilePage() {
                           <p className="font-medium">Language</p>
                           <p className="text-sm text-muted-foreground">Choose your preferred language</p>
                         </div>
-                        <select className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                        <select 
+                          aria-label="Select language" 
+                          className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        >
                           <option>English</option>
                           <option>Filipino</option>
                         </select>
