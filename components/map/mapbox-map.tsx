@@ -1,10 +1,13 @@
 'use client'
 
-// Remove local Mapbox CSS import
-// import 'mapbox-gl/dist/mapbox-gl.css' 
-import * as React from 'react'
-import Map, { FullscreenControl, GeolocateControl, Marker, NavigationControl, type ViewStateChangeEvent } from 'react-map-gl/mapbox'
-import styles from './mapbox-map.module.css'
+// Import Mapbox GL JS CSS
+import 'mapbox-gl/dist/mapbox-gl.css';
+import * as React from 'react';
+
+// Import Map and components from react-map-gl
+import type { ViewStateChangeEvent } from 'react-map-gl/mapbox';
+import Map, { FullscreenControl, GeolocateControl, Layer, Marker, NavigationControl, Source } from 'react-map-gl/mapbox';
+import styles from './mapbox-map.module.css';
 
 // Pin component (optional, for custom markers)
 const Pin = ({ size = 20, color = 'red' }: { size?: number; color?: string }) => (
@@ -22,12 +25,14 @@ const Pin = ({ size = 20, color = 'red' }: { size?: number; color?: string }) =>
 interface MapboxMapProps {
   center: { lat: number; lng: number }
   markers?: Array<{ lat: number; lng: number; title?: string; type?: string }>
+  routeGeojson?: any // Add prop for route GeoJSON
   zoom?: number
   height?: string
   style?: React.CSSProperties
+  onClick?: (event: { lngLat: { lat: number; lng: number } }) => void
 }
 
-export function MapboxMap({ center, markers = [], zoom = 15, height = '400px', style }: MapboxMapProps) {
+export function MapboxMap({ center, markers = [], routeGeojson, zoom = 15, height = '400px', style, onClick }: MapboxMapProps) {
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_API_KEY
 
   if (!mapboxToken) {
@@ -80,29 +85,60 @@ export function MapboxMap({ center, markers = [], zoom = 15, height = '400px', s
       <Map
         {...viewState}
         onMove={(evt: ViewStateChangeEvent) => setViewState(evt.viewState)}
-        mapStyle="mapbox://styles/mapbox/streets-v12" // Or choose another style
+        onClick={onClick}
+        mapStyle="mapbox://styles/mapbox/streets-v12"
         mapboxAccessToken={mapboxToken}
+        style={{ width: '100%', height: '100%' }}
+        cursor={onClick ? 'crosshair' : 'grab'}
       >
         {/* Map Controls */}
-        <GeolocateControl position="top-left" />
-        <FullscreenControl position="top-left" />
-        <NavigationControl position="top-left" />
+        <GeolocateControl />
+        <FullscreenControl />
+        <NavigationControl />
 
         {/* Markers */}
         {markers.map((marker, index) => (
-          <Marker key={index} longitude={marker.lng} latitude={marker.lat} anchor="bottom">
+          <Marker 
+            key={index} 
+            longitude={marker.lng} 
+            latitude={marker.lat} 
+            anchor="bottom"
+          >
             <Pin size={30} color={getMarkerColor(marker.type)} />
-            {/* Optional: Add tooltip/popup on hover/click */}
           </Marker>
         ))}
 
-        {/* Add starting center marker if no specific markers are provided initially */}
-        {markers.length === 0 && (
-            <Marker longitude={center.lng} latitude={center.lat} anchor="bottom">
-                 <Pin size={30} color={getMarkerColor('default')} />
-            </Marker>
+        {/* Starting Center Marker (only if no markers & no route) */}
+        {markers.length === 0 && !routeGeojson && (
+          <Marker 
+            longitude={center.lng} 
+            latitude={center.lat} 
+            anchor="bottom"
+          >
+            <Pin size={30} color={getMarkerColor('default')} />
+          </Marker>
+        )}
+
+        {/* Route Layer */}
+        {routeGeojson && (
+          <Source id="route" type="geojson" data={routeGeojson}>
+            <Layer
+              id="route-line"
+              type="line"
+              source="route"
+              layout={{
+                'line-join': 'round',
+                'line-cap': 'round'
+              }}
+              paint={{
+                'line-color': '#00FF88', // neon TriGo green
+                'line-width': 6,
+                'line-opacity': 0.85
+              }}
+            />
+          </Source>
         )}
       </Map>
     </div>
   )
-} 
+}

@@ -2,7 +2,8 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(req: NextRequest) {
-  let res = NextResponse.next({
+  // Create the response object first
+  let response = NextResponse.next({
     request: {
       headers: req.headers,
     },
@@ -17,45 +18,29 @@ export async function middleware(req: NextRequest) {
           return req.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
-          req.cookies.set({
-            name,
-            value,
-            ...options,
+          // Set cookie on the request object for potential use in later middleware/handlers
+          req.cookies.set({ name, value, ...options })
+          // **Crucially, set the cookie on the response object that will be sent back to the browser**
+          response = NextResponse.next({ // Create response to modify
+            request: { headers: req.headers },
           })
-          res = NextResponse.next({ // Re-create response to apply cookie changes
-            request: {
-              headers: req.headers,
-            },
-          })
-          res.cookies.set({
-            name,
-            value,
-            ...options,
-          })
+          response.cookies.set({ name, value, ...options })
         },
         remove(name: string, options: CookieOptions) {
-          req.cookies.set({
-            name,
-            value: '',
-            ...options,
+          // Delete cookie from request
+          req.cookies.set({ name, value: '', ...options })
+          // **Crucially, delete the cookie on the response object**
+          response = NextResponse.next({ // Create response to modify
+            request: { headers: req.headers },
           })
-          res = NextResponse.next({ // Re-create response to apply cookie changes
-            request: {
-              headers: req.headers,
-            },
-          })
-          res.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
+          response.cookies.set({ name, value: '', ...options })
         },
       },
     }
   )
 
-  // Refresh session if expired - important to do before potentially checking session below
-  await supabase.auth.getUser() // Using getUser() is often sufficient in middleware for session refresh
+  // Refresh session if expired - This will automatically handle setting/removing cookies via the handlers above
+  await supabase.auth.getUser()
 
   // Optional: Check auth for protected routes - Example using getUser()
   // const { data: { user } } = await supabase.auth.getUser()
@@ -65,7 +50,8 @@ export async function middleware(req: NextRequest) {
   //   return NextResponse.redirect(redirectUrl)
   // }
 
-  return res
+  // Return the potentially modified response object
+  return response
 }
 
 export const config = {

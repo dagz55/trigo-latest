@@ -1,10 +1,12 @@
 import "@/app/globals.css"
+// Import Mapbox CSS globally
 import { SupabaseProvider } from "@/components/supabase-provider"
 import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/sonner"
 import { UserProvider } from "@/contexts/user-context"
 import { initializeDatabase } from '@/lib/init-db'
+import 'mapbox-gl/dist/mapbox-gl.css'
 import type React from "react"
-import { Toaster } from "@/components/ui/sonner"
 
 // Initialize database when app starts
 initializeDatabase().catch(console.error)

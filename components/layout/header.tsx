@@ -1,11 +1,11 @@
 "use client"
 
-import Link from "next/link"
-import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { Button } from "@/components/ui/button"
-import { usePathname } from "next/navigation"
+import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { useUser } from "@/contexts/user-context"
-import { User, LogOut } from "lucide-react"
+import { LogOut, User } from "lucide-react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 export function Header() {
   const pathname = usePathname()
@@ -20,7 +20,10 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 max-w-screen-2xl items-center">
         <div className="mr-4 flex">
-          <Link href="/" className="flex items-center space-x-2">
+          <Link 
+            href={user ? (user.role === "passenger" ? "/passenger" : `/${user.role}`) : pathname} 
+            className="flex items-center space-x-2"
+          >
             <div className="flex items-center -space-x-1">
               <div className="h-9 w-9 flex items-center justify-center">
                 <img src="/images/trigologo1.png" alt="Trigo Logo" className="h-9 w-auto" />

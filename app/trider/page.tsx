@@ -2,20 +2,20 @@
 
 import { DialogFooter } from "@/components/ui/dialog"
 
-import { useState, useEffect } from "react"
-import { Bike, MapPin, Clock, User, Calendar, AlertTriangle, Info } from "lucide-react"
-import Link from "next/link"
+import { Header } from "@/components/layout/header"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { toast } from "@/hooks/use-toast"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Header } from "@/components/layout/header"
 import { LoadingOverlay } from "@/components/ui/loading-overlay"
 import { LoadingPage } from "@/components/ui/loading-page"
-import { supabase } from "@/lib/supabase-client"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { toast } from "@/hooks/use-toast"
+import { getPendingRideRequests, supabase } from "@/lib/supabase-client"
+import { Bike, Calendar, Clock, Info, MapPin, User } from "lucide-react"
+import Link from "next/link"
+import { useEffect, useState } from "react"
 
 export default function TriderPage() {
   const [isOnline, setIsOnline] = useState(false)
@@ -162,166 +162,102 @@ export default function TriderPage() {
     }, 1500)
   }
 
-  // Update current duration timer and simulate booking requests
-  // useEffect(() => {
-  //   if (isOnline) {
-  //     const timer = setInterval(() => {
-  //       if (onlineTime) {
-  //         setOnlineDuration((prev) => prev + 1)
-  //       }
-  //     }, 1000)
-  //     setCurrentTimer(timer)
-
-  //     // Find TODA for current location
-  //     const toda = findTodaForLocation(currentLocation)
-  //     if (toda && (!assignedToda || assignedToda.id !== toda.id)) {
-  //       setAssignedToda(toda)
-  //       toast({
-  //         title: "TODA Assignment",
-  //         description: `You have been assigned to ${toda.name} based on your location.`,
-  //       })
-  //     } else if (!toda) {
-  //       setAssignedToda(null)
-  //       toast({
-  //         title: "No TODA Assignment",
-  //         description: "You are not within any TODA service area. Please select a TODA area.",
-  //         variant: "destructive",
-  //       })
-  //       setShowLocationDialog(true)
-  //     }
-
-  //     // Simulate receiving booking requests after 5 seconds
-  //     const requestTimer = setTimeout(() => {
-  //       if (isOnline && assignedToda) {
-  //         // Show loading while "fetching" ride requests
-  //         setIsLoading(true)
-  //         setLoadingMessage("Searching for ride requests...")
-
-  //         setTimeout(() => {
-  //           // Filter requests that have pickup within the TODA area
-  //           const filteredRequests = mockBookingRequests.filter((request) => {
-  //             // Check if pickup is within TODA area
-  //             const isPickupInArea = isLocationWithinTodaArea(request.pickupLocation, assignedToda)
-
-  //             // Mark if the dropoff is also within TODA area
-  //             request.isWithinTodaArea = isLocationWithinTodaArea(request.dropoffLocation, assignedToda)
-
-  //             return isPickupInArea
-  //           })
-
-  //           if (filteredRequests.length > 0) {
-  //             setBookingRequests(filteredRequests)
-  //             setHasNewRequests(true)
-
-  //             toast({
-  //               title: "New Ride Request",
-  //               description: `You have ${filteredRequests.length} new ride request(s) in your area.`,
-  //             })
-  //           }
-
-  //           setIsLoading(false)
-  //         }, 2000)
-  //       }
-  //     }, 3000)
-
-  //     return () => {
-  //       clearInterval(timer)
-  //       clearTimeout(requestTimer)
-  //     }
-  //   } else {
-  //     if (currentTimer) {
-  //       clearInterval(currentTimer)
-  //       setCurrentTimer(null)
-  //     }
-
-  //     // Clear booking requests when going offline
-  //     setBookingRequests([])
-  //     setHasNewRequests(false)
-  //   }
-
-  //   return () => {
-  //     if (currentTimer) {
-  //       clearInterval(currentTimer)
-  //     }
-  //   }
-  // }, [isOnline, onlineTime, assignedToda, currentLocation])
-
-  // Update the useEffect that simulates receiving booking requests:
+  // Update the useEffect that fetches ride requests:
   useEffect(() => {
-    if (isOnline && assignedToda) {
-      // Show loading while fetching ride requests
+    // Only run if online and assigned to a TODA
+    if (isOnline && assignedToda && assignedToda.id) { 
       setIsLoading(true)
       setLoadingMessage("Searching for ride requests...")
 
       const fetchRideRequests = async () => {
+        console.log(`Fetching requests for TODA ID: ${assignedToda.id}`) // Debug log
         try {
-          const { data, error } = await supabase
-            .from("rides")
-            .select("*")
-            .eq("status", "requested")
-            .order("request_time", { ascending: true })
+          // Use the function from supabase-client which handles filtering
+          const requests = await getPendingRideRequests(assignedToda.id)
+          
+          console.log(`Fetched ${requests.length} requests.`) // Debug log
 
-          if (error) throw error
+          if (requests && requests.length > 0) {
+            // Optional: Perform additional client-side checks if needed, like destination area
+            const processedRequests = requests.map(request => ({
+              ...request,
+              // Mark if the dropoff is also within TODA area (optional rule)
+              // Check if dropoff coordinates exist before using them
+              isWithinTodaArea: request.dropoff_latitude && request.dropoff_longitude
+                ? isLocationWithinTodaArea(
+                    { lat: request.dropoff_latitude, lng: request.dropoff_longitude },
+                    assignedToda
+                  ) 
+                : false // Default to false if dropoff coordinates are missing
+            }))
 
-          if (data && data.length > 0) {
-            // Filter requests that have pickup within the TODA area
-            const filteredRequests = data.filter((request) => {
-              // Check if pickup is within TODA area
-              const isPickupInArea = isLocationWithinTodaArea(
-                { lat: request.pickup_latitude, lng: request.pickup_longitude },
-                assignedToda,
-              )
-
-              // Mark if the dropoff is also within TODA area
-              request.isWithinTodaArea = isLocationWithinTodaArea(
-                { lat: request.dropoff_latitude, lng: request.dropoff_longitude },
-                assignedToda,
-              )
-
-              return isPickupInArea
+            setBookingRequests(processedRequests)
+            setHasNewRequests(true)
+            toast({
+              title: "New Ride Requests",
+              description: `You have ${processedRequests.length} new ride request(s) in your area.`,
             })
-
-            if (filteredRequests.length > 0) {
-              setBookingRequests(filteredRequests)
-              setHasNewRequests(true)
-
-              toast({
-                title: "New Ride Request",
-                description: `You have ${filteredRequests.length} new ride request(s) in your area.`,
-              })
-            }
+          } else {
+            // Clear existing requests if none are fetched
+            setBookingRequests([])
+            setHasNewRequests(false)
           }
-        } catch (error) {
+        } catch (error: any) { // Catch specific error type if known
           console.error("Error fetching ride requests:", error)
+          // Log the detailed error if available
+          const errorDetails = error.message || JSON.stringify(error);
+          console.error("Error fetching ride requests:", errorDetails);
+          toast({
+            title: "Error Fetching Rides",
+            description: `Could not retrieve ride requests: ${error.message || 'Unknown error'}`,
+            variant: "destructive",
+          })
         } finally {
           setIsLoading(false)
+          setLoadingMessage("")
         }
       }
 
-      fetchRideRequests()
+      fetchRideRequests() // Initial fetch
 
-      // Set up subscription for new ride requests
+      // Set up subscription for new ride requests for the specific TODA
+      // Note: RLS should ideally handle TODA filtering for subscriptions
       const ridesSubscription = supabase
-        .channel("public:rides")
+        .channel(`public:ride_requests:toda_id=eq.${assignedToda.id}`)
         .on(
           "postgres_changes",
           {
             event: "INSERT",
             schema: "public",
-            table: "rides",
-            filter: "status=eq.requested",
+            table: "ride_requests",
+            filter: `status=eq.pending`, // Match status used in getPendingRideRequests
           },
-          () => {
-            fetchRideRequests()
-          },
+          (payload) => {
+            console.log("New ride request received via subscription:", payload)
+            toast({ title: "New Ride Request Available!" })
+            fetchRideRequests() // Re-fetch the list
+          }
         )
-        .subscribe()
+        .subscribe((status, err) => {
+            if (status === 'SUBSCRIBED') {
+                console.log(`Subscribed to ride_requests for TODA ${assignedToda.id}`);
+            } else {
+                console.error('Subscription Error:', err);
+            }
+        })
 
+      // Cleanup function
       return () => {
+        console.log(`Unsubscribing from ride_requests for TODA ${assignedToda.id}`);
         supabase.removeChannel(ridesSubscription)
       }
+    } else {
+       // Clear requests if not online or no TODA assigned
+       setBookingRequests([])
+       setHasNewRequests(false)
+       console.log("Not fetching requests: Not online or no TODA assigned.");
     }
-  }, [isOnline, assignedToda])
+  }, [isOnline, assignedToda]) // Dependencies: online status and assigned TODA
 
   // Handle online/offline toggle
   const handleStatusChange = (checked: boolean) => {
@@ -650,12 +586,21 @@ export default function TriderPage() {
                         </div>
 
                         {!request.isWithinTodaArea && (
-                          <Alert variant="warning" className="bg-amber-50 border-amber-200 text-amber-800">
-                            <AlertTriangle className="h-4 w-4 text-amber-600" />
-                            <AlertDescription className="text-xs">
-                              Destination is outside your TODA's service area
-                            </AlertDescription>
-                          </Alert>
+                          <Card className="bg-yellow-50 border-yellow-200">
+                            <CardHeader>
+                              <CardTitle className="text-yellow-800">Outside Service Area</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <p className="text-sm text-yellow-700">
+                                The drop-off location for this ride is outside your TODA's designated service area.
+                              </p>
+                            </CardContent>
+                            <CardFooter>
+                              <Button variant="destructive" onClick={() => declineBookingRequest(request.id)}>
+                                Decline Request
+                              </Button>
+                            </CardFooter>
+                          </Card>
                         )}
                       </div>
                     </CardContent>
@@ -857,8 +802,10 @@ export default function TriderPage() {
                   <p className="text-sm">Service area: {assignedToda.area}</p>
                   <p className="text-sm font-medium mt-2">Notable landmarks within your service area:</p>
                   <ul className="list-disc pl-5 text-sm space-y-1">
-                    {assignedToda.landmarks.map((landmark, index) => (
-                      <li key={index}>{landmark}</li>
+                    {assignedToda.landmarks.map((landmark: string, index: number) => (
+                      <li key={index} className="text-sm text-muted-foreground">
+                        - {landmark}
+                      </li>
                     ))}
                   </ul>
                 </div>

@@ -1,7 +1,7 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr' // Import from @supabase/ssr
-import { cookies } from "next/headers"
-import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
+import { createServerClient, type CookieOptions } from '@supabase/ssr'; // Import from @supabase/ssr
+import { cookies } from "next/headers";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
@@ -49,8 +49,7 @@ export async function GET(request: NextRequest) {
   }
 
   // URL to redirect to after sign in process completes
-  // TODO: Consider redirecting based on user role after fetching profile?
-  // For now, redirecting to a generic dashboard or roles page might be safer.
-  console.log("Auth callback successful, redirecting to /roles");
-  return NextResponse.redirect(`${origin}/roles`) // Redirect to roles page to handle role-specific redirects
+  // Redirect directly to passenger dashboard since that's the default role
+  console.log("Auth callback successful, redirecting to /passenger");
+  return NextResponse.redirect(`${origin}/passenger`)
 }

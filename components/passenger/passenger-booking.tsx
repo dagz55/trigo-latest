@@ -25,6 +25,7 @@ import { TerminalExits } from "@/components/passenger/terminal-exits"
 // Import the SavedLocations component
 import { SavedLocations } from "@/components/passenger/saved-locations"
 // Import dynamically
+import { debounce } from 'lodash'
 import dynamic from 'next/dynamic'
 
 const MapboxMap = dynamic(() => 
@@ -50,12 +51,15 @@ export function PassengerBooking() {
   const [isLoading, setIsLoading] = useState(false)
   const [isLocating, setIsLocating] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
-  const [estimatedTime, setEstimatedTime] = useState("10-15 minutes")
-  const [estimatedFare, setEstimatedFare] = useState("₱120 - ₱150")
+  const [estimatedTime, setEstimatedTime] = useState<string | number>("10-15 minutes")
+  const [estimatedFare, setEstimatedFare] = useState<string | number>("₱120 - ₱150")
   const [bookingSuccess, setBookingSuccess] = useState(false)
   const [bookingCode, setBookingCode] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [terminalExits, setTerminalExits] = useState<Location[]>([])
+  const [routeGeojson, setRouteGeojson] = useState<any>(null)
+  const [routeDistance, setRouteDistance] = useState<number | null>(null)
+  const [routeDuration, setRouteDuration] = useState<number | null>(null)
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({
     lat: 14.4507, // Talon Kuatro center
     lng: 120.9826,
@@ -66,6 +70,12 @@ export function PassengerBooking() {
     title: string
     type: 'pickup' | 'dropoff' | 'terminal'
   }>>([])
+  const [isMapPinningMode, setIsMapPinningMode] = useState(false)
+  const [mapClickEnabled, setMapClickEnabled] = useState(false)
+  const [bookingStatus, setBookingStatus] = useState('waiting')
+  const [dispatcherNotified, setDispatcherNotified] = useState(false)
+  const [showSaveLocationDialog, setShowSaveLocationDialog] = useState(false)
+  const [tempDropoffLocation, setTempDropoffLocation] = useState<Location | null>(null)
 
   // Update the useEffect to fetch locations from Supabase
   useEffect(() => {
@@ -119,7 +129,8 @@ export function PassengerBooking() {
         longitude: user.homeLocation.lng, // Map lng to longitude
         city: "Las Piñas City", // Assume city/barangay or fetch if needed
         barangay: "Talon Kuatro", // Assume city/barangay or fetch if needed
-        type: 'pickup', // Set type appropriately
+        // Use the correct DB enum value
+        type: 'custom', 
         // Other fields like toda_id, created_at are optional or not applicable here
       };
       setSelectedPickup(homeAsLocation);
@@ -195,86 +206,281 @@ export function PassengerBooking() {
     }
   }
 
-  const handleDropoffSearch = async (value: string) => {
-    setDropoffLocation(value)
-    setSelectedDropoff(null) // Clear selection when searching
-    if (value.length > 2) {
-      console.log("Searching dropoff locations for:", value)
+  // Add function to save location to user profile
+  const saveLocationToProfile = async (location: Location) => {
+    try {
+      if (!user?.id) {
+        throw new Error("Please sign in to save locations");
+      }
+
+      // First, check if user already has a default exit point
+      const { data: existingLocations, error: fetchError } = await supabase
+        .from('saved_locations')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('type', 'exit_point')
+        .eq('is_default', true)
+        .single();
+
+      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+        throw fetchError;
+      }
+
+      let result;
+      
+      if (existingLocations?.id) {
+        // Update existing location
+        const { data, error: updateError } = await supabase
+          .from('saved_locations')
+          .update({
+            name: "Default Exit Point",
+            address: location.address || `Custom Location (${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)})`,
+            latitude: location.latitude,
+            longitude: location.longitude,
+            city: location.city || "Las Piñas City",
+            barangay: location.barangay || "Talon Kuatro",
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingLocations.id)
+          .select()
+          .single();
+
+        if (updateError) throw updateError;
+        result = data;
+      } else {
+        // Insert new location
+        const { data, error: insertError } = await supabase
+          .from('saved_locations')
+          .insert({
+            user_id: user.id,
+            name: "Default Exit Point",
+            address: location.address || `Custom Location (${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)})`,
+            latitude: location.latitude,
+            longitude: location.longitude,
+            city: location.city || "Las Piñas City",
+            barangay: location.barangay || "Talon Kuatro",
+            type: 'exit_point',
+            is_default: true,
+            created_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+        result = data;
+      }
+
+      if (result) {
+        toast.success("Location Saved", {
+          description: "This location has been saved as your default exit point."
+        });
+      }
+
+      return result;
+    } catch (error) {
+      console.error("Error saving location:", error);
+      toast.error("Save Failed", {
+        description: error instanceof Error ? error.message : "Could not save the location. Please try again."
+      });
+      return null;
+    }
+  };
+
+  // Update handleMapClick function
+  const handleMapClick = useCallback((event: { lngLat: { lat: number; lng: number } }) => {
+    if (!mapClickEnabled) return;
+
+    const { lat, lng } = event.lngLat;
+    
+    // Create a new location from the clicked point
+    const clickedLocation: Location = {
+      id: `map-${Date.now()}`,
+      name: "Custom Location",
+      address: "Custom Pinned Location",
+      latitude: lat,
+      longitude: lng,
+      city: "Las Piñas City",
+      barangay: "Talon Kuatro",
+      type: 'custom'
+    };
+
+    // Store the location temporarily
+    setTempDropoffLocation(clickedLocation);
+    
+    // Show the save location dialog
+    setShowSaveLocationDialog(true);
+    
+    // Disable map clicking mode
+    setMapClickEnabled(false);
+    setIsMapPinningMode(false);
+  }, [mapClickEnabled, user?.id]);
+
+  // Enhance dropoff search with debouncing
+  const debouncedDropoffSearch = useCallback(
+    debounce(async (searchValue: string) => {
+      if (searchValue.length < 3) return;
+
+      console.log("Searching dropoff locations for:", searchValue);
       try {
         const { data: searchResults, error } = await supabase
           .from('locations')
           .select('*')
-          .or(`name.ilike.%${value}%,address.ilike.%${value}%`)
-          .eq('city', 'Las Piñas City') // Keep scope limited
-          .eq('barangay', 'Talon Kuatro') // Keep scope limited
-          .limit(5)
+          .or(`name.ilike.%${searchValue}%,address.ilike.%${searchValue}%`)
+          .eq('city', 'Las Piñas City')
+          .eq('barangay', 'Talon Kuatro')
+          .limit(5);
 
-        if (error) throw error // Throw error to be caught below
+        if (error) throw error;
 
-        console.log(`Found ${searchResults?.length || 0} dropoff results.`)
-        setDropoffSearchResults(searchResults || [])
-        setShowDropoffResults(true)
+        console.log(`Found ${searchResults?.length || 0} dropoff results.`);
+        setDropoffSearchResults(searchResults || []);
+        setShowDropoffResults(true);
       } catch (error: any) {
-          console.error("Error searching dropoff locations:", error)
-          toast.error("Search Failed", {
-            description: error.message || "Could not perform dropoff location search."
-          })
-          setDropoffSearchResults([])
-          setShowDropoffResults(false)
+        console.error("Error searching dropoff locations:", error);
+        toast.error("Search Failed", {
+          description: error.message || "Could not perform dropoff location search."
+        });
+        setDropoffSearchResults([]);
+        setShowDropoffResults(false);
       }
-    } else {
-      setDropoffSearchResults([])
-      setShowDropoffResults(false)
-    }
-  }
+    }, 300),
+    []
+  );
 
-  // Remove unused getAddressFromCoordinates function
-  // const getAddressFromCoordinates = async ...
+  // Update the handleDropoffSearch function
+  const handleDropoffSearch = (value: string) => {
+    setDropoffLocation(value);
+    if (!value) {
+      setSelectedDropoff(null);
+      setDropoffSearchResults([]);
+      setShowDropoffResults(false);
+      return;
+    }
+    debouncedDropoffSearch(value);
+  };
 
   // Update the detectCurrentLocation function
   const detectCurrentLocation = useCallback(
     async (locationType: "pickup" | "dropoff") => {
-      setIsLocating(true)
+      if (isLocating) {
+        return; // Prevent multiple simultaneous calls
+      }
+
+      setIsLocating(true);
 
       try {
-        // For demo purposes, use the Talon Kuatro terminal location
+        // Check for geolocation support
+        if (!navigator.geolocation) {
+          throw new Error("Your browser doesn't support location detection.");
+        }
+
+        // Wrap geolocation in a promise with timeout
+        const getPositionPromise = new Promise<GeolocationPosition>((resolve, reject) => {
+          const timeoutId = setTimeout(() => {
+            reject(new Error("Location request timed out. Please try again."));
+          }, 10000); // 10 second timeout
+
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              clearTimeout(timeoutId);
+              resolve(position);
+            },
+            (error) => {
+              clearTimeout(timeoutId);
+              reject(error);
+            },
+            {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0
+            }
+          );
+        });
+
+        const position = await getPositionPromise;
+
+        // Create location data object
         const locationData: Location = {
           id: `current-${Date.now()}`,
           name: "Current Location",
-          address: "19 Rose of Heaven Drive corner Periwinkle St., Talon Village, Talon 4, Las Piñas City",
-          latitude: 14.4507,
-          longitude: 120.9826,
-          city: "Las Piñas City",
-          barangay: "Talon Kuatro",
-          type: locationType
-        }
+          address: "Current Location",
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          city: "Las Piñas City", // Default to app's service area
+          barangay: "Talon Kuatro", // Default to app's service area
+          type: 'custom',
+        };
 
+        // Update state based on location type
         if (locationType === "pickup") {
-          setSelectedPickup(locationData)
-          setPickupLocation("Current Location")
-          setShowPickupResults(false)
+          setSelectedPickup(locationData);
+          setPickupLocation("Current Location");
+          setShowPickupResults(false);
+          setMapCenter({ 
+            lat: position.coords.latitude, 
+            lng: position.coords.longitude 
+          });
+          setMapMarkers(prev => [
+            { 
+              lat: position.coords.latitude, 
+              lng: position.coords.longitude, 
+              title: "Pickup", 
+              type: "pickup" 
+            },
+            ...prev.filter(m => m.type !== "pickup")
+          ]);
         } else {
-          setSelectedDropoff(locationData)
-          setDropoffLocation("Current Location")
-          setShowDropoffResults(false)
+          setSelectedDropoff(locationData);
+          setDropoffLocation("Current Location");
+          setShowDropoffResults(false);
+          setMapMarkers(prev => [
+            ...prev.filter(m => m.type !== "dropoff"),
+            { 
+              lat: position.coords.latitude, 
+              lng: position.coords.longitude, 
+              title: "Dropoff", 
+              type: "dropoff" 
+            }
+          ]);
         }
 
-        // Use direct toast import
         toast.success("Location Set", {
-          description: `Your location has been set as the ${locationType} location.`,
-        })
-      } catch (error: any) {
-        console.error("Error setting location:", error)
-        // Use direct toast import
+          description: `Your current location has been set as the ${locationType} location.`
+        });
+
+      } catch (error) {
+        console.error("Location detection error:", error);
+        
+        let errorMessage = "Unable to get your location. ";
+        
+        if (error instanceof GeolocationPositionError) {
+          switch (error.code) {
+            case GeolocationPositionError.PERMISSION_DENIED:
+              errorMessage += "Please enable location access in your browser settings.";
+              break;
+            case GeolocationPositionError.POSITION_UNAVAILABLE:
+              errorMessage += "Location service is unavailable. Please try again later.";
+              break;
+            case GeolocationPositionError.TIMEOUT:
+              errorMessage += "Location request timed out. Please try again.";
+              break;
+            default:
+              errorMessage += "An unknown error occurred.";
+          }
+        } else if (error instanceof Error) {
+          errorMessage += error.message;
+        }
+
         toast.error("Location Error", {
-          description: error.message || "Unable to set your location. Please try again.",
-        })
+          description: errorMessage
+        });
+
       } finally {
-        setIsLocating(false)
+        setIsLocating(false);
       }
     },
-    [] // Removed toast dependency as it's imported directly
-  )
+    [isLocating, setMapCenter, setMapMarkers] // Add dependencies
+  );
 
   // Select a location from search results
   const handleSelectPickup = (location: Location) => {
@@ -315,7 +521,6 @@ export function PassengerBooking() {
   // Book a ride
   const handleBookRide = () => {
     if (!selectedPickup || !selectedDropoff) {
-      // Use direct toast import
       toast.warning("Missing Information", {
         description: "Please select both pickup and dropoff locations.",
       })
@@ -324,102 +529,196 @@ export function PassengerBooking() {
 
     setIsLoading(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      // Calculate estimated time and fare based on distance
+    try {
+      // Calculate distance between points
       const distance = calculateDistance(
         selectedPickup.latitude,
         selectedPickup.longitude,
         selectedDropoff.latitude,
-        selectedDropoff.longitude,
+        selectedDropoff.longitude
       )
 
-      const time = Math.round(distance / 500) * 5 // Rough estimate: 5 minutes per 500 meters
-      const fare = Math.round(distance / 100) * 10 + 50 // Base fare of 50 + 10 per 100 meters
+      // Convert distance to kilometers
+      const distanceInKm = distance / 1000
 
-      setEstimatedTime(`${time}-${time + 5} minutes`)
-      setEstimatedFare(`₱${fare} - ₱${fare + 30}`)
+      // Base fare is PHP 25
+      let fare = 25
+
+      // Add PHP 10 for every kilometer after the first kilometer
+      if (distanceInKm > 1) {
+        fare += Math.ceil(distanceInKm - 1) * 10
+      }
+
+      // Estimate time: roughly 3 minutes per kilometer, minimum 5 minutes
+      const estimatedTimeInMinutes = Math.max(5, Math.round(distanceInKm * 3))
+
+      setEstimatedTime(`${estimatedTimeInMinutes}-${estimatedTimeInMinutes + 5} minutes`)
+      setEstimatedFare(`₱${fare} - ₱${fare + 10}`) // Add a small range for traffic/waiting
 
       setIsLoading(false)
       setShowConfirmation(true)
-    }, 2000)
-  }
-
-  // Confirm booking
-  const handleConfirmBooking = async () => {
-    if (!user || !selectedPickup || !selectedDropoff) {
-      toast.error("Booking Error", {
-        description: "Missing user or location information.",
+    } catch (error) {
+      console.error("Error calculating fare:", error)
+      toast.error("Calculation Error", {
+        description: "Could not calculate fare. Please try again."
       })
-      return
-    }
-
-    setIsLoading(true)
-    console.log("Confirming booking...")
-
-    // Generate a unique booking code locally first (can be refined)
-    const generatedCode = Math.random().toString(36).substring(2, 8).toUpperCase()
-
-    const bookingData = {
-      passenger_id: user.id,
-      pickup_location_id: selectedPickup.id, // Assuming selectedPickup has an ID from the 'locations' table
-      dropoff_location_id: selectedDropoff.id, // Assuming selectedDropoff has an ID from the 'locations' table
-      status: 'pending', // Initial status
-      estimated_fare: estimatedFare, // Use the state value
-      estimated_time: estimatedTime, // Use the state value
-      booking_code: generatedCode, // Use the generated code
-      // Add pickup/dropoff details directly if needed, or rely on relation IDs
-      pickup_name: selectedPickup.name,
-      pickup_address: selectedPickup.address,
-      pickup_latitude: selectedPickup.latitude,
-      pickup_longitude: selectedPickup.longitude,
-      dropoff_name: selectedDropoff.name,
-      dropoff_address: selectedDropoff.address,
-      dropoff_latitude: selectedDropoff.latitude,
-      dropoff_longitude: selectedDropoff.longitude,
-      // toda_id: selectedPickup.toda_id, // Assuming pickup location determines the TODA
-    }
-
-    console.log("Attempting to insert booking:", bookingData)
-
-    try {
-      const { data, error } = await supabase
-        .from('bookings') // Ensure 'bookings' is the correct table name
-        .insert([bookingData])
-        .select() // Select the inserted row to get the actual data back
-        .single() // Expecting a single row back
-
-      if (error) {
-        console.error("Supabase insert error:", error)
-        throw error // Throw error to be caught below
-      }
-
-      if (!data) {
-        throw new Error("Booking data was not returned after insert.")
-      }
-
-      console.log("Booking successfully inserted:", data)
-
-      // Use the actual booking code from the database if it's generated there, otherwise use the local one
-      const actualBookingCode = data.booking_code || generatedCode
-      setBookingCode(actualBookingCode)
-      setBookingSuccess(true)
-
-      // Use direct toast import
-      toast.success("Booking Successful", {
-        description: `Your ride has been booked. Booking code: ${actualBookingCode}`,
-      })
-
-    } catch (error: any) {
-      console.error("Error during booking confirmation:", error)
-      toast.error("Booking Failed", {
-        description: error.message || "Could not confirm your booking. Please try again.",
-      })
-      setShowConfirmation(false) // Close confirmation dialog on error
-    } finally {
       setIsLoading(false)
     }
   }
+
+  // Add this function to handle dispatcher notification
+  const notifyDispatcher = async (bookingId: string) => {
+    try {
+      const { data: dispatcherData, error: dispatcherError } = await supabase
+        .from('dispatcher_notifications')
+        .insert([{
+          booking_id: bookingId,
+          status: 'pending',
+          notification_type: 'unassigned_booking',
+          message: 'New booking requires manual assignment',
+          created_at: new Date().toISOString()
+        }])
+        .select()
+        .single();
+
+      if (dispatcherError) throw dispatcherError;
+
+      setDispatcherNotified(true);
+      toast.info("Dispatcher Notified", {
+        description: "A dispatcher has been notified and will assign a trider soon."
+      });
+    } catch (error) {
+      console.error("Error notifying dispatcher:", error);
+    }
+  };
+
+  // Update the handleConfirmBooking function with better error handling
+  const handleConfirmBooking = async () => {
+    if (!user || !selectedPickup || !selectedDropoff) {
+      toast.error("Invalid Booking", {
+        description: "Please select both pickup and dropoff locations."
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Generate booking code
+      const bookingCode = `TG${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+      // Get TODA ID
+      const todaId = selectedPickup.toda_id || selectedDropoff.toda_id;
+      if (!todaId) {
+        throw new Error("No TODA assigned to pickup or dropoff location");
+      }
+
+      // Parse fare and time values
+      const parsedFare = parseFloat(String(estimatedFare).replace(/[^\d.]/g, ''));
+      const parsedTime = parseInt(String(estimatedTime).replace(/[^\d]/g, ''));
+
+      if (isNaN(parsedFare) || isNaN(parsedTime) || parsedFare <= 0 || parsedTime <= 0) {
+        throw new Error("Invalid fare or time values");
+      }
+
+      // Calculate route metrics
+      const routeMetrics = {
+        distance: routeDistance || 0,
+        duration: routeDuration || 0,
+        geometry: routeGeojson || '',
+      };
+
+      // Prepare the ride request data
+      const rideRequestData = {
+        booking_code: bookingCode,
+        passenger_id: user.id,
+        toda_id: todaId,
+        pickup_location_id: selectedPickup.id,
+        dropoff_location_id: selectedDropoff.id,
+        pickup_name: selectedPickup.name,
+        pickup_address: selectedPickup.address,
+        pickup_latitude: selectedPickup.latitude,
+        pickup_longitude: selectedPickup.longitude,
+        dropoff_name: selectedDropoff.name,
+        dropoff_address: selectedDropoff.address,
+        dropoff_latitude: selectedDropoff.latitude,
+        dropoff_longitude: selectedDropoff.longitude,
+        status: 'pending',
+        estimated_fare: parsedFare,
+        estimated_time: parsedTime,
+        route_distance: routeMetrics.distance,
+        route_duration: routeMetrics.duration,
+        route_geometry: routeMetrics.geometry,
+        created_at: new Date().toISOString()
+      };
+
+      // Insert the ride request
+      const { data: newRideRequest, error: insertError } = await supabase
+        .from('ride_requests')
+        .insert([rideRequestData])
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Error creating ride request:', insertError);
+        throw new Error(insertError.message);
+      }
+
+      if (!newRideRequest) {
+        throw new Error('Failed to create ride request');
+      }
+
+      // Update UI state
+      setBookingCode(bookingCode);
+      setBookingSuccess(true);
+      setBookingStatus('waiting');
+      setShowConfirmation(false);
+
+      // Start dispatcher notification timeout
+      setTimeout(() => {
+        if (bookingStatus === 'waiting' && newRideRequest.id) {
+          notifyDispatcher(newRideRequest.id);
+        }
+      }, 30000);
+
+      toast.success("Booking Successful", {
+        description: `Your ride has been booked. Booking code: ${bookingCode}`
+      });
+
+    } catch (error: any) {
+      console.error('Booking error:', error);
+      toast.error("Booking Failed", {
+        description: error.message || "Could not process your booking. Please try again."
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Helper function to fetch route from Mapbox Directions API
+  const fetchRoute = async (start: Location, end: Location) => {
+    const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_API_KEY;
+    if (!mapboxToken) {
+      throw new Error("Mapbox token is missing");
+    }
+
+    const startCoords = `${start.longitude},${start.latitude}`;
+    const endCoords = `${end.longitude},${end.latitude}`;
+    const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${startCoords};${endCoords}?geometries=geojson&overview=full&access_token=${mapboxToken}`;
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (!data.routes?.length) {
+      throw new Error(data.message || "No route found");
+    }
+
+    const route = data.routes[0];
+    return {
+      geojson: route.geometry,
+      distance: route.distance,
+      duration: route.duration,
+    };
+  };
 
   // Reset booking
   const handleNewBooking = () => {
@@ -457,7 +756,7 @@ export function PassengerBooking() {
         lat: selectedPickup.latitude,
         lng: selectedPickup.longitude,
         title: selectedPickup.name || 'Pickup Location',
-        type: 'pickup' as const // Ensure type is literal
+        type: 'pickup' as const 
       })
     }
 
@@ -468,7 +767,7 @@ export function PassengerBooking() {
         lat: selectedDropoff.latitude,
         lng: selectedDropoff.longitude,
         title: selectedDropoff.name || 'Drop-off Location',
-        type: 'dropoff' as const // Ensure type is literal
+        type: 'dropoff' as const 
       })
     }
 
@@ -478,7 +777,7 @@ export function PassengerBooking() {
         lat: terminal.latitude,
         lng: terminal.longitude,
         title: terminal.name,
-        type: 'terminal' as const // Ensure type is literal
+        type: 'terminal' as const 
       })
     })
     console.log("Adding terminal markers:", terminalExits.length)
@@ -494,11 +793,11 @@ export function PassengerBooking() {
       console.log("Centering map on first terminal:", terminalExits[0].name)
       setMapCenter({ lat: terminalExits[0].latitude, lng: terminalExits[0].longitude })
     } else {
-       console.log("Using default map center.")
-       // Keep default center if no pickup or terminals
-       setMapCenter({ lat: 14.4507, lng: 120.9826 })
+      console.log("Using default map center.")
+      // Keep default center if no pickup or terminals
+      setMapCenter({ lat: 14.4507, lng: 120.9826 })
     }
-  }, [selectedPickup, selectedDropoff, terminalExits]) // Depend on the objects, not the strings
+  }, [selectedPickup, selectedDropoff, terminalExits]) // Add proper dependencies
 
   return (
     <>
@@ -554,7 +853,7 @@ export function PassengerBooking() {
                         ) : (
                           <Navigation className="h-3 w-3 mr-1" />
                         )}
-                        Find Me
+                        Current Location
                       </Button>
                     </div>
                   </div>
@@ -584,11 +883,11 @@ export function PassengerBooking() {
                     </div>
                     <Input
                       id="dropoff"
-                      placeholder="Enter dropoff location"
+                      placeholder="Enter dropoff location or pin on map"
                       value={dropoffLocation}
                       onChange={(e) => handleDropoffSearch(e.target.value)}
-                      className="pl-10 pr-20"
-                      disabled={bookingSuccess}
+                      className="pl-10 pr-32"
+                      disabled={bookingSuccess || isMapPinningMode}
                     />
                     <div className="absolute inset-y-0 right-0 flex items-center">
                       {selectedDropoff && (
@@ -608,14 +907,33 @@ export function PassengerBooking() {
                         size="sm"
                         className="h-8 mr-1"
                         onClick={() => detectCurrentLocation("dropoff")}
-                        disabled={isLocating || bookingSuccess}
+                        disabled={isLocating || bookingSuccess || isMapPinningMode}
                       >
                         {isLocating ? (
                           <Loader2 className="h-3 w-3 animate-spin" />
                         ) : (
                           <Navigation className="h-3 w-3 mr-1" />
                         )}
-                        Find Me
+                        Current
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={isMapPinningMode ? "secondary" : "ghost"}
+                        size="sm"
+                        className="h-8"
+                        onClick={() => {
+                          setIsMapPinningMode(!isMapPinningMode);
+                          setMapClickEnabled(!mapClickEnabled);
+                          if (!isMapPinningMode) {
+                            toast.info("Map Pinning Mode", {
+                              description: "Click anywhere on the map to set your drop-off location."
+                            });
+                          }
+                        }}
+                        disabled={bookingSuccess}
+                      >
+                        <MapPin className="h-3 w-3 mr-1" />
+                        Pin
                       </Button>
                     </div>
                   </div>
@@ -674,13 +992,21 @@ export function PassengerBooking() {
             ) : (
               <div className="space-y-4 py-4">
                 <div className="flex items-center justify-center">
-                  <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center">
-                    <Check className="h-8 w-8 text-green-600" />
+                  <div className="h-16 w-16 rounded-full bg-yellow-100 flex items-center justify-center">
+                    {bookingStatus === 'waiting' ? (
+                      <Loader2 className="h-8 w-8 text-yellow-600 animate-spin" />
+                    ) : (
+                      <Check className="h-8 w-8 text-green-600" />
+                    )}
                   </div>
                 </div>
                 <div className="text-center">
                   <h3 className="text-lg font-medium">Booking Confirmed!</h3>
-                  <p className="text-sm text-muted-foreground">Your ride has been booked successfully.</p>
+                  <p className="text-sm text-yellow-600 font-medium">
+                    {bookingStatus === 'waiting' 
+                      ? "Waiting for a trider to accept your request..." 
+                      : "Your ride has been accepted!"}
+                  </p>
                 </div>
                 <div className="p-4 bg-muted rounded-md">
                   <div className="flex justify-between items-center mb-2">
@@ -697,8 +1023,17 @@ export function PassengerBooking() {
                   </div>
                 </div>
                 <div className="text-center text-sm text-muted-foreground">
-                  <p>A trider will contact you shortly.</p>
-                  <p>Please be ready at your pickup location.</p>
+                  {bookingStatus === 'waiting' ? (
+                    <>
+                      <p>Please wait while we find a trider for you.</p>
+                      <p>This usually takes 1-2 minutes.</p>
+                    </>
+                  ) : (
+                    <>
+                      <p>A trider has accepted your request.</p>
+                      <p>Please be ready at your pickup location.</p>
+                    </>
+                  )}
                 </div>
               </div>
             )}
@@ -731,8 +1066,11 @@ export function PassengerBooking() {
               <MapboxMap
                 center={mapCenter}
                 markers={mapMarkers}
+                routeGeojson={routeGeojson}
                 height="400px"
                 zoom={16}
+                onClick={handleMapClick}
+                style={{ cursor: mapClickEnabled ? 'crosshair' : 'grab' }}
               />
             </div>
           </CardContent>
@@ -793,6 +1131,59 @@ export function PassengerBooking() {
               Cancel
             </Button>
             <Button onClick={handleConfirmBooking}>Confirm Booking</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Save Location Dialog */}
+      <Dialog open={showSaveLocationDialog} onOpenChange={setShowSaveLocationDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Save Location</DialogTitle>
+            <DialogDescription>
+              Would you like to save this as your default exit point?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="flex items-center space-x-2">
+              <MapPin className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium">Custom Location</p>
+                <p className="text-sm text-muted-foreground">
+                  {tempDropoffLocation?.latitude.toFixed(6)}, {tempDropoffLocation?.longitude.toFixed(6)}
+                </p>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                // Just set as current dropoff without saving
+                if (tempDropoffLocation) {
+                  setSelectedDropoff(tempDropoffLocation);
+                  setDropoffLocation("Custom Location");
+                  setShowDropoffResults(false);
+                }
+                setShowSaveLocationDialog(false);
+              }}
+            >
+              Don't Save
+            </Button>
+            <Button
+              onClick={() => {
+                if (tempDropoffLocation) {
+                  // Save to profile and set as current dropoff
+                  saveLocationToProfile(tempDropoffLocation);
+                  setSelectedDropoff(tempDropoffLocation);
+                  setDropoffLocation("Custom Location");
+                  setShowDropoffResults(false);
+                }
+                setShowSaveLocationDialog(false);
+              }}
+            >
+              Save as Default
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

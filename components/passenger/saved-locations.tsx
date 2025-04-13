@@ -29,8 +29,9 @@ export function SavedLocations({ onSelect }: SavedLocationsProps) {
           // Proceed assuming locationsResult is Location[]
           // Use type assertion via unknown to satisfy TypeScript here
           const locations = locationsResult as unknown as Location[];
-          const filteredLocations = locations.filter((loc: Location) => // Explicitly type 'loc'
-            loc.type === 'pickup' &&
+          // Filter using the correct DB enum value
+          const filteredLocations = locations.filter((loc: Location) => 
+            loc.type === 'custom' && 
             loc.barangay === 'Talon Kuatro'
           ).slice(0, 8); // Limit to 8 locations for better display
           setSavedLocations(filteredLocations);

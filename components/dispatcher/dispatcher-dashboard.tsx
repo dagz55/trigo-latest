@@ -1,27 +1,55 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { MapboxMap } from "@/components/map/mapbox-map"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
+import { type UserProfile } from "@/contexts/user-context"; // Import UserProfile
 import {
-  supabase,
-  updateRideStatus, // Import utility
-  type RideRequest,
-  type Trider,
-  type Location,
+    supabase,
+    updateRideStatus, // Import utility
+    type RideRequest,
+    type Trider
 } from "@/lib/supabase-client"
-import { type UserProfile } from "@/contexts/user-context" // Import UserProfile
-import { toast } from "sonner" // Import toast directly
-import { MapPin, Phone, MessageCircle, UserCheck, Loader2 } from "lucide-react" // Add Loader2
+import { Loader2 } from "lucide-react"; // Add Loader2 and Navigation
+import { useEffect, useState } from "react"
+import { toast } from "sonner"; // Import toast directly
+
+interface OnlineTrider {
+  id: string
+  name: string
+  current_location: {
+    latitude: number
+    longitude: number
+  }
+  status: 'available' | 'busy' | 'offline'
+  last_updated: string
+}
+
+interface ActiveBooking {
+  id: string
+  booking_code: string
+  passenger: {
+    id: string
+    name: string
+  }
+  pickup_latitude: number
+  pickup_longitude: number
+  dropoff_latitude: number
+  dropoff_longitude: number
+  status: string
+  created_at: string
+}
 
 export function DispatcherDashboard({ user }: { user: UserProfile }) { // Use UserProfile type
   const [newRides, setNewRides] = useState<RideRequest[]>([]) // Use RideRequest type
   const [assignedRides, setAssignedRides] = useState<RideRequest[]>([]) // Use RideRequest type
   const [availableTriders, setAvailableTriders] = useState<Trider[]>([]) // Use Trider type
   const [loading, setLoading] = useState(true); // Add loading state
-  // const { toast } = useToast() // Remove useToast
+  const [onlineTriders, setOnlineTriders] = useState<OnlineTrider[]>([])
+  const [activeBookings, setActiveBookings] = useState<ActiveBooking[]>([])
+  const [mapCenter, setMapCenter] = useState({ lat: 14.4507, lng: 120.9826 })
+  const [mapMarkers, setMapMarkers] = useState<any[]>([])
 
   // Fetch data
   useEffect(() => {
@@ -135,7 +163,6 @@ export function DispatcherDashboard({ user }: { user: UserProfile }) { // Use Us
          }
       });
 
-
     // Cleanup function
     return () => {
       console.log("Dispatcher: Removing subscription channels.");
@@ -143,6 +170,166 @@ export function DispatcherDashboard({ user }: { user: UserProfile }) { // Use Us
       supabase.removeChannel(tridersSubscription);
     };
   }, []); // Empty dependency array, fetchData runs once and subscriptions handle updates
+
+  // Subscribe to real-time updates
+  useEffect(() => {
+    // Subscribe to trider location updates
+    const triderSubscription = supabase
+      .channel('trider_locations')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'trider_locations'
+      }, (payload) => {
+        setOnlineTriders(current => {
+          const updated = [...current]
+          const index = updated.findIndex(t => t.id === payload.new.trider_id)
+          if (index !== -1) {
+            updated[index] = {
+              ...updated[index],
+              current_location: {
+                latitude: payload.new.latitude,
+                longitude: payload.new.longitude
+              },
+              last_updated: payload.new.updated_at
+            }
+          }
+          return updated
+        })
+      })
+      .subscribe()
+
+    // Subscribe to booking updates
+    const bookingSubscription = supabase
+      .channel('active_bookings')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'bookings'
+      }, (payload) => {
+        if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+          fetchActiveBookings()
+        }
+      })
+      .subscribe()
+
+    // Subscribe to dispatcher notifications
+    const notificationSubscription = supabase
+      .channel('dispatcher_notifications')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'dispatcher_notifications'
+      }, (payload) => {
+        toast.info("New Booking Alert", {
+          description: "A booking requires your attention."
+        })
+      })
+      .subscribe()
+
+    // Initial data fetch
+    fetchOnlineTriders()
+    fetchActiveBookings()
+
+    // Cleanup subscriptions
+    return () => {
+      triderSubscription.unsubscribe()
+      bookingSubscription.unsubscribe()
+      notificationSubscription.unsubscribe()
+    }
+  }, [])
+
+  // Update map markers when data changes
+  useEffect(() => {
+    const markers = [
+      // Add trider markers
+      ...onlineTriders.map(trider => ({
+        lat: trider.current_location.latitude,
+        lng: trider.current_location.longitude,
+        title: trider.name,
+        type: 'trider'
+      })),
+      // Add booking markers
+      ...activeBookings.flatMap(booking => [
+        {
+          lat: booking.pickup_latitude,
+          lng: booking.pickup_longitude,
+          title: `Pickup: ${booking.booking_code}`,
+          type: 'pickup'
+        },
+        {
+          lat: booking.dropoff_latitude,
+          lng: booking.dropoff_longitude,
+          title: `Dropoff: ${booking.booking_code}`,
+          type: 'dropoff'
+        }
+      ])
+    ]
+    setMapMarkers(markers)
+  }, [onlineTriders, activeBookings])
+
+  const fetchOnlineTriders = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('trider_locations')
+        .select(`
+          id,
+          trider:trider_id(id, name),
+          latitude,
+          longitude,
+          status,
+          updated_at
+        `)
+        .eq('status', 'available')
+
+      if (error) throw error
+
+      const triders: OnlineTrider[] = data.map(row => ({
+        id: row.trider.id,
+        name: row.trider.name,
+        current_location: {
+          latitude: row.latitude,
+          longitude: row.longitude
+        },
+        status: row.status,
+        last_updated: row.updated_at
+      }))
+
+      setOnlineTriders(triders)
+    } catch (error) {
+      console.error('Error fetching online triders:', error)
+      toast.error("Failed to fetch triders")
+    }
+  }
+
+  const fetchActiveBookings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select(`
+          id,
+          booking_code,
+          passenger:passenger_id(id, name),
+          pickup_latitude,
+          pickup_longitude,
+          dropoff_latitude,
+          dropoff_longitude,
+          status,
+          created_at
+        `)
+        .in('status', ['waiting_for_trider', 'accepted'])
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+
+      setActiveBookings(data)
+    } catch (error) {
+      console.error('Error fetching active bookings:', error)
+      toast.error("Failed to fetch bookings")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Assign a trider to a ride using the utility function
   const assignTrider = async (rideId: string, triderId: string | undefined) => {
@@ -173,6 +360,31 @@ export function DispatcherDashboard({ user }: { user: UserProfile }) { // Use Us
      }
   };
 
+  const assignTriderToBooking = async (bookingId: string, triderId: string) => {
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({
+          trider_id: triderId,
+          status: 'accepted',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', bookingId)
+
+      if (error) throw error
+
+      toast.success("Trider Assigned", {
+        description: "The booking has been assigned successfully."
+      })
+
+      // Refresh the bookings list
+      fetchActiveBookings()
+    } catch (error) {
+      console.error('Error assigning trider:', error)
+      toast.error("Failed to assign trider")
+    }
+  }
+
   return (
     <div className="container mx-auto py-6">
       <h1 className="text-3xl font-bold mb-6">Dispatcher Dashboard</h1>
@@ -186,205 +398,107 @@ export function DispatcherDashboard({ user }: { user: UserProfile }) { // Use Us
 
       {!loading && (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2">
-          <Tabs defaultValue="new">
-            <TabsList className="mb-4">
-              <TabsTrigger value="new">
-                New Requests
-                {newRides.length > 0 && (
-                  <Badge className="ml-2 bg-primary" variant="secondary">
-                    {newRides.length}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="active">Active Rides</TabsTrigger>
-            </TabsList>
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle>Live Map View</CardTitle>
+            <CardDescription>Track triders and active bookings</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="h-[600px] rounded-lg overflow-hidden">
+              <MapboxMap
+                center={mapCenter}
+                markers={mapMarkers}
+                height="600px"
+                zoom={15}
+              />
+            </div>
+          </CardContent>
+        </Card>
 
-            <TabsContent value="new">
-              {newRides.length > 0 ? (
-                <div className="grid gap-4">
-                  {newRides.map((ride) => (
-                    <Card key={ride.id}>
-                      <CardContent className="pt-6">
-                        <div className="flex flex-col space-y-4">
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium">New Ride Request</span>
-                            {/* Use correct timestamp column */}
-                            <Badge variant="outline">{new Date(ride.requested_at).toLocaleTimeString()}</Badge>
-                          </div>
-
-                          <div className="space-y-2">
-                            <div className="flex">
-                              <MapPin className="w-5 h-5 mr-2 text-green-600 flex-shrink-0" />
-                              <div>
-                                <p className="text-sm font-medium">Pickup</p>
-                                {/* Use correct nested location property names */}
-                                <p className="text-sm text-muted-foreground">
-                                  {ride.pickup_location?.name || 'Unknown Pickup'}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {ride.pickup_location?.address}
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="flex">
-                              <MapPin className="w-5 h-5 mr-2 text-red-600 flex-shrink-0" />
-                              <div>
-                                <p className="text-sm font-medium">Dropoff</p>
-                                {/* Use correct nested location property names */}
-                                <p className="text-sm text-muted-foreground">
-                                  {ride.dropoff_location?.name || 'Unknown Dropoff'}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {ride.dropoff_location?.address}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex space-x-2">
-                             {/* Basic assignment: assign first available trider */}
-                             {/* TODO: Add better trider selection UI */}
-                            <Button
-                               className="flex-1"
-                               onClick={() => assignTrider(ride.id, availableTriders[0]?.id)}
-                               disabled={availableTriders.length === 0}
-                             >
-                              <UserCheck className="w-4 h-4 mr-2" />
-                              Assign Trider {availableTriders.length === 0 ? '(None Available)' : `(${availableTriders[0]?.first_name || 'First Available'})`}
-                            </Button>
-                            <Button variant="outline">
-                              <Phone className="w-4 h-4 mr-2" />
-                              Contact
-                            </Button>
-                            <Button variant="outline">
-                              <MessageCircle className="w-4 h-4 mr-2" />
-                              Message
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-center py-12 text-muted-foreground">No new ride requests</p>
-              )}
-            </TabsContent>
-
-            <TabsContent value="active">
-              {assignedRides.length > 0 ? (
-                <div className="grid gap-4">
-                  {assignedRides.map((ride) => (
-                    <Card key={ride.id}>
-                      <CardContent className="pt-6">
-                        <div className="flex flex-col space-y-4">
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium">Ride #{ride.id.slice(0, 8)}...</span>
-                            {/* Use correct status values */}
-                            <Badge variant={ride.status === "picked_up" ? "default" : "secondary"}>
-                              {ride.status === "picked_up" ? "Picked Up" : "Accepted"}
-                            </Badge>
-                          </div>
-
-                          {/* Display assigned trider info */}
-                          {ride.trider && (
-                            <div className="flex items-center">
-                              <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center mr-2">
-                                <UserCheck className="h-4 w-4 text-primary" />
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium">{`${ride.trider.first_name} ${ride.trider.last_name}`}</p>
-                                <p className="text-xs text-muted-foreground">{ride.trider.contact_number || "No phone"}</p>
-                              </div>
-                            </div>
-                          )}
-
-                          <div className="space-y-2">
-                            <div className="flex">
-                              <MapPin className="w-5 h-5 mr-2 text-green-600 flex-shrink-0" />
-                              <div>
-                                <p className="text-sm font-medium">Pickup</p>
-                                {/* Use correct nested location property names */}
-                                <p className="text-sm text-muted-foreground">
-                                  {ride.pickup_location?.name || 'Unknown Pickup'}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {ride.pickup_location?.address}
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="flex">
-                              <MapPin className="w-5 h-5 mr-2 text-red-600 flex-shrink-0" />
-                              <div>
-                                <p className="text-sm font-medium">Dropoff</p>
-                                {/* Use correct nested location property names */}
-                                <p className="text-sm text-muted-foreground">
-                                  {ride.dropoff_location?.name || 'Unknown Dropoff'}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {ride.dropoff_location?.address}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex space-x-2">
-                            <Button variant="outline">
-                              <Phone className="w-4 h-4 mr-2" />
-                              Call Trider
-                            </Button>
-                            <Button variant="outline">
-                              <MessageCircle className="w-4 h-4 mr-2" />
-                              Message
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-center py-12 text-muted-foreground">No active rides at the moment</p>
-              )}
-            </TabsContent>
-          </Tabs>
-        </div>
-
-        <div>
+        <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Available Triders</CardTitle>
-              <CardDescription>{availableTriders.length} trider(s) currently online</CardDescription>
+              <CardTitle>Online Triders</CardTitle>
+              <CardDescription>Currently available triders</CardDescription>
             </CardHeader>
             <CardContent>
-              {availableTriders.length > 0 ? (
+              {loading ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                </div>
+              ) : onlineTriders.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No triders currently online
+                </p>
+              ) : (
                 <div className="space-y-4">
-                  {/* Use correct Trider properties */}
-                  {availableTriders.map((trider) => (
-                    <div key={trider.id} className="flex items-center p-2 border rounded-md">
-                      <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center mr-3">
-                        <UserCheck className="h-4 w-4 text-green-600" />
+                  {onlineTriders.map(trider => (
+                    <div key={trider.id} className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">{trider.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Last updated: {new Date(trider.last_updated).toLocaleTimeString()}
+                        </p>
                       </div>
-                      <div className="flex-grow">
-                        <p className="font-medium">{`${trider.first_name} ${trider.last_name}`}</p>
-                        <p className="text-xs text-muted-foreground">{trider.contact_number || "No phone"}</p>
-                        {/* Optionally display current location if available */}
-                        {trider.current_latitude && trider.current_longitude && (
-                           <p className="text-xs text-muted-foreground">
-                              Loc: {trider.current_latitude.toFixed(4)}, {trider.current_longitude.toFixed(4)}
-                           </p>
-                        )}
-                      </div>
-                      {/* TODO: Add button to assign this specific trider */}
-                      {/* <Button size="sm" variant="ghost" onClick={() => assignTrider(selectedRideId, trider.id)}>Assign</Button> */}
+                      <Badge variant={trider.status === 'available' ? 'success' : 'secondary'}>
+                        {trider.status}
+                      </Badge>
                     </div>
                   ))}
                 </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Active Bookings</CardTitle>
+              <CardDescription>Pending and ongoing rides</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                </div>
+              ) : activeBookings.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No active bookings
+                </p>
               ) : (
-                <p className="text-center py-8 text-muted-foreground">No triders available</p>
+                <div className="space-y-4">
+                  {activeBookings.map(booking => (
+                    <div key={booking.id} className="p-4 border rounded-lg space-y-2">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-medium">{booking.booking_code}</p>
+                          <p className="text-sm">{booking.passenger.name}</p>
+                        </div>
+                        <Badge variant={booking.status === 'waiting_for_trider' ? 'warning' : 'success'}>
+                          {booking.status}
+                        </Badge>
+                      </div>
+                      {booking.status === 'waiting_for_trider' && onlineTriders.length > 0 && (
+                        <div className="pt-2">
+                          <p className="text-sm font-medium mb-2">Assign Trider:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {onlineTriders
+                              .filter(trider => trider.status === 'available')
+                              .map(trider => (
+                                <Button
+                                  key={trider.id}
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => assignTriderToBooking(booking.id, trider.id)}
+                                >
+                                  {trider.name}
+                                </Button>
+                              ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>

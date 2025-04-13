@@ -8,7 +8,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn("Supabase URL or Anon Key is missing. Check your environment variables.")
 }
 
-export type LocationType = 'pickup' | 'dropoff' | 'terminal'
+// Update LocationType enum to match database
+export type LocationType = 'terminal' | 'custom' 
 export type TodaStatus = 'active' | 'inactive'
 
 export type Toda = {
@@ -231,26 +232,31 @@ export interface TriderQueueItem {
 export type RideStatus = 'pending' | 'accepted' | 'picked_up' | 'completed' | 'cancelled'
 
 export interface RideRequest {
-  id: string
-  passenger_id: string
-  trider_id?: string
-  toda_id: string
-  pickup_location_id: string
-  dropoff_location_id: string
-  status: RideStatus
-  fare_amount?: number
-  distance_km?: number
-  requested_at: string
-  accepted_at?: string
-  picked_up_at?: string
-  completed_at?: string
-  cancelled_at?: string
-  cancellation_reason?: string
-  created_at: string
-  updated_at: string
-  pickup_location?: Location
-  dropoff_location?: Location
-  trider?: Trider
+  id: string;
+  booking_code: string;
+  passenger: {
+    id: string;
+    name: string;
+    contact_number: string;
+  };
+  pickup_location_id: string;
+  dropoff_location_id: string;
+  pickup_name: string;
+  pickup_address: string;
+  pickup_latitude: number;
+  pickup_longitude: number;
+  dropoff_name: string;
+  dropoff_address: string;
+  dropoff_latitude: number;
+  dropoff_longitude: number;
+  status: 'waiting_for_trider' | 'accepted' | 'picked_up' | 'completed' | 'cancelled';
+  estimated_fare: number;
+  estimated_time: number;
+  route_distance: number;
+  route_duration: number;
+  route_geometry: string;
+  trider_id: string;
+  created_at: string;
 }
 
 // Trider functions
@@ -356,7 +362,7 @@ export async function createRideRequest(
 }
 
 export async function getPendingRideRequests(toda_id: string): Promise<RideRequest[]> {
-  const { data, error } = await supabase
+  const { data: requests, error } = await supabase
     .from('ride_requests')
     .select(`
       *,
@@ -366,13 +372,46 @@ export async function getPendingRideRequests(toda_id: string): Promise<RideReque
     `)
     .eq('toda_id', toda_id)
     .eq('status', 'pending')
-    .order('requested_at', { ascending: true })
+    .order('created_at', { ascending: true });
 
   if (error) {
-    console.error(`Error fetching pending ride requests for TODA ${toda_id}:`, error)
-    throw error
+    console.error('Error fetching pending ride requests:', error);
+    throw error;
   }
-  return data
+
+  return requests.map(req => ({
+    id: req.id,
+    passenger_id: req.passenger_id,
+    toda_id: req.toda_id,
+    trider_id: req.trider_id || '',
+    pickup_location_id: req.pickup_location_id,
+    dropoff_location_id: req.dropoff_location_id,
+    passenger: {
+      id: req.passenger_id,
+      name: '', // You might want to fetch this from users table
+      contact_number: '' // You might want to fetch this from users table
+    },
+    booking_code: req.booking_code,
+    route_geometry: req.route_geometry || '',
+    status: req.status,
+    estimated_fare: req.estimated_fare || 0,
+    estimated_time: req.estimated_time || 0,
+    route_distance: req.route_distance || 0,
+    route_duration: req.route_duration || 0,
+    pickup_name: req.pickup_location?.name || '',
+    pickup_address: req.pickup_location?.address || '',
+    pickup_latitude: req.pickup_location?.latitude || 0,
+    pickup_longitude: req.pickup_location?.longitude || 0,
+    dropoff_name: req.dropoff_location?.name || '',
+    dropoff_address: req.dropoff_location?.address || '',
+    dropoff_latitude: req.dropoff_location?.latitude || 0,
+    dropoff_longitude: req.dropoff_location?.longitude || 0,
+    pickup_location: req.pickup_location,
+    dropoff_location: req.dropoff_location,
+    trider: req.trider,
+    created_at: req.created_at,
+    cancellation_reason: req.cancellation_reason || null
+  }));
 }
 
 export async function getActiveRideRequests(toda_id: string): Promise<RideRequest[]> {
