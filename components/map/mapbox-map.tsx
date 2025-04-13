@@ -1,6 +1,7 @@
 'use client'
 
-import 'mapbox-gl/dist/mapbox-gl.css'
+// Remove local Mapbox CSS import
+// import 'mapbox-gl/dist/mapbox-gl.css' 
 import * as React from 'react'
 import Map, { FullscreenControl, GeolocateControl, Marker, NavigationControl, type ViewStateChangeEvent } from 'react-map-gl/mapbox'
 import styles from './mapbox-map.module.css'
