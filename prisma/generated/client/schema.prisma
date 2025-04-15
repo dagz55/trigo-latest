@@ -8,9 +8,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL") // Used for direct database access
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum LocationType {
@@ -34,37 +33,33 @@ enum RideStatus {
 }
 
 model Toda {
-  id          String            @id @default(uuid())
-  name        String
-  city        String
-  barangay    String
-  created_at  DateTime          @default(now())
-  updated_at  DateTime          @updatedAt
-  locations   Location[]
-  triders     Trider[]
-  rides       RideRequest[]
-  queue_items TriderQueueItem[]
-
-  @@map("todas")
+  id            String            @id @default(uuid())
+  name          String
+  city          String
+  barangay      String
+  created_at    DateTime          @default(now())
+  updated_at    DateTime          @updatedAt
+  locations     Location[]
+  triders       Trider[]
+  queue_items   TriderQueueItem[]
+  ride_requests RideRequest[]
 }
 
 model Location {
-  id         String        @id @default(uuid())
-  name       String
-  address    String
-  latitude   Float
-  longitude  Float
-  city       String
-  barangay   String
-  type       LocationType
-  toda_id    String?
-  toda       Toda?         @relation(fields: [toda_id], references: [id])
-  created_at DateTime      @default(now())
-  updated_at DateTime      @updatedAt
-  pickups    RideRequest[] @relation("PickupLocation")
-  dropoffs   RideRequest[] @relation("DropoffLocation")
-
-  @@map("locations")
+  id               String        @id @default(uuid())
+  name             String
+  address          String
+  latitude         Float
+  longitude        Float
+  city             String
+  barangay         String
+  type             String // terminal or custom
+  toda_id          String?
+  toda             Toda?         @relation(fields: [toda_id], references: [id])
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @updatedAt
+  pickup_requests  RideRequest[] @relation("PickupLocation")
+  dropoff_requests RideRequest[] @relation("DropoffLocation")
 }
 
 model Trider {
@@ -77,16 +72,14 @@ model Trider {
   contact_number    String
   plate_number      String
   license_number    String
-  status            TriderStatus      @default(offline)
+  status            String // offline, online, busy
   current_latitude  Float?
   current_longitude Float?
   last_online       DateTime?
   created_at        DateTime          @default(now())
   updated_at        DateTime          @updatedAt
-  rides             RideRequest[]
   queue_items       TriderQueueItem[]
-
-  @@map("triders")
+  ride_requests     RideRequest[]
 }
 
 model TriderQueueItem {
@@ -97,42 +90,30 @@ model TriderQueueItem {
   toda           Toda     @relation(fields: [toda_id], references: [id])
   queue_position Int
   joined_at      DateTime @default(now())
-
-  @@map("trider_queue")
 }
 
 model RideRequest {
-  id                  String     @id @default(uuid())
-  booking_code        String     @unique
+  id                  String    @id @default(uuid())
+  booking_code        String    @unique
   passenger_id        String
   toda_id             String
-  toda                Toda       @relation(fields: [toda_id], references: [id])
+  toda                Toda      @relation(fields: [toda_id], references: [id])
   pickup_location_id  String
-  pickup_location     Location   @relation("PickupLocation", fields: [pickup_location_id], references: [id])
+  pickup_location     Location  @relation("PickupLocation", fields: [pickup_location_id], references: [id])
   dropoff_location_id String
-  dropoff_location    Location   @relation("DropoffLocation", fields: [dropoff_location_id], references: [id])
-  pickup_name         String
-  pickup_address      String
-  pickup_latitude     Float
-  pickup_longitude    Float
-  dropoff_name        String
-  dropoff_address     String
-  dropoff_latitude    Float
-  dropoff_longitude   Float
-  status              RideStatus @default(pending)
+  dropoff_location    Location  @relation("DropoffLocation", fields: [dropoff_location_id], references: [id])
+  status              String // pending, accepted, picked_up, completed, cancelled
   estimated_fare      Float
   estimated_time      Int
-  route_distance      Float
-  route_duration      Int
+  route_distance      Float?
+  route_duration      Float?
   route_geometry      String?
   trider_id           String?
-  trider              Trider?    @relation(fields: [trider_id], references: [id])
-  created_at          DateTime   @default(now())
+  trider              Trider?   @relation(fields: [trider_id], references: [id])
+  created_at          DateTime  @default(now())
   accepted_at         DateTime?
   picked_up_at        DateTime?
   completed_at        DateTime?
   cancelled_at        DateTime?
   cancellation_reason String?
-
-  @@map("ride_requests")
 }

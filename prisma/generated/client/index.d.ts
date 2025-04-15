@@ -1285,15 +1285,15 @@ export namespace Prisma {
   export type TodaCountOutputType = {
     locations: number
     triders: number
-    rides: number
     queue_items: number
+    ride_requests: number
   }
 
   export type TodaCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     locations?: boolean | TodaCountOutputTypeCountLocationsArgs
     triders?: boolean | TodaCountOutputTypeCountTridersArgs
-    rides?: boolean | TodaCountOutputTypeCountRidesArgs
     queue_items?: boolean | TodaCountOutputTypeCountQueue_itemsArgs
+    ride_requests?: boolean | TodaCountOutputTypeCountRide_requestsArgs
   }
 
   // Custom InputTypes
@@ -1324,15 +1324,15 @@ export namespace Prisma {
   /**
    * TodaCountOutputType without action
    */
-  export type TodaCountOutputTypeCountRidesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: RideRequestWhereInput
+  export type TodaCountOutputTypeCountQueue_itemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TriderQueueItemWhereInput
   }
 
   /**
    * TodaCountOutputType without action
    */
-  export type TodaCountOutputTypeCountQueue_itemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: TriderQueueItemWhereInput
+  export type TodaCountOutputTypeCountRide_requestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: RideRequestWhereInput
   }
 
 
@@ -1341,13 +1341,13 @@ export namespace Prisma {
    */
 
   export type LocationCountOutputType = {
-    pickups: number
-    dropoffs: number
+    pickup_requests: number
+    dropoff_requests: number
   }
 
   export type LocationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    pickups?: boolean | LocationCountOutputTypeCountPickupsArgs
-    dropoffs?: boolean | LocationCountOutputTypeCountDropoffsArgs
+    pickup_requests?: boolean | LocationCountOutputTypeCountPickup_requestsArgs
+    dropoff_requests?: boolean | LocationCountOutputTypeCountDropoff_requestsArgs
   }
 
   // Custom InputTypes
@@ -1364,14 +1364,14 @@ export namespace Prisma {
   /**
    * LocationCountOutputType without action
    */
-  export type LocationCountOutputTypeCountPickupsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type LocationCountOutputTypeCountPickup_requestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: RideRequestWhereInput
   }
 
   /**
    * LocationCountOutputType without action
    */
-  export type LocationCountOutputTypeCountDropoffsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type LocationCountOutputTypeCountDropoff_requestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: RideRequestWhereInput
   }
 
@@ -1381,13 +1381,13 @@ export namespace Prisma {
    */
 
   export type TriderCountOutputType = {
-    rides: number
     queue_items: number
+    ride_requests: number
   }
 
   export type TriderCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    rides?: boolean | TriderCountOutputTypeCountRidesArgs
     queue_items?: boolean | TriderCountOutputTypeCountQueue_itemsArgs
+    ride_requests?: boolean | TriderCountOutputTypeCountRide_requestsArgs
   }
 
   // Custom InputTypes
@@ -1404,15 +1404,15 @@ export namespace Prisma {
   /**
    * TriderCountOutputType without action
    */
-  export type TriderCountOutputTypeCountRidesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: RideRequestWhereInput
+  export type TriderCountOutputTypeCountQueue_itemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TriderQueueItemWhereInput
   }
 
   /**
    * TriderCountOutputType without action
    */
-  export type TriderCountOutputTypeCountQueue_itemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: TriderQueueItemWhereInput
+  export type TriderCountOutputTypeCountRide_requestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: RideRequestWhereInput
   }
 
 
@@ -1594,8 +1594,8 @@ export namespace Prisma {
     updated_at?: boolean
     locations?: boolean | Toda$locationsArgs<ExtArgs>
     triders?: boolean | Toda$tridersArgs<ExtArgs>
-    rides?: boolean | Toda$ridesArgs<ExtArgs>
     queue_items?: boolean | Toda$queue_itemsArgs<ExtArgs>
+    ride_requests?: boolean | Toda$ride_requestsArgs<ExtArgs>
     _count?: boolean | TodaCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["toda"]>
 
@@ -1630,8 +1630,8 @@ export namespace Prisma {
   export type TodaInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     locations?: boolean | Toda$locationsArgs<ExtArgs>
     triders?: boolean | Toda$tridersArgs<ExtArgs>
-    rides?: boolean | Toda$ridesArgs<ExtArgs>
     queue_items?: boolean | Toda$queue_itemsArgs<ExtArgs>
+    ride_requests?: boolean | Toda$ride_requestsArgs<ExtArgs>
     _count?: boolean | TodaCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type TodaIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -1642,8 +1642,8 @@ export namespace Prisma {
     objects: {
       locations: Prisma.$LocationPayload<ExtArgs>[]
       triders: Prisma.$TriderPayload<ExtArgs>[]
-      rides: Prisma.$RideRequestPayload<ExtArgs>[]
       queue_items: Prisma.$TriderQueueItemPayload<ExtArgs>[]
+      ride_requests: Prisma.$RideRequestPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -2048,8 +2048,8 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     locations<T extends Toda$locationsArgs<ExtArgs> = {}>(args?: Subset<T, Toda$locationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     triders<T extends Toda$tridersArgs<ExtArgs> = {}>(args?: Subset<T, Toda$tridersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TriderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-    rides<T extends Toda$ridesArgs<ExtArgs> = {}>(args?: Subset<T, Toda$ridesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RideRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     queue_items<T extends Toda$queue_itemsArgs<ExtArgs> = {}>(args?: Subset<T, Toda$queue_itemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TriderQueueItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    ride_requests<T extends Toda$ride_requestsArgs<ExtArgs> = {}>(args?: Subset<T, Toda$ride_requestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RideRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2521,30 +2521,6 @@ export namespace Prisma {
   }
 
   /**
-   * Toda.rides
-   */
-  export type Toda$ridesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the RideRequest
-     */
-    select?: RideRequestSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the RideRequest
-     */
-    omit?: RideRequestOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: RideRequestInclude<ExtArgs> | null
-    where?: RideRequestWhereInput
-    orderBy?: RideRequestOrderByWithRelationInput | RideRequestOrderByWithRelationInput[]
-    cursor?: RideRequestWhereUniqueInput
-    take?: number
-    skip?: number
-    distinct?: RideRequestScalarFieldEnum | RideRequestScalarFieldEnum[]
-  }
-
-  /**
    * Toda.queue_items
    */
   export type Toda$queue_itemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2566,6 +2542,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: TriderQueueItemScalarFieldEnum | TriderQueueItemScalarFieldEnum[]
+  }
+
+  /**
+   * Toda.ride_requests
+   */
+  export type Toda$ride_requestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RideRequest
+     */
+    select?: RideRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RideRequest
+     */
+    omit?: RideRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RideRequestInclude<ExtArgs> | null
+    where?: RideRequestWhereInput
+    orderBy?: RideRequestOrderByWithRelationInput | RideRequestOrderByWithRelationInput[]
+    cursor?: RideRequestWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: RideRequestScalarFieldEnum | RideRequestScalarFieldEnum[]
   }
 
   /**
@@ -2617,7 +2617,7 @@ export namespace Prisma {
     longitude: number | null
     city: string | null
     barangay: string | null
-    type: $Enums.LocationType | null
+    type: string | null
     toda_id: string | null
     created_at: Date | null
     updated_at: Date | null
@@ -2631,7 +2631,7 @@ export namespace Prisma {
     longitude: number | null
     city: string | null
     barangay: string | null
-    type: $Enums.LocationType | null
+    type: string | null
     toda_id: string | null
     created_at: Date | null
     updated_at: Date | null
@@ -2800,7 +2800,7 @@ export namespace Prisma {
     longitude: number
     city: string
     barangay: string
-    type: $Enums.LocationType
+    type: string
     toda_id: string | null
     created_at: Date
     updated_at: Date
@@ -2838,8 +2838,8 @@ export namespace Prisma {
     created_at?: boolean
     updated_at?: boolean
     toda?: boolean | Location$todaArgs<ExtArgs>
-    pickups?: boolean | Location$pickupsArgs<ExtArgs>
-    dropoffs?: boolean | Location$dropoffsArgs<ExtArgs>
+    pickup_requests?: boolean | Location$pickup_requestsArgs<ExtArgs>
+    dropoff_requests?: boolean | Location$dropoff_requestsArgs<ExtArgs>
     _count?: boolean | LocationCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["location"]>
 
@@ -2890,8 +2890,8 @@ export namespace Prisma {
   export type LocationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "address" | "latitude" | "longitude" | "city" | "barangay" | "type" | "toda_id" | "created_at" | "updated_at", ExtArgs["result"]["location"]>
   export type LocationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     toda?: boolean | Location$todaArgs<ExtArgs>
-    pickups?: boolean | Location$pickupsArgs<ExtArgs>
-    dropoffs?: boolean | Location$dropoffsArgs<ExtArgs>
+    pickup_requests?: boolean | Location$pickup_requestsArgs<ExtArgs>
+    dropoff_requests?: boolean | Location$dropoff_requestsArgs<ExtArgs>
     _count?: boolean | LocationCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type LocationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2905,8 +2905,8 @@ export namespace Prisma {
     name: "Location"
     objects: {
       toda: Prisma.$TodaPayload<ExtArgs> | null
-      pickups: Prisma.$RideRequestPayload<ExtArgs>[]
-      dropoffs: Prisma.$RideRequestPayload<ExtArgs>[]
+      pickup_requests: Prisma.$RideRequestPayload<ExtArgs>[]
+      dropoff_requests: Prisma.$RideRequestPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -2916,7 +2916,7 @@ export namespace Prisma {
       longitude: number
       city: string
       barangay: string
-      type: $Enums.LocationType
+      type: string
       toda_id: string | null
       created_at: Date
       updated_at: Date
@@ -3315,8 +3315,8 @@ export namespace Prisma {
   export interface Prisma__LocationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     toda<T extends Location$todaArgs<ExtArgs> = {}>(args?: Subset<T, Location$todaArgs<ExtArgs>>): Prisma__TodaClient<$Result.GetResult<Prisma.$TodaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-    pickups<T extends Location$pickupsArgs<ExtArgs> = {}>(args?: Subset<T, Location$pickupsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RideRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-    dropoffs<T extends Location$dropoffsArgs<ExtArgs> = {}>(args?: Subset<T, Location$dropoffsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RideRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    pickup_requests<T extends Location$pickup_requestsArgs<ExtArgs> = {}>(args?: Subset<T, Location$pickup_requestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RideRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    dropoff_requests<T extends Location$dropoff_requestsArgs<ExtArgs> = {}>(args?: Subset<T, Location$dropoff_requestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RideRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3353,7 +3353,7 @@ export namespace Prisma {
     readonly longitude: FieldRef<"Location", 'Float'>
     readonly city: FieldRef<"Location", 'String'>
     readonly barangay: FieldRef<"Location", 'String'>
-    readonly type: FieldRef<"Location", 'LocationType'>
+    readonly type: FieldRef<"Location", 'String'>
     readonly toda_id: FieldRef<"Location", 'String'>
     readonly created_at: FieldRef<"Location", 'DateTime'>
     readonly updated_at: FieldRef<"Location", 'DateTime'>
@@ -3772,9 +3772,9 @@ export namespace Prisma {
   }
 
   /**
-   * Location.pickups
+   * Location.pickup_requests
    */
-  export type Location$pickupsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Location$pickup_requestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the RideRequest
      */
@@ -3796,9 +3796,9 @@ export namespace Prisma {
   }
 
   /**
-   * Location.dropoffs
+   * Location.dropoff_requests
    */
-  export type Location$dropoffsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Location$dropoff_requestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the RideRequest
      */
@@ -3869,7 +3869,7 @@ export namespace Prisma {
     contact_number: string | null
     plate_number: string | null
     license_number: string | null
-    status: $Enums.TriderStatus | null
+    status: string | null
     current_latitude: number | null
     current_longitude: number | null
     last_online: Date | null
@@ -3886,7 +3886,7 @@ export namespace Prisma {
     contact_number: string | null
     plate_number: string | null
     license_number: string | null
-    status: $Enums.TriderStatus | null
+    status: string | null
     current_latitude: number | null
     current_longitude: number | null
     last_online: Date | null
@@ -4070,7 +4070,7 @@ export namespace Prisma {
     contact_number: string
     plate_number: string
     license_number: string
-    status: $Enums.TriderStatus
+    status: string
     current_latitude: number | null
     current_longitude: number | null
     last_online: Date | null
@@ -4113,8 +4113,8 @@ export namespace Prisma {
     created_at?: boolean
     updated_at?: boolean
     toda?: boolean | TodaDefaultArgs<ExtArgs>
-    rides?: boolean | Trider$ridesArgs<ExtArgs>
     queue_items?: boolean | Trider$queue_itemsArgs<ExtArgs>
+    ride_requests?: boolean | Trider$ride_requestsArgs<ExtArgs>
     _count?: boolean | TriderCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["trider"]>
 
@@ -4174,8 +4174,8 @@ export namespace Prisma {
   export type TriderOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "user_id" | "toda_id" | "first_name" | "last_name" | "contact_number" | "plate_number" | "license_number" | "status" | "current_latitude" | "current_longitude" | "last_online" | "created_at" | "updated_at", ExtArgs["result"]["trider"]>
   export type TriderInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     toda?: boolean | TodaDefaultArgs<ExtArgs>
-    rides?: boolean | Trider$ridesArgs<ExtArgs>
     queue_items?: boolean | Trider$queue_itemsArgs<ExtArgs>
+    ride_requests?: boolean | Trider$ride_requestsArgs<ExtArgs>
     _count?: boolean | TriderCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type TriderIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4189,8 +4189,8 @@ export namespace Prisma {
     name: "Trider"
     objects: {
       toda: Prisma.$TodaPayload<ExtArgs>
-      rides: Prisma.$RideRequestPayload<ExtArgs>[]
       queue_items: Prisma.$TriderQueueItemPayload<ExtArgs>[]
+      ride_requests: Prisma.$RideRequestPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -4201,7 +4201,7 @@ export namespace Prisma {
       contact_number: string
       plate_number: string
       license_number: string
-      status: $Enums.TriderStatus
+      status: string
       current_latitude: number | null
       current_longitude: number | null
       last_online: Date | null
@@ -4602,8 +4602,8 @@ export namespace Prisma {
   export interface Prisma__TriderClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     toda<T extends TodaDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TodaDefaultArgs<ExtArgs>>): Prisma__TodaClient<$Result.GetResult<Prisma.$TodaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-    rides<T extends Trider$ridesArgs<ExtArgs> = {}>(args?: Subset<T, Trider$ridesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RideRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     queue_items<T extends Trider$queue_itemsArgs<ExtArgs> = {}>(args?: Subset<T, Trider$queue_itemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TriderQueueItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    ride_requests<T extends Trider$ride_requestsArgs<ExtArgs> = {}>(args?: Subset<T, Trider$ride_requestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RideRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4641,7 +4641,7 @@ export namespace Prisma {
     readonly contact_number: FieldRef<"Trider", 'String'>
     readonly plate_number: FieldRef<"Trider", 'String'>
     readonly license_number: FieldRef<"Trider", 'String'>
-    readonly status: FieldRef<"Trider", 'TriderStatus'>
+    readonly status: FieldRef<"Trider", 'String'>
     readonly current_latitude: FieldRef<"Trider", 'Float'>
     readonly current_longitude: FieldRef<"Trider", 'Float'>
     readonly last_online: FieldRef<"Trider", 'DateTime'>
@@ -5043,30 +5043,6 @@ export namespace Prisma {
   }
 
   /**
-   * Trider.rides
-   */
-  export type Trider$ridesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the RideRequest
-     */
-    select?: RideRequestSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the RideRequest
-     */
-    omit?: RideRequestOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: RideRequestInclude<ExtArgs> | null
-    where?: RideRequestWhereInput
-    orderBy?: RideRequestOrderByWithRelationInput | RideRequestOrderByWithRelationInput[]
-    cursor?: RideRequestWhereUniqueInput
-    take?: number
-    skip?: number
-    distinct?: RideRequestScalarFieldEnum | RideRequestScalarFieldEnum[]
-  }
-
-  /**
    * Trider.queue_items
    */
   export type Trider$queue_itemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5088,6 +5064,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: TriderQueueItemScalarFieldEnum | TriderQueueItemScalarFieldEnum[]
+  }
+
+  /**
+   * Trider.ride_requests
+   */
+  export type Trider$ride_requestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RideRequest
+     */
+    select?: RideRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RideRequest
+     */
+    omit?: RideRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RideRequestInclude<ExtArgs> | null
+    where?: RideRequestWhereInput
+    orderBy?: RideRequestOrderByWithRelationInput | RideRequestOrderByWithRelationInput[]
+    cursor?: RideRequestWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: RideRequestScalarFieldEnum | RideRequestScalarFieldEnum[]
   }
 
   /**
@@ -6222,10 +6222,6 @@ export namespace Prisma {
   }
 
   export type RideRequestAvgAggregateOutputType = {
-    pickup_latitude: number | null
-    pickup_longitude: number | null
-    dropoff_latitude: number | null
-    dropoff_longitude: number | null
     estimated_fare: number | null
     estimated_time: number | null
     route_distance: number | null
@@ -6233,10 +6229,6 @@ export namespace Prisma {
   }
 
   export type RideRequestSumAggregateOutputType = {
-    pickup_latitude: number | null
-    pickup_longitude: number | null
-    dropoff_latitude: number | null
-    dropoff_longitude: number | null
     estimated_fare: number | null
     estimated_time: number | null
     route_distance: number | null
@@ -6250,15 +6242,7 @@ export namespace Prisma {
     toda_id: string | null
     pickup_location_id: string | null
     dropoff_location_id: string | null
-    pickup_name: string | null
-    pickup_address: string | null
-    pickup_latitude: number | null
-    pickup_longitude: number | null
-    dropoff_name: string | null
-    dropoff_address: string | null
-    dropoff_latitude: number | null
-    dropoff_longitude: number | null
-    status: $Enums.RideStatus | null
+    status: string | null
     estimated_fare: number | null
     estimated_time: number | null
     route_distance: number | null
@@ -6280,15 +6264,7 @@ export namespace Prisma {
     toda_id: string | null
     pickup_location_id: string | null
     dropoff_location_id: string | null
-    pickup_name: string | null
-    pickup_address: string | null
-    pickup_latitude: number | null
-    pickup_longitude: number | null
-    dropoff_name: string | null
-    dropoff_address: string | null
-    dropoff_latitude: number | null
-    dropoff_longitude: number | null
-    status: $Enums.RideStatus | null
+    status: string | null
     estimated_fare: number | null
     estimated_time: number | null
     route_distance: number | null
@@ -6310,14 +6286,6 @@ export namespace Prisma {
     toda_id: number
     pickup_location_id: number
     dropoff_location_id: number
-    pickup_name: number
-    pickup_address: number
-    pickup_latitude: number
-    pickup_longitude: number
-    dropoff_name: number
-    dropoff_address: number
-    dropoff_latitude: number
-    dropoff_longitude: number
     status: number
     estimated_fare: number
     estimated_time: number
@@ -6336,10 +6304,6 @@ export namespace Prisma {
 
 
   export type RideRequestAvgAggregateInputType = {
-    pickup_latitude?: true
-    pickup_longitude?: true
-    dropoff_latitude?: true
-    dropoff_longitude?: true
     estimated_fare?: true
     estimated_time?: true
     route_distance?: true
@@ -6347,10 +6311,6 @@ export namespace Prisma {
   }
 
   export type RideRequestSumAggregateInputType = {
-    pickup_latitude?: true
-    pickup_longitude?: true
-    dropoff_latitude?: true
-    dropoff_longitude?: true
     estimated_fare?: true
     estimated_time?: true
     route_distance?: true
@@ -6364,14 +6324,6 @@ export namespace Prisma {
     toda_id?: true
     pickup_location_id?: true
     dropoff_location_id?: true
-    pickup_name?: true
-    pickup_address?: true
-    pickup_latitude?: true
-    pickup_longitude?: true
-    dropoff_name?: true
-    dropoff_address?: true
-    dropoff_latitude?: true
-    dropoff_longitude?: true
     status?: true
     estimated_fare?: true
     estimated_time?: true
@@ -6394,14 +6346,6 @@ export namespace Prisma {
     toda_id?: true
     pickup_location_id?: true
     dropoff_location_id?: true
-    pickup_name?: true
-    pickup_address?: true
-    pickup_latitude?: true
-    pickup_longitude?: true
-    dropoff_name?: true
-    dropoff_address?: true
-    dropoff_latitude?: true
-    dropoff_longitude?: true
     status?: true
     estimated_fare?: true
     estimated_time?: true
@@ -6424,14 +6368,6 @@ export namespace Prisma {
     toda_id?: true
     pickup_location_id?: true
     dropoff_location_id?: true
-    pickup_name?: true
-    pickup_address?: true
-    pickup_latitude?: true
-    pickup_longitude?: true
-    dropoff_name?: true
-    dropoff_address?: true
-    dropoff_latitude?: true
-    dropoff_longitude?: true
     status?: true
     estimated_fare?: true
     estimated_time?: true
@@ -6541,19 +6477,11 @@ export namespace Prisma {
     toda_id: string
     pickup_location_id: string
     dropoff_location_id: string
-    pickup_name: string
-    pickup_address: string
-    pickup_latitude: number
-    pickup_longitude: number
-    dropoff_name: string
-    dropoff_address: string
-    dropoff_latitude: number
-    dropoff_longitude: number
-    status: $Enums.RideStatus
+    status: string
     estimated_fare: number
     estimated_time: number
-    route_distance: number
-    route_duration: number
+    route_distance: number | null
+    route_duration: number | null
     route_geometry: string | null
     trider_id: string | null
     created_at: Date
@@ -6590,14 +6518,6 @@ export namespace Prisma {
     toda_id?: boolean
     pickup_location_id?: boolean
     dropoff_location_id?: boolean
-    pickup_name?: boolean
-    pickup_address?: boolean
-    pickup_latitude?: boolean
-    pickup_longitude?: boolean
-    dropoff_name?: boolean
-    dropoff_address?: boolean
-    dropoff_latitude?: boolean
-    dropoff_longitude?: boolean
     status?: boolean
     estimated_fare?: boolean
     estimated_time?: boolean
@@ -6624,14 +6544,6 @@ export namespace Prisma {
     toda_id?: boolean
     pickup_location_id?: boolean
     dropoff_location_id?: boolean
-    pickup_name?: boolean
-    pickup_address?: boolean
-    pickup_latitude?: boolean
-    pickup_longitude?: boolean
-    dropoff_name?: boolean
-    dropoff_address?: boolean
-    dropoff_latitude?: boolean
-    dropoff_longitude?: boolean
     status?: boolean
     estimated_fare?: boolean
     estimated_time?: boolean
@@ -6658,14 +6570,6 @@ export namespace Prisma {
     toda_id?: boolean
     pickup_location_id?: boolean
     dropoff_location_id?: boolean
-    pickup_name?: boolean
-    pickup_address?: boolean
-    pickup_latitude?: boolean
-    pickup_longitude?: boolean
-    dropoff_name?: boolean
-    dropoff_address?: boolean
-    dropoff_latitude?: boolean
-    dropoff_longitude?: boolean
     status?: boolean
     estimated_fare?: boolean
     estimated_time?: boolean
@@ -6692,14 +6596,6 @@ export namespace Prisma {
     toda_id?: boolean
     pickup_location_id?: boolean
     dropoff_location_id?: boolean
-    pickup_name?: boolean
-    pickup_address?: boolean
-    pickup_latitude?: boolean
-    pickup_longitude?: boolean
-    dropoff_name?: boolean
-    dropoff_address?: boolean
-    dropoff_latitude?: boolean
-    dropoff_longitude?: boolean
     status?: boolean
     estimated_fare?: boolean
     estimated_time?: boolean
@@ -6715,7 +6611,7 @@ export namespace Prisma {
     cancellation_reason?: boolean
   }
 
-  export type RideRequestOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "booking_code" | "passenger_id" | "toda_id" | "pickup_location_id" | "dropoff_location_id" | "pickup_name" | "pickup_address" | "pickup_latitude" | "pickup_longitude" | "dropoff_name" | "dropoff_address" | "dropoff_latitude" | "dropoff_longitude" | "status" | "estimated_fare" | "estimated_time" | "route_distance" | "route_duration" | "route_geometry" | "trider_id" | "created_at" | "accepted_at" | "picked_up_at" | "completed_at" | "cancelled_at" | "cancellation_reason", ExtArgs["result"]["rideRequest"]>
+  export type RideRequestOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "booking_code" | "passenger_id" | "toda_id" | "pickup_location_id" | "dropoff_location_id" | "status" | "estimated_fare" | "estimated_time" | "route_distance" | "route_duration" | "route_geometry" | "trider_id" | "created_at" | "accepted_at" | "picked_up_at" | "completed_at" | "cancelled_at" | "cancellation_reason", ExtArgs["result"]["rideRequest"]>
   export type RideRequestInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     toda?: boolean | TodaDefaultArgs<ExtArgs>
     pickup_location?: boolean | LocationDefaultArgs<ExtArgs>
@@ -6750,19 +6646,11 @@ export namespace Prisma {
       toda_id: string
       pickup_location_id: string
       dropoff_location_id: string
-      pickup_name: string
-      pickup_address: string
-      pickup_latitude: number
-      pickup_longitude: number
-      dropoff_name: string
-      dropoff_address: string
-      dropoff_latitude: number
-      dropoff_longitude: number
-      status: $Enums.RideStatus
+      status: string
       estimated_fare: number
       estimated_time: number
-      route_distance: number
-      route_duration: number
+      route_distance: number | null
+      route_duration: number | null
       route_geometry: string | null
       trider_id: string | null
       created_at: Date
@@ -7204,19 +7092,11 @@ export namespace Prisma {
     readonly toda_id: FieldRef<"RideRequest", 'String'>
     readonly pickup_location_id: FieldRef<"RideRequest", 'String'>
     readonly dropoff_location_id: FieldRef<"RideRequest", 'String'>
-    readonly pickup_name: FieldRef<"RideRequest", 'String'>
-    readonly pickup_address: FieldRef<"RideRequest", 'String'>
-    readonly pickup_latitude: FieldRef<"RideRequest", 'Float'>
-    readonly pickup_longitude: FieldRef<"RideRequest", 'Float'>
-    readonly dropoff_name: FieldRef<"RideRequest", 'String'>
-    readonly dropoff_address: FieldRef<"RideRequest", 'String'>
-    readonly dropoff_latitude: FieldRef<"RideRequest", 'Float'>
-    readonly dropoff_longitude: FieldRef<"RideRequest", 'Float'>
-    readonly status: FieldRef<"RideRequest", 'RideStatus'>
+    readonly status: FieldRef<"RideRequest", 'String'>
     readonly estimated_fare: FieldRef<"RideRequest", 'Float'>
     readonly estimated_time: FieldRef<"RideRequest", 'Int'>
     readonly route_distance: FieldRef<"RideRequest", 'Float'>
-    readonly route_duration: FieldRef<"RideRequest", 'Int'>
+    readonly route_duration: FieldRef<"RideRequest", 'Float'>
     readonly route_geometry: FieldRef<"RideRequest", 'String'>
     readonly trider_id: FieldRef<"RideRequest", 'String'>
     readonly created_at: FieldRef<"RideRequest", 'DateTime'>
@@ -7739,14 +7619,6 @@ export namespace Prisma {
     toda_id: 'toda_id',
     pickup_location_id: 'pickup_location_id',
     dropoff_location_id: 'dropoff_location_id',
-    pickup_name: 'pickup_name',
-    pickup_address: 'pickup_address',
-    pickup_latitude: 'pickup_latitude',
-    pickup_longitude: 'pickup_longitude',
-    dropoff_name: 'dropoff_name',
-    dropoff_address: 'dropoff_address',
-    dropoff_latitude: 'dropoff_latitude',
-    dropoff_longitude: 'dropoff_longitude',
     status: 'status',
     estimated_fare: 'estimated_fare',
     estimated_time: 'estimated_time',
@@ -7837,34 +7709,6 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'LocationType'
-   */
-  export type EnumLocationTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LocationType'>
-    
-
-
-  /**
-   * Reference to a field of type 'LocationType[]'
-   */
-  export type ListEnumLocationTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LocationType[]'>
-    
-
-
-  /**
-   * Reference to a field of type 'TriderStatus'
-   */
-  export type EnumTriderStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TriderStatus'>
-    
-
-
-  /**
-   * Reference to a field of type 'TriderStatus[]'
-   */
-  export type ListEnumTriderStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TriderStatus[]'>
-    
-
-
-  /**
    * Reference to a field of type 'Int'
    */
   export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
@@ -7875,20 +7719,6 @@ export namespace Prisma {
    * Reference to a field of type 'Int[]'
    */
   export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
-    
-
-
-  /**
-   * Reference to a field of type 'RideStatus'
-   */
-  export type EnumRideStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RideStatus'>
-    
-
-
-  /**
-   * Reference to a field of type 'RideStatus[]'
-   */
-  export type ListEnumRideStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RideStatus[]'>
     
   /**
    * Deep Input Types
@@ -7907,8 +7737,8 @@ export namespace Prisma {
     updated_at?: DateTimeFilter<"Toda"> | Date | string
     locations?: LocationListRelationFilter
     triders?: TriderListRelationFilter
-    rides?: RideRequestListRelationFilter
     queue_items?: TriderQueueItemListRelationFilter
+    ride_requests?: RideRequestListRelationFilter
   }
 
   export type TodaOrderByWithRelationInput = {
@@ -7920,8 +7750,8 @@ export namespace Prisma {
     updated_at?: SortOrder
     locations?: LocationOrderByRelationAggregateInput
     triders?: TriderOrderByRelationAggregateInput
-    rides?: RideRequestOrderByRelationAggregateInput
     queue_items?: TriderQueueItemOrderByRelationAggregateInput
+    ride_requests?: RideRequestOrderByRelationAggregateInput
   }
 
   export type TodaWhereUniqueInput = Prisma.AtLeast<{
@@ -7936,8 +7766,8 @@ export namespace Prisma {
     updated_at?: DateTimeFilter<"Toda"> | Date | string
     locations?: LocationListRelationFilter
     triders?: TriderListRelationFilter
-    rides?: RideRequestListRelationFilter
     queue_items?: TriderQueueItemListRelationFilter
+    ride_requests?: RideRequestListRelationFilter
   }, "id">
 
   export type TodaOrderByWithAggregationInput = {
@@ -7975,13 +7805,13 @@ export namespace Prisma {
     longitude?: FloatFilter<"Location"> | number
     city?: StringFilter<"Location"> | string
     barangay?: StringFilter<"Location"> | string
-    type?: EnumLocationTypeFilter<"Location"> | $Enums.LocationType
+    type?: StringFilter<"Location"> | string
     toda_id?: StringNullableFilter<"Location"> | string | null
     created_at?: DateTimeFilter<"Location"> | Date | string
     updated_at?: DateTimeFilter<"Location"> | Date | string
     toda?: XOR<TodaNullableScalarRelationFilter, TodaWhereInput> | null
-    pickups?: RideRequestListRelationFilter
-    dropoffs?: RideRequestListRelationFilter
+    pickup_requests?: RideRequestListRelationFilter
+    dropoff_requests?: RideRequestListRelationFilter
   }
 
   export type LocationOrderByWithRelationInput = {
@@ -7997,8 +7827,8 @@ export namespace Prisma {
     created_at?: SortOrder
     updated_at?: SortOrder
     toda?: TodaOrderByWithRelationInput
-    pickups?: RideRequestOrderByRelationAggregateInput
-    dropoffs?: RideRequestOrderByRelationAggregateInput
+    pickup_requests?: RideRequestOrderByRelationAggregateInput
+    dropoff_requests?: RideRequestOrderByRelationAggregateInput
   }
 
   export type LocationWhereUniqueInput = Prisma.AtLeast<{
@@ -8012,13 +7842,13 @@ export namespace Prisma {
     longitude?: FloatFilter<"Location"> | number
     city?: StringFilter<"Location"> | string
     barangay?: StringFilter<"Location"> | string
-    type?: EnumLocationTypeFilter<"Location"> | $Enums.LocationType
+    type?: StringFilter<"Location"> | string
     toda_id?: StringNullableFilter<"Location"> | string | null
     created_at?: DateTimeFilter<"Location"> | Date | string
     updated_at?: DateTimeFilter<"Location"> | Date | string
     toda?: XOR<TodaNullableScalarRelationFilter, TodaWhereInput> | null
-    pickups?: RideRequestListRelationFilter
-    dropoffs?: RideRequestListRelationFilter
+    pickup_requests?: RideRequestListRelationFilter
+    dropoff_requests?: RideRequestListRelationFilter
   }, "id">
 
   export type LocationOrderByWithAggregationInput = {
@@ -8051,7 +7881,7 @@ export namespace Prisma {
     longitude?: FloatWithAggregatesFilter<"Location"> | number
     city?: StringWithAggregatesFilter<"Location"> | string
     barangay?: StringWithAggregatesFilter<"Location"> | string
-    type?: EnumLocationTypeWithAggregatesFilter<"Location"> | $Enums.LocationType
+    type?: StringWithAggregatesFilter<"Location"> | string
     toda_id?: StringNullableWithAggregatesFilter<"Location"> | string | null
     created_at?: DateTimeWithAggregatesFilter<"Location"> | Date | string
     updated_at?: DateTimeWithAggregatesFilter<"Location"> | Date | string
@@ -8069,15 +7899,15 @@ export namespace Prisma {
     contact_number?: StringFilter<"Trider"> | string
     plate_number?: StringFilter<"Trider"> | string
     license_number?: StringFilter<"Trider"> | string
-    status?: EnumTriderStatusFilter<"Trider"> | $Enums.TriderStatus
+    status?: StringFilter<"Trider"> | string
     current_latitude?: FloatNullableFilter<"Trider"> | number | null
     current_longitude?: FloatNullableFilter<"Trider"> | number | null
     last_online?: DateTimeNullableFilter<"Trider"> | Date | string | null
     created_at?: DateTimeFilter<"Trider"> | Date | string
     updated_at?: DateTimeFilter<"Trider"> | Date | string
     toda?: XOR<TodaScalarRelationFilter, TodaWhereInput>
-    rides?: RideRequestListRelationFilter
     queue_items?: TriderQueueItemListRelationFilter
+    ride_requests?: RideRequestListRelationFilter
   }
 
   export type TriderOrderByWithRelationInput = {
@@ -8096,8 +7926,8 @@ export namespace Prisma {
     created_at?: SortOrder
     updated_at?: SortOrder
     toda?: TodaOrderByWithRelationInput
-    rides?: RideRequestOrderByRelationAggregateInput
     queue_items?: TriderQueueItemOrderByRelationAggregateInput
+    ride_requests?: RideRequestOrderByRelationAggregateInput
   }
 
   export type TriderWhereUniqueInput = Prisma.AtLeast<{
@@ -8112,15 +7942,15 @@ export namespace Prisma {
     contact_number?: StringFilter<"Trider"> | string
     plate_number?: StringFilter<"Trider"> | string
     license_number?: StringFilter<"Trider"> | string
-    status?: EnumTriderStatusFilter<"Trider"> | $Enums.TriderStatus
+    status?: StringFilter<"Trider"> | string
     current_latitude?: FloatNullableFilter<"Trider"> | number | null
     current_longitude?: FloatNullableFilter<"Trider"> | number | null
     last_online?: DateTimeNullableFilter<"Trider"> | Date | string | null
     created_at?: DateTimeFilter<"Trider"> | Date | string
     updated_at?: DateTimeFilter<"Trider"> | Date | string
     toda?: XOR<TodaScalarRelationFilter, TodaWhereInput>
-    rides?: RideRequestListRelationFilter
     queue_items?: TriderQueueItemListRelationFilter
+    ride_requests?: RideRequestListRelationFilter
   }, "id">
 
   export type TriderOrderByWithAggregationInput = {
@@ -8157,7 +7987,7 @@ export namespace Prisma {
     contact_number?: StringWithAggregatesFilter<"Trider"> | string
     plate_number?: StringWithAggregatesFilter<"Trider"> | string
     license_number?: StringWithAggregatesFilter<"Trider"> | string
-    status?: EnumTriderStatusWithAggregatesFilter<"Trider"> | $Enums.TriderStatus
+    status?: StringWithAggregatesFilter<"Trider"> | string
     current_latitude?: FloatNullableWithAggregatesFilter<"Trider"> | number | null
     current_longitude?: FloatNullableWithAggregatesFilter<"Trider"> | number | null
     last_online?: DateTimeNullableWithAggregatesFilter<"Trider"> | Date | string | null
@@ -8235,19 +8065,11 @@ export namespace Prisma {
     toda_id?: StringFilter<"RideRequest"> | string
     pickup_location_id?: StringFilter<"RideRequest"> | string
     dropoff_location_id?: StringFilter<"RideRequest"> | string
-    pickup_name?: StringFilter<"RideRequest"> | string
-    pickup_address?: StringFilter<"RideRequest"> | string
-    pickup_latitude?: FloatFilter<"RideRequest"> | number
-    pickup_longitude?: FloatFilter<"RideRequest"> | number
-    dropoff_name?: StringFilter<"RideRequest"> | string
-    dropoff_address?: StringFilter<"RideRequest"> | string
-    dropoff_latitude?: FloatFilter<"RideRequest"> | number
-    dropoff_longitude?: FloatFilter<"RideRequest"> | number
-    status?: EnumRideStatusFilter<"RideRequest"> | $Enums.RideStatus
+    status?: StringFilter<"RideRequest"> | string
     estimated_fare?: FloatFilter<"RideRequest"> | number
     estimated_time?: IntFilter<"RideRequest"> | number
-    route_distance?: FloatFilter<"RideRequest"> | number
-    route_duration?: IntFilter<"RideRequest"> | number
+    route_distance?: FloatNullableFilter<"RideRequest"> | number | null
+    route_duration?: FloatNullableFilter<"RideRequest"> | number | null
     route_geometry?: StringNullableFilter<"RideRequest"> | string | null
     trider_id?: StringNullableFilter<"RideRequest"> | string | null
     created_at?: DateTimeFilter<"RideRequest"> | Date | string
@@ -8269,19 +8091,11 @@ export namespace Prisma {
     toda_id?: SortOrder
     pickup_location_id?: SortOrder
     dropoff_location_id?: SortOrder
-    pickup_name?: SortOrder
-    pickup_address?: SortOrder
-    pickup_latitude?: SortOrder
-    pickup_longitude?: SortOrder
-    dropoff_name?: SortOrder
-    dropoff_address?: SortOrder
-    dropoff_latitude?: SortOrder
-    dropoff_longitude?: SortOrder
     status?: SortOrder
     estimated_fare?: SortOrder
     estimated_time?: SortOrder
-    route_distance?: SortOrder
-    route_duration?: SortOrder
+    route_distance?: SortOrderInput | SortOrder
+    route_duration?: SortOrderInput | SortOrder
     route_geometry?: SortOrderInput | SortOrder
     trider_id?: SortOrderInput | SortOrder
     created_at?: SortOrder
@@ -8306,19 +8120,11 @@ export namespace Prisma {
     toda_id?: StringFilter<"RideRequest"> | string
     pickup_location_id?: StringFilter<"RideRequest"> | string
     dropoff_location_id?: StringFilter<"RideRequest"> | string
-    pickup_name?: StringFilter<"RideRequest"> | string
-    pickup_address?: StringFilter<"RideRequest"> | string
-    pickup_latitude?: FloatFilter<"RideRequest"> | number
-    pickup_longitude?: FloatFilter<"RideRequest"> | number
-    dropoff_name?: StringFilter<"RideRequest"> | string
-    dropoff_address?: StringFilter<"RideRequest"> | string
-    dropoff_latitude?: FloatFilter<"RideRequest"> | number
-    dropoff_longitude?: FloatFilter<"RideRequest"> | number
-    status?: EnumRideStatusFilter<"RideRequest"> | $Enums.RideStatus
+    status?: StringFilter<"RideRequest"> | string
     estimated_fare?: FloatFilter<"RideRequest"> | number
     estimated_time?: IntFilter<"RideRequest"> | number
-    route_distance?: FloatFilter<"RideRequest"> | number
-    route_duration?: IntFilter<"RideRequest"> | number
+    route_distance?: FloatNullableFilter<"RideRequest"> | number | null
+    route_duration?: FloatNullableFilter<"RideRequest"> | number | null
     route_geometry?: StringNullableFilter<"RideRequest"> | string | null
     trider_id?: StringNullableFilter<"RideRequest"> | string | null
     created_at?: DateTimeFilter<"RideRequest"> | Date | string
@@ -8340,19 +8146,11 @@ export namespace Prisma {
     toda_id?: SortOrder
     pickup_location_id?: SortOrder
     dropoff_location_id?: SortOrder
-    pickup_name?: SortOrder
-    pickup_address?: SortOrder
-    pickup_latitude?: SortOrder
-    pickup_longitude?: SortOrder
-    dropoff_name?: SortOrder
-    dropoff_address?: SortOrder
-    dropoff_latitude?: SortOrder
-    dropoff_longitude?: SortOrder
     status?: SortOrder
     estimated_fare?: SortOrder
     estimated_time?: SortOrder
-    route_distance?: SortOrder
-    route_duration?: SortOrder
+    route_distance?: SortOrderInput | SortOrder
+    route_duration?: SortOrderInput | SortOrder
     route_geometry?: SortOrderInput | SortOrder
     trider_id?: SortOrderInput | SortOrder
     created_at?: SortOrder
@@ -8378,19 +8176,11 @@ export namespace Prisma {
     toda_id?: StringWithAggregatesFilter<"RideRequest"> | string
     pickup_location_id?: StringWithAggregatesFilter<"RideRequest"> | string
     dropoff_location_id?: StringWithAggregatesFilter<"RideRequest"> | string
-    pickup_name?: StringWithAggregatesFilter<"RideRequest"> | string
-    pickup_address?: StringWithAggregatesFilter<"RideRequest"> | string
-    pickup_latitude?: FloatWithAggregatesFilter<"RideRequest"> | number
-    pickup_longitude?: FloatWithAggregatesFilter<"RideRequest"> | number
-    dropoff_name?: StringWithAggregatesFilter<"RideRequest"> | string
-    dropoff_address?: StringWithAggregatesFilter<"RideRequest"> | string
-    dropoff_latitude?: FloatWithAggregatesFilter<"RideRequest"> | number
-    dropoff_longitude?: FloatWithAggregatesFilter<"RideRequest"> | number
-    status?: EnumRideStatusWithAggregatesFilter<"RideRequest"> | $Enums.RideStatus
+    status?: StringWithAggregatesFilter<"RideRequest"> | string
     estimated_fare?: FloatWithAggregatesFilter<"RideRequest"> | number
     estimated_time?: IntWithAggregatesFilter<"RideRequest"> | number
-    route_distance?: FloatWithAggregatesFilter<"RideRequest"> | number
-    route_duration?: IntWithAggregatesFilter<"RideRequest"> | number
+    route_distance?: FloatNullableWithAggregatesFilter<"RideRequest"> | number | null
+    route_duration?: FloatNullableWithAggregatesFilter<"RideRequest"> | number | null
     route_geometry?: StringNullableWithAggregatesFilter<"RideRequest"> | string | null
     trider_id?: StringNullableWithAggregatesFilter<"RideRequest"> | string | null
     created_at?: DateTimeWithAggregatesFilter<"RideRequest"> | Date | string
@@ -8410,8 +8200,8 @@ export namespace Prisma {
     updated_at?: Date | string
     locations?: LocationCreateNestedManyWithoutTodaInput
     triders?: TriderCreateNestedManyWithoutTodaInput
-    rides?: RideRequestCreateNestedManyWithoutTodaInput
     queue_items?: TriderQueueItemCreateNestedManyWithoutTodaInput
+    ride_requests?: RideRequestCreateNestedManyWithoutTodaInput
   }
 
   export type TodaUncheckedCreateInput = {
@@ -8423,8 +8213,8 @@ export namespace Prisma {
     updated_at?: Date | string
     locations?: LocationUncheckedCreateNestedManyWithoutTodaInput
     triders?: TriderUncheckedCreateNestedManyWithoutTodaInput
-    rides?: RideRequestUncheckedCreateNestedManyWithoutTodaInput
     queue_items?: TriderQueueItemUncheckedCreateNestedManyWithoutTodaInput
+    ride_requests?: RideRequestUncheckedCreateNestedManyWithoutTodaInput
   }
 
   export type TodaUpdateInput = {
@@ -8436,8 +8226,8 @@ export namespace Prisma {
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUpdateManyWithoutTodaNestedInput
     triders?: TriderUpdateManyWithoutTodaNestedInput
-    rides?: RideRequestUpdateManyWithoutTodaNestedInput
     queue_items?: TriderQueueItemUpdateManyWithoutTodaNestedInput
+    ride_requests?: RideRequestUpdateManyWithoutTodaNestedInput
   }
 
   export type TodaUncheckedUpdateInput = {
@@ -8449,8 +8239,8 @@ export namespace Prisma {
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUncheckedUpdateManyWithoutTodaNestedInput
     triders?: TriderUncheckedUpdateManyWithoutTodaNestedInput
-    rides?: RideRequestUncheckedUpdateManyWithoutTodaNestedInput
     queue_items?: TriderQueueItemUncheckedUpdateManyWithoutTodaNestedInput
+    ride_requests?: RideRequestUncheckedUpdateManyWithoutTodaNestedInput
   }
 
   export type TodaCreateManyInput = {
@@ -8488,12 +8278,12 @@ export namespace Prisma {
     longitude: number
     city: string
     barangay: string
-    type: $Enums.LocationType
+    type: string
     created_at?: Date | string
     updated_at?: Date | string
     toda?: TodaCreateNestedOneWithoutLocationsInput
-    pickups?: RideRequestCreateNestedManyWithoutPickup_locationInput
-    dropoffs?: RideRequestCreateNestedManyWithoutDropoff_locationInput
+    pickup_requests?: RideRequestCreateNestedManyWithoutPickup_locationInput
+    dropoff_requests?: RideRequestCreateNestedManyWithoutDropoff_locationInput
   }
 
   export type LocationUncheckedCreateInput = {
@@ -8504,12 +8294,12 @@ export namespace Prisma {
     longitude: number
     city: string
     barangay: string
-    type: $Enums.LocationType
+    type: string
     toda_id?: string | null
     created_at?: Date | string
     updated_at?: Date | string
-    pickups?: RideRequestUncheckedCreateNestedManyWithoutPickup_locationInput
-    dropoffs?: RideRequestUncheckedCreateNestedManyWithoutDropoff_locationInput
+    pickup_requests?: RideRequestUncheckedCreateNestedManyWithoutPickup_locationInput
+    dropoff_requests?: RideRequestUncheckedCreateNestedManyWithoutDropoff_locationInput
   }
 
   export type LocationUpdateInput = {
@@ -8520,12 +8310,12 @@ export namespace Prisma {
     longitude?: FloatFieldUpdateOperationsInput | number
     city?: StringFieldUpdateOperationsInput | string
     barangay?: StringFieldUpdateOperationsInput | string
-    type?: EnumLocationTypeFieldUpdateOperationsInput | $Enums.LocationType
+    type?: StringFieldUpdateOperationsInput | string
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     toda?: TodaUpdateOneWithoutLocationsNestedInput
-    pickups?: RideRequestUpdateManyWithoutPickup_locationNestedInput
-    dropoffs?: RideRequestUpdateManyWithoutDropoff_locationNestedInput
+    pickup_requests?: RideRequestUpdateManyWithoutPickup_locationNestedInput
+    dropoff_requests?: RideRequestUpdateManyWithoutDropoff_locationNestedInput
   }
 
   export type LocationUncheckedUpdateInput = {
@@ -8536,12 +8326,12 @@ export namespace Prisma {
     longitude?: FloatFieldUpdateOperationsInput | number
     city?: StringFieldUpdateOperationsInput | string
     barangay?: StringFieldUpdateOperationsInput | string
-    type?: EnumLocationTypeFieldUpdateOperationsInput | $Enums.LocationType
+    type?: StringFieldUpdateOperationsInput | string
     toda_id?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    pickups?: RideRequestUncheckedUpdateManyWithoutPickup_locationNestedInput
-    dropoffs?: RideRequestUncheckedUpdateManyWithoutDropoff_locationNestedInput
+    pickup_requests?: RideRequestUncheckedUpdateManyWithoutPickup_locationNestedInput
+    dropoff_requests?: RideRequestUncheckedUpdateManyWithoutDropoff_locationNestedInput
   }
 
   export type LocationCreateManyInput = {
@@ -8552,7 +8342,7 @@ export namespace Prisma {
     longitude: number
     city: string
     barangay: string
-    type: $Enums.LocationType
+    type: string
     toda_id?: string | null
     created_at?: Date | string
     updated_at?: Date | string
@@ -8566,7 +8356,7 @@ export namespace Prisma {
     longitude?: FloatFieldUpdateOperationsInput | number
     city?: StringFieldUpdateOperationsInput | string
     barangay?: StringFieldUpdateOperationsInput | string
-    type?: EnumLocationTypeFieldUpdateOperationsInput | $Enums.LocationType
+    type?: StringFieldUpdateOperationsInput | string
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -8579,7 +8369,7 @@ export namespace Prisma {
     longitude?: FloatFieldUpdateOperationsInput | number
     city?: StringFieldUpdateOperationsInput | string
     barangay?: StringFieldUpdateOperationsInput | string
-    type?: EnumLocationTypeFieldUpdateOperationsInput | $Enums.LocationType
+    type?: StringFieldUpdateOperationsInput | string
     toda_id?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -8593,15 +8383,15 @@ export namespace Prisma {
     contact_number: string
     plate_number: string
     license_number: string
-    status?: $Enums.TriderStatus
+    status: string
     current_latitude?: number | null
     current_longitude?: number | null
     last_online?: Date | string | null
     created_at?: Date | string
     updated_at?: Date | string
     toda: TodaCreateNestedOneWithoutTridersInput
-    rides?: RideRequestCreateNestedManyWithoutTriderInput
     queue_items?: TriderQueueItemCreateNestedManyWithoutTriderInput
+    ride_requests?: RideRequestCreateNestedManyWithoutTriderInput
   }
 
   export type TriderUncheckedCreateInput = {
@@ -8613,14 +8403,14 @@ export namespace Prisma {
     contact_number: string
     plate_number: string
     license_number: string
-    status?: $Enums.TriderStatus
+    status: string
     current_latitude?: number | null
     current_longitude?: number | null
     last_online?: Date | string | null
     created_at?: Date | string
     updated_at?: Date | string
-    rides?: RideRequestUncheckedCreateNestedManyWithoutTriderInput
     queue_items?: TriderQueueItemUncheckedCreateNestedManyWithoutTriderInput
+    ride_requests?: RideRequestUncheckedCreateNestedManyWithoutTriderInput
   }
 
   export type TriderUpdateInput = {
@@ -8631,15 +8421,15 @@ export namespace Prisma {
     contact_number?: StringFieldUpdateOperationsInput | string
     plate_number?: StringFieldUpdateOperationsInput | string
     license_number?: StringFieldUpdateOperationsInput | string
-    status?: EnumTriderStatusFieldUpdateOperationsInput | $Enums.TriderStatus
+    status?: StringFieldUpdateOperationsInput | string
     current_latitude?: NullableFloatFieldUpdateOperationsInput | number | null
     current_longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     last_online?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     toda?: TodaUpdateOneRequiredWithoutTridersNestedInput
-    rides?: RideRequestUpdateManyWithoutTriderNestedInput
     queue_items?: TriderQueueItemUpdateManyWithoutTriderNestedInput
+    ride_requests?: RideRequestUpdateManyWithoutTriderNestedInput
   }
 
   export type TriderUncheckedUpdateInput = {
@@ -8651,14 +8441,14 @@ export namespace Prisma {
     contact_number?: StringFieldUpdateOperationsInput | string
     plate_number?: StringFieldUpdateOperationsInput | string
     license_number?: StringFieldUpdateOperationsInput | string
-    status?: EnumTriderStatusFieldUpdateOperationsInput | $Enums.TriderStatus
+    status?: StringFieldUpdateOperationsInput | string
     current_latitude?: NullableFloatFieldUpdateOperationsInput | number | null
     current_longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     last_online?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    rides?: RideRequestUncheckedUpdateManyWithoutTriderNestedInput
     queue_items?: TriderQueueItemUncheckedUpdateManyWithoutTriderNestedInput
+    ride_requests?: RideRequestUncheckedUpdateManyWithoutTriderNestedInput
   }
 
   export type TriderCreateManyInput = {
@@ -8670,7 +8460,7 @@ export namespace Prisma {
     contact_number: string
     plate_number: string
     license_number: string
-    status?: $Enums.TriderStatus
+    status: string
     current_latitude?: number | null
     current_longitude?: number | null
     last_online?: Date | string | null
@@ -8686,7 +8476,7 @@ export namespace Prisma {
     contact_number?: StringFieldUpdateOperationsInput | string
     plate_number?: StringFieldUpdateOperationsInput | string
     license_number?: StringFieldUpdateOperationsInput | string
-    status?: EnumTriderStatusFieldUpdateOperationsInput | $Enums.TriderStatus
+    status?: StringFieldUpdateOperationsInput | string
     current_latitude?: NullableFloatFieldUpdateOperationsInput | number | null
     current_longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     last_online?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -8703,7 +8493,7 @@ export namespace Prisma {
     contact_number?: StringFieldUpdateOperationsInput | string
     plate_number?: StringFieldUpdateOperationsInput | string
     license_number?: StringFieldUpdateOperationsInput | string
-    status?: EnumTriderStatusFieldUpdateOperationsInput | $Enums.TriderStatus
+    status?: StringFieldUpdateOperationsInput | string
     current_latitude?: NullableFloatFieldUpdateOperationsInput | number | null
     current_longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     last_online?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -8769,19 +8559,11 @@ export namespace Prisma {
     id?: string
     booking_code: string
     passenger_id: string
-    pickup_name: string
-    pickup_address: string
-    pickup_latitude: number
-    pickup_longitude: number
-    dropoff_name: string
-    dropoff_address: string
-    dropoff_latitude: number
-    dropoff_longitude: number
-    status?: $Enums.RideStatus
+    status: string
     estimated_fare: number
     estimated_time: number
-    route_distance: number
-    route_duration: number
+    route_distance?: number | null
+    route_duration?: number | null
     route_geometry?: string | null
     created_at?: Date | string
     accepted_at?: Date | string | null
@@ -8789,10 +8571,10 @@ export namespace Prisma {
     completed_at?: Date | string | null
     cancelled_at?: Date | string | null
     cancellation_reason?: string | null
-    toda: TodaCreateNestedOneWithoutRidesInput
-    pickup_location: LocationCreateNestedOneWithoutPickupsInput
-    dropoff_location: LocationCreateNestedOneWithoutDropoffsInput
-    trider?: TriderCreateNestedOneWithoutRidesInput
+    toda: TodaCreateNestedOneWithoutRide_requestsInput
+    pickup_location: LocationCreateNestedOneWithoutPickup_requestsInput
+    dropoff_location: LocationCreateNestedOneWithoutDropoff_requestsInput
+    trider?: TriderCreateNestedOneWithoutRide_requestsInput
   }
 
   export type RideRequestUncheckedCreateInput = {
@@ -8802,19 +8584,11 @@ export namespace Prisma {
     toda_id: string
     pickup_location_id: string
     dropoff_location_id: string
-    pickup_name: string
-    pickup_address: string
-    pickup_latitude: number
-    pickup_longitude: number
-    dropoff_name: string
-    dropoff_address: string
-    dropoff_latitude: number
-    dropoff_longitude: number
-    status?: $Enums.RideStatus
+    status: string
     estimated_fare: number
     estimated_time: number
-    route_distance: number
-    route_duration: number
+    route_distance?: number | null
+    route_duration?: number | null
     route_geometry?: string | null
     trider_id?: string | null
     created_at?: Date | string
@@ -8829,19 +8603,11 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     booking_code?: StringFieldUpdateOperationsInput | string
     passenger_id?: StringFieldUpdateOperationsInput | string
-    pickup_name?: StringFieldUpdateOperationsInput | string
-    pickup_address?: StringFieldUpdateOperationsInput | string
-    pickup_latitude?: FloatFieldUpdateOperationsInput | number
-    pickup_longitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_name?: StringFieldUpdateOperationsInput | string
-    dropoff_address?: StringFieldUpdateOperationsInput | string
-    dropoff_latitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_longitude?: FloatFieldUpdateOperationsInput | number
-    status?: EnumRideStatusFieldUpdateOperationsInput | $Enums.RideStatus
+    status?: StringFieldUpdateOperationsInput | string
     estimated_fare?: FloatFieldUpdateOperationsInput | number
     estimated_time?: IntFieldUpdateOperationsInput | number
-    route_distance?: FloatFieldUpdateOperationsInput | number
-    route_duration?: IntFieldUpdateOperationsInput | number
+    route_distance?: NullableFloatFieldUpdateOperationsInput | number | null
+    route_duration?: NullableFloatFieldUpdateOperationsInput | number | null
     route_geometry?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     accepted_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -8849,10 +8615,10 @@ export namespace Prisma {
     completed_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     cancelled_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     cancellation_reason?: NullableStringFieldUpdateOperationsInput | string | null
-    toda?: TodaUpdateOneRequiredWithoutRidesNestedInput
-    pickup_location?: LocationUpdateOneRequiredWithoutPickupsNestedInput
-    dropoff_location?: LocationUpdateOneRequiredWithoutDropoffsNestedInput
-    trider?: TriderUpdateOneWithoutRidesNestedInput
+    toda?: TodaUpdateOneRequiredWithoutRide_requestsNestedInput
+    pickup_location?: LocationUpdateOneRequiredWithoutPickup_requestsNestedInput
+    dropoff_location?: LocationUpdateOneRequiredWithoutDropoff_requestsNestedInput
+    trider?: TriderUpdateOneWithoutRide_requestsNestedInput
   }
 
   export type RideRequestUncheckedUpdateInput = {
@@ -8862,19 +8628,11 @@ export namespace Prisma {
     toda_id?: StringFieldUpdateOperationsInput | string
     pickup_location_id?: StringFieldUpdateOperationsInput | string
     dropoff_location_id?: StringFieldUpdateOperationsInput | string
-    pickup_name?: StringFieldUpdateOperationsInput | string
-    pickup_address?: StringFieldUpdateOperationsInput | string
-    pickup_latitude?: FloatFieldUpdateOperationsInput | number
-    pickup_longitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_name?: StringFieldUpdateOperationsInput | string
-    dropoff_address?: StringFieldUpdateOperationsInput | string
-    dropoff_latitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_longitude?: FloatFieldUpdateOperationsInput | number
-    status?: EnumRideStatusFieldUpdateOperationsInput | $Enums.RideStatus
+    status?: StringFieldUpdateOperationsInput | string
     estimated_fare?: FloatFieldUpdateOperationsInput | number
     estimated_time?: IntFieldUpdateOperationsInput | number
-    route_distance?: FloatFieldUpdateOperationsInput | number
-    route_duration?: IntFieldUpdateOperationsInput | number
+    route_distance?: NullableFloatFieldUpdateOperationsInput | number | null
+    route_duration?: NullableFloatFieldUpdateOperationsInput | number | null
     route_geometry?: NullableStringFieldUpdateOperationsInput | string | null
     trider_id?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -8892,19 +8650,11 @@ export namespace Prisma {
     toda_id: string
     pickup_location_id: string
     dropoff_location_id: string
-    pickup_name: string
-    pickup_address: string
-    pickup_latitude: number
-    pickup_longitude: number
-    dropoff_name: string
-    dropoff_address: string
-    dropoff_latitude: number
-    dropoff_longitude: number
-    status?: $Enums.RideStatus
+    status: string
     estimated_fare: number
     estimated_time: number
-    route_distance: number
-    route_duration: number
+    route_distance?: number | null
+    route_duration?: number | null
     route_geometry?: string | null
     trider_id?: string | null
     created_at?: Date | string
@@ -8919,19 +8669,11 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     booking_code?: StringFieldUpdateOperationsInput | string
     passenger_id?: StringFieldUpdateOperationsInput | string
-    pickup_name?: StringFieldUpdateOperationsInput | string
-    pickup_address?: StringFieldUpdateOperationsInput | string
-    pickup_latitude?: FloatFieldUpdateOperationsInput | number
-    pickup_longitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_name?: StringFieldUpdateOperationsInput | string
-    dropoff_address?: StringFieldUpdateOperationsInput | string
-    dropoff_latitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_longitude?: FloatFieldUpdateOperationsInput | number
-    status?: EnumRideStatusFieldUpdateOperationsInput | $Enums.RideStatus
+    status?: StringFieldUpdateOperationsInput | string
     estimated_fare?: FloatFieldUpdateOperationsInput | number
     estimated_time?: IntFieldUpdateOperationsInput | number
-    route_distance?: FloatFieldUpdateOperationsInput | number
-    route_duration?: IntFieldUpdateOperationsInput | number
+    route_distance?: NullableFloatFieldUpdateOperationsInput | number | null
+    route_duration?: NullableFloatFieldUpdateOperationsInput | number | null
     route_geometry?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     accepted_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -8948,19 +8690,11 @@ export namespace Prisma {
     toda_id?: StringFieldUpdateOperationsInput | string
     pickup_location_id?: StringFieldUpdateOperationsInput | string
     dropoff_location_id?: StringFieldUpdateOperationsInput | string
-    pickup_name?: StringFieldUpdateOperationsInput | string
-    pickup_address?: StringFieldUpdateOperationsInput | string
-    pickup_latitude?: FloatFieldUpdateOperationsInput | number
-    pickup_longitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_name?: StringFieldUpdateOperationsInput | string
-    dropoff_address?: StringFieldUpdateOperationsInput | string
-    dropoff_latitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_longitude?: FloatFieldUpdateOperationsInput | number
-    status?: EnumRideStatusFieldUpdateOperationsInput | $Enums.RideStatus
+    status?: StringFieldUpdateOperationsInput | string
     estimated_fare?: FloatFieldUpdateOperationsInput | number
     estimated_time?: IntFieldUpdateOperationsInput | number
-    route_distance?: FloatFieldUpdateOperationsInput | number
-    route_duration?: IntFieldUpdateOperationsInput | number
+    route_distance?: NullableFloatFieldUpdateOperationsInput | number | null
+    route_duration?: NullableFloatFieldUpdateOperationsInput | number | null
     route_geometry?: NullableStringFieldUpdateOperationsInput | string | null
     trider_id?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -9009,16 +8743,16 @@ export namespace Prisma {
     none?: TriderWhereInput
   }
 
-  export type RideRequestListRelationFilter = {
-    every?: RideRequestWhereInput
-    some?: RideRequestWhereInput
-    none?: RideRequestWhereInput
-  }
-
   export type TriderQueueItemListRelationFilter = {
     every?: TriderQueueItemWhereInput
     some?: TriderQueueItemWhereInput
     none?: TriderQueueItemWhereInput
+  }
+
+  export type RideRequestListRelationFilter = {
+    every?: RideRequestWhereInput
+    some?: RideRequestWhereInput
+    none?: RideRequestWhereInput
   }
 
   export type LocationOrderByRelationAggregateInput = {
@@ -9029,11 +8763,11 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
-  export type RideRequestOrderByRelationAggregateInput = {
+  export type TriderQueueItemOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
-  export type TriderQueueItemOrderByRelationAggregateInput = {
+  export type RideRequestOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -9105,13 +8839,6 @@ export namespace Prisma {
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatFilter<$PrismaModel> | number
-  }
-
-  export type EnumLocationTypeFilter<$PrismaModel = never> = {
-    equals?: $Enums.LocationType | EnumLocationTypeFieldRefInput<$PrismaModel>
-    in?: $Enums.LocationType[] | ListEnumLocationTypeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.LocationType[] | ListEnumLocationTypeFieldRefInput<$PrismaModel>
-    not?: NestedEnumLocationTypeFilter<$PrismaModel> | $Enums.LocationType
   }
 
   export type StringNullableFilter<$PrismaModel = never> = {
@@ -9207,16 +8934,6 @@ export namespace Prisma {
     _max?: NestedFloatFilter<$PrismaModel>
   }
 
-  export type EnumLocationTypeWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.LocationType | EnumLocationTypeFieldRefInput<$PrismaModel>
-    in?: $Enums.LocationType[] | ListEnumLocationTypeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.LocationType[] | ListEnumLocationTypeFieldRefInput<$PrismaModel>
-    not?: NestedEnumLocationTypeWithAggregatesFilter<$PrismaModel> | $Enums.LocationType
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumLocationTypeFilter<$PrismaModel>
-    _max?: NestedEnumLocationTypeFilter<$PrismaModel>
-  }
-
   export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel> | null
     in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
@@ -9233,13 +8950,6 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedStringNullableFilter<$PrismaModel>
     _max?: NestedStringNullableFilter<$PrismaModel>
-  }
-
-  export type EnumTriderStatusFilter<$PrismaModel = never> = {
-    equals?: $Enums.TriderStatus | EnumTriderStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.TriderStatus[] | ListEnumTriderStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.TriderStatus[] | ListEnumTriderStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumTriderStatusFilter<$PrismaModel> | $Enums.TriderStatus
   }
 
   export type FloatNullableFilter<$PrismaModel = never> = {
@@ -9328,16 +9038,6 @@ export namespace Prisma {
   export type TriderSumOrderByAggregateInput = {
     current_latitude?: SortOrder
     current_longitude?: SortOrder
-  }
-
-  export type EnumTriderStatusWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.TriderStatus | EnumTriderStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.TriderStatus[] | ListEnumTriderStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.TriderStatus[] | ListEnumTriderStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumTriderStatusWithAggregatesFilter<$PrismaModel> | $Enums.TriderStatus
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumTriderStatusFilter<$PrismaModel>
-    _max?: NestedEnumTriderStatusFilter<$PrismaModel>
   }
 
   export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -9434,13 +9134,6 @@ export namespace Prisma {
     _max?: NestedIntFilter<$PrismaModel>
   }
 
-  export type EnumRideStatusFilter<$PrismaModel = never> = {
-    equals?: $Enums.RideStatus | EnumRideStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.RideStatus[] | ListEnumRideStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.RideStatus[] | ListEnumRideStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumRideStatusFilter<$PrismaModel> | $Enums.RideStatus
-  }
-
   export type LocationScalarRelationFilter = {
     is?: LocationWhereInput
     isNot?: LocationWhereInput
@@ -9458,14 +9151,6 @@ export namespace Prisma {
     toda_id?: SortOrder
     pickup_location_id?: SortOrder
     dropoff_location_id?: SortOrder
-    pickup_name?: SortOrder
-    pickup_address?: SortOrder
-    pickup_latitude?: SortOrder
-    pickup_longitude?: SortOrder
-    dropoff_name?: SortOrder
-    dropoff_address?: SortOrder
-    dropoff_latitude?: SortOrder
-    dropoff_longitude?: SortOrder
     status?: SortOrder
     estimated_fare?: SortOrder
     estimated_time?: SortOrder
@@ -9482,10 +9167,6 @@ export namespace Prisma {
   }
 
   export type RideRequestAvgOrderByAggregateInput = {
-    pickup_latitude?: SortOrder
-    pickup_longitude?: SortOrder
-    dropoff_latitude?: SortOrder
-    dropoff_longitude?: SortOrder
     estimated_fare?: SortOrder
     estimated_time?: SortOrder
     route_distance?: SortOrder
@@ -9499,14 +9180,6 @@ export namespace Prisma {
     toda_id?: SortOrder
     pickup_location_id?: SortOrder
     dropoff_location_id?: SortOrder
-    pickup_name?: SortOrder
-    pickup_address?: SortOrder
-    pickup_latitude?: SortOrder
-    pickup_longitude?: SortOrder
-    dropoff_name?: SortOrder
-    dropoff_address?: SortOrder
-    dropoff_latitude?: SortOrder
-    dropoff_longitude?: SortOrder
     status?: SortOrder
     estimated_fare?: SortOrder
     estimated_time?: SortOrder
@@ -9529,14 +9202,6 @@ export namespace Prisma {
     toda_id?: SortOrder
     pickup_location_id?: SortOrder
     dropoff_location_id?: SortOrder
-    pickup_name?: SortOrder
-    pickup_address?: SortOrder
-    pickup_latitude?: SortOrder
-    pickup_longitude?: SortOrder
-    dropoff_name?: SortOrder
-    dropoff_address?: SortOrder
-    dropoff_latitude?: SortOrder
-    dropoff_longitude?: SortOrder
     status?: SortOrder
     estimated_fare?: SortOrder
     estimated_time?: SortOrder
@@ -9553,24 +9218,10 @@ export namespace Prisma {
   }
 
   export type RideRequestSumOrderByAggregateInput = {
-    pickup_latitude?: SortOrder
-    pickup_longitude?: SortOrder
-    dropoff_latitude?: SortOrder
-    dropoff_longitude?: SortOrder
     estimated_fare?: SortOrder
     estimated_time?: SortOrder
     route_distance?: SortOrder
     route_duration?: SortOrder
-  }
-
-  export type EnumRideStatusWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.RideStatus | EnumRideStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.RideStatus[] | ListEnumRideStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.RideStatus[] | ListEnumRideStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumRideStatusWithAggregatesFilter<$PrismaModel> | $Enums.RideStatus
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumRideStatusFilter<$PrismaModel>
-    _max?: NestedEnumRideStatusFilter<$PrismaModel>
   }
 
   export type LocationCreateNestedManyWithoutTodaInput = {
@@ -9587,18 +9238,18 @@ export namespace Prisma {
     connect?: TriderWhereUniqueInput | TriderWhereUniqueInput[]
   }
 
-  export type RideRequestCreateNestedManyWithoutTodaInput = {
-    create?: XOR<RideRequestCreateWithoutTodaInput, RideRequestUncheckedCreateWithoutTodaInput> | RideRequestCreateWithoutTodaInput[] | RideRequestUncheckedCreateWithoutTodaInput[]
-    connectOrCreate?: RideRequestCreateOrConnectWithoutTodaInput | RideRequestCreateOrConnectWithoutTodaInput[]
-    createMany?: RideRequestCreateManyTodaInputEnvelope
-    connect?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
-  }
-
   export type TriderQueueItemCreateNestedManyWithoutTodaInput = {
     create?: XOR<TriderQueueItemCreateWithoutTodaInput, TriderQueueItemUncheckedCreateWithoutTodaInput> | TriderQueueItemCreateWithoutTodaInput[] | TriderQueueItemUncheckedCreateWithoutTodaInput[]
     connectOrCreate?: TriderQueueItemCreateOrConnectWithoutTodaInput | TriderQueueItemCreateOrConnectWithoutTodaInput[]
     createMany?: TriderQueueItemCreateManyTodaInputEnvelope
     connect?: TriderQueueItemWhereUniqueInput | TriderQueueItemWhereUniqueInput[]
+  }
+
+  export type RideRequestCreateNestedManyWithoutTodaInput = {
+    create?: XOR<RideRequestCreateWithoutTodaInput, RideRequestUncheckedCreateWithoutTodaInput> | RideRequestCreateWithoutTodaInput[] | RideRequestUncheckedCreateWithoutTodaInput[]
+    connectOrCreate?: RideRequestCreateOrConnectWithoutTodaInput | RideRequestCreateOrConnectWithoutTodaInput[]
+    createMany?: RideRequestCreateManyTodaInputEnvelope
+    connect?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
   }
 
   export type LocationUncheckedCreateNestedManyWithoutTodaInput = {
@@ -9615,18 +9266,18 @@ export namespace Prisma {
     connect?: TriderWhereUniqueInput | TriderWhereUniqueInput[]
   }
 
-  export type RideRequestUncheckedCreateNestedManyWithoutTodaInput = {
-    create?: XOR<RideRequestCreateWithoutTodaInput, RideRequestUncheckedCreateWithoutTodaInput> | RideRequestCreateWithoutTodaInput[] | RideRequestUncheckedCreateWithoutTodaInput[]
-    connectOrCreate?: RideRequestCreateOrConnectWithoutTodaInput | RideRequestCreateOrConnectWithoutTodaInput[]
-    createMany?: RideRequestCreateManyTodaInputEnvelope
-    connect?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
-  }
-
   export type TriderQueueItemUncheckedCreateNestedManyWithoutTodaInput = {
     create?: XOR<TriderQueueItemCreateWithoutTodaInput, TriderQueueItemUncheckedCreateWithoutTodaInput> | TriderQueueItemCreateWithoutTodaInput[] | TriderQueueItemUncheckedCreateWithoutTodaInput[]
     connectOrCreate?: TriderQueueItemCreateOrConnectWithoutTodaInput | TriderQueueItemCreateOrConnectWithoutTodaInput[]
     createMany?: TriderQueueItemCreateManyTodaInputEnvelope
     connect?: TriderQueueItemWhereUniqueInput | TriderQueueItemWhereUniqueInput[]
+  }
+
+  export type RideRequestUncheckedCreateNestedManyWithoutTodaInput = {
+    create?: XOR<RideRequestCreateWithoutTodaInput, RideRequestUncheckedCreateWithoutTodaInput> | RideRequestCreateWithoutTodaInput[] | RideRequestUncheckedCreateWithoutTodaInput[]
+    connectOrCreate?: RideRequestCreateOrConnectWithoutTodaInput | RideRequestCreateOrConnectWithoutTodaInput[]
+    createMany?: RideRequestCreateManyTodaInputEnvelope
+    connect?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -9665,20 +9316,6 @@ export namespace Prisma {
     deleteMany?: TriderScalarWhereInput | TriderScalarWhereInput[]
   }
 
-  export type RideRequestUpdateManyWithoutTodaNestedInput = {
-    create?: XOR<RideRequestCreateWithoutTodaInput, RideRequestUncheckedCreateWithoutTodaInput> | RideRequestCreateWithoutTodaInput[] | RideRequestUncheckedCreateWithoutTodaInput[]
-    connectOrCreate?: RideRequestCreateOrConnectWithoutTodaInput | RideRequestCreateOrConnectWithoutTodaInput[]
-    upsert?: RideRequestUpsertWithWhereUniqueWithoutTodaInput | RideRequestUpsertWithWhereUniqueWithoutTodaInput[]
-    createMany?: RideRequestCreateManyTodaInputEnvelope
-    set?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
-    disconnect?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
-    delete?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
-    connect?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
-    update?: RideRequestUpdateWithWhereUniqueWithoutTodaInput | RideRequestUpdateWithWhereUniqueWithoutTodaInput[]
-    updateMany?: RideRequestUpdateManyWithWhereWithoutTodaInput | RideRequestUpdateManyWithWhereWithoutTodaInput[]
-    deleteMany?: RideRequestScalarWhereInput | RideRequestScalarWhereInput[]
-  }
-
   export type TriderQueueItemUpdateManyWithoutTodaNestedInput = {
     create?: XOR<TriderQueueItemCreateWithoutTodaInput, TriderQueueItemUncheckedCreateWithoutTodaInput> | TriderQueueItemCreateWithoutTodaInput[] | TriderQueueItemUncheckedCreateWithoutTodaInput[]
     connectOrCreate?: TriderQueueItemCreateOrConnectWithoutTodaInput | TriderQueueItemCreateOrConnectWithoutTodaInput[]
@@ -9691,6 +9328,20 @@ export namespace Prisma {
     update?: TriderQueueItemUpdateWithWhereUniqueWithoutTodaInput | TriderQueueItemUpdateWithWhereUniqueWithoutTodaInput[]
     updateMany?: TriderQueueItemUpdateManyWithWhereWithoutTodaInput | TriderQueueItemUpdateManyWithWhereWithoutTodaInput[]
     deleteMany?: TriderQueueItemScalarWhereInput | TriderQueueItemScalarWhereInput[]
+  }
+
+  export type RideRequestUpdateManyWithoutTodaNestedInput = {
+    create?: XOR<RideRequestCreateWithoutTodaInput, RideRequestUncheckedCreateWithoutTodaInput> | RideRequestCreateWithoutTodaInput[] | RideRequestUncheckedCreateWithoutTodaInput[]
+    connectOrCreate?: RideRequestCreateOrConnectWithoutTodaInput | RideRequestCreateOrConnectWithoutTodaInput[]
+    upsert?: RideRequestUpsertWithWhereUniqueWithoutTodaInput | RideRequestUpsertWithWhereUniqueWithoutTodaInput[]
+    createMany?: RideRequestCreateManyTodaInputEnvelope
+    set?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
+    disconnect?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
+    delete?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
+    connect?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
+    update?: RideRequestUpdateWithWhereUniqueWithoutTodaInput | RideRequestUpdateWithWhereUniqueWithoutTodaInput[]
+    updateMany?: RideRequestUpdateManyWithWhereWithoutTodaInput | RideRequestUpdateManyWithWhereWithoutTodaInput[]
+    deleteMany?: RideRequestScalarWhereInput | RideRequestScalarWhereInput[]
   }
 
   export type LocationUncheckedUpdateManyWithoutTodaNestedInput = {
@@ -9721,20 +9372,6 @@ export namespace Prisma {
     deleteMany?: TriderScalarWhereInput | TriderScalarWhereInput[]
   }
 
-  export type RideRequestUncheckedUpdateManyWithoutTodaNestedInput = {
-    create?: XOR<RideRequestCreateWithoutTodaInput, RideRequestUncheckedCreateWithoutTodaInput> | RideRequestCreateWithoutTodaInput[] | RideRequestUncheckedCreateWithoutTodaInput[]
-    connectOrCreate?: RideRequestCreateOrConnectWithoutTodaInput | RideRequestCreateOrConnectWithoutTodaInput[]
-    upsert?: RideRequestUpsertWithWhereUniqueWithoutTodaInput | RideRequestUpsertWithWhereUniqueWithoutTodaInput[]
-    createMany?: RideRequestCreateManyTodaInputEnvelope
-    set?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
-    disconnect?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
-    delete?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
-    connect?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
-    update?: RideRequestUpdateWithWhereUniqueWithoutTodaInput | RideRequestUpdateWithWhereUniqueWithoutTodaInput[]
-    updateMany?: RideRequestUpdateManyWithWhereWithoutTodaInput | RideRequestUpdateManyWithWhereWithoutTodaInput[]
-    deleteMany?: RideRequestScalarWhereInput | RideRequestScalarWhereInput[]
-  }
-
   export type TriderQueueItemUncheckedUpdateManyWithoutTodaNestedInput = {
     create?: XOR<TriderQueueItemCreateWithoutTodaInput, TriderQueueItemUncheckedCreateWithoutTodaInput> | TriderQueueItemCreateWithoutTodaInput[] | TriderQueueItemUncheckedCreateWithoutTodaInput[]
     connectOrCreate?: TriderQueueItemCreateOrConnectWithoutTodaInput | TriderQueueItemCreateOrConnectWithoutTodaInput[]
@@ -9747,6 +9384,20 @@ export namespace Prisma {
     update?: TriderQueueItemUpdateWithWhereUniqueWithoutTodaInput | TriderQueueItemUpdateWithWhereUniqueWithoutTodaInput[]
     updateMany?: TriderQueueItemUpdateManyWithWhereWithoutTodaInput | TriderQueueItemUpdateManyWithWhereWithoutTodaInput[]
     deleteMany?: TriderQueueItemScalarWhereInput | TriderQueueItemScalarWhereInput[]
+  }
+
+  export type RideRequestUncheckedUpdateManyWithoutTodaNestedInput = {
+    create?: XOR<RideRequestCreateWithoutTodaInput, RideRequestUncheckedCreateWithoutTodaInput> | RideRequestCreateWithoutTodaInput[] | RideRequestUncheckedCreateWithoutTodaInput[]
+    connectOrCreate?: RideRequestCreateOrConnectWithoutTodaInput | RideRequestCreateOrConnectWithoutTodaInput[]
+    upsert?: RideRequestUpsertWithWhereUniqueWithoutTodaInput | RideRequestUpsertWithWhereUniqueWithoutTodaInput[]
+    createMany?: RideRequestCreateManyTodaInputEnvelope
+    set?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
+    disconnect?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
+    delete?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
+    connect?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
+    update?: RideRequestUpdateWithWhereUniqueWithoutTodaInput | RideRequestUpdateWithWhereUniqueWithoutTodaInput[]
+    updateMany?: RideRequestUpdateManyWithWhereWithoutTodaInput | RideRequestUpdateManyWithWhereWithoutTodaInput[]
+    deleteMany?: RideRequestScalarWhereInput | RideRequestScalarWhereInput[]
   }
 
   export type TodaCreateNestedOneWithoutLocationsInput = {
@@ -9789,10 +9440,6 @@ export namespace Prisma {
     decrement?: number
     multiply?: number
     divide?: number
-  }
-
-  export type EnumLocationTypeFieldUpdateOperationsInput = {
-    set?: $Enums.LocationType
   }
 
   export type TodaUpdateOneWithoutLocationsNestedInput = {
@@ -9871,13 +9518,6 @@ export namespace Prisma {
     connect?: TodaWhereUniqueInput
   }
 
-  export type RideRequestCreateNestedManyWithoutTriderInput = {
-    create?: XOR<RideRequestCreateWithoutTriderInput, RideRequestUncheckedCreateWithoutTriderInput> | RideRequestCreateWithoutTriderInput[] | RideRequestUncheckedCreateWithoutTriderInput[]
-    connectOrCreate?: RideRequestCreateOrConnectWithoutTriderInput | RideRequestCreateOrConnectWithoutTriderInput[]
-    createMany?: RideRequestCreateManyTriderInputEnvelope
-    connect?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
-  }
-
   export type TriderQueueItemCreateNestedManyWithoutTriderInput = {
     create?: XOR<TriderQueueItemCreateWithoutTriderInput, TriderQueueItemUncheckedCreateWithoutTriderInput> | TriderQueueItemCreateWithoutTriderInput[] | TriderQueueItemUncheckedCreateWithoutTriderInput[]
     connectOrCreate?: TriderQueueItemCreateOrConnectWithoutTriderInput | TriderQueueItemCreateOrConnectWithoutTriderInput[]
@@ -9885,7 +9525,7 @@ export namespace Prisma {
     connect?: TriderQueueItemWhereUniqueInput | TriderQueueItemWhereUniqueInput[]
   }
 
-  export type RideRequestUncheckedCreateNestedManyWithoutTriderInput = {
+  export type RideRequestCreateNestedManyWithoutTriderInput = {
     create?: XOR<RideRequestCreateWithoutTriderInput, RideRequestUncheckedCreateWithoutTriderInput> | RideRequestCreateWithoutTriderInput[] | RideRequestUncheckedCreateWithoutTriderInput[]
     connectOrCreate?: RideRequestCreateOrConnectWithoutTriderInput | RideRequestCreateOrConnectWithoutTriderInput[]
     createMany?: RideRequestCreateManyTriderInputEnvelope
@@ -9899,8 +9539,11 @@ export namespace Prisma {
     connect?: TriderQueueItemWhereUniqueInput | TriderQueueItemWhereUniqueInput[]
   }
 
-  export type EnumTriderStatusFieldUpdateOperationsInput = {
-    set?: $Enums.TriderStatus
+  export type RideRequestUncheckedCreateNestedManyWithoutTriderInput = {
+    create?: XOR<RideRequestCreateWithoutTriderInput, RideRequestUncheckedCreateWithoutTriderInput> | RideRequestCreateWithoutTriderInput[] | RideRequestUncheckedCreateWithoutTriderInput[]
+    connectOrCreate?: RideRequestCreateOrConnectWithoutTriderInput | RideRequestCreateOrConnectWithoutTriderInput[]
+    createMany?: RideRequestCreateManyTriderInputEnvelope
+    connect?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
   }
 
   export type NullableFloatFieldUpdateOperationsInput = {
@@ -9923,20 +9566,6 @@ export namespace Prisma {
     update?: XOR<XOR<TodaUpdateToOneWithWhereWithoutTridersInput, TodaUpdateWithoutTridersInput>, TodaUncheckedUpdateWithoutTridersInput>
   }
 
-  export type RideRequestUpdateManyWithoutTriderNestedInput = {
-    create?: XOR<RideRequestCreateWithoutTriderInput, RideRequestUncheckedCreateWithoutTriderInput> | RideRequestCreateWithoutTriderInput[] | RideRequestUncheckedCreateWithoutTriderInput[]
-    connectOrCreate?: RideRequestCreateOrConnectWithoutTriderInput | RideRequestCreateOrConnectWithoutTriderInput[]
-    upsert?: RideRequestUpsertWithWhereUniqueWithoutTriderInput | RideRequestUpsertWithWhereUniqueWithoutTriderInput[]
-    createMany?: RideRequestCreateManyTriderInputEnvelope
-    set?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
-    disconnect?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
-    delete?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
-    connect?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
-    update?: RideRequestUpdateWithWhereUniqueWithoutTriderInput | RideRequestUpdateWithWhereUniqueWithoutTriderInput[]
-    updateMany?: RideRequestUpdateManyWithWhereWithoutTriderInput | RideRequestUpdateManyWithWhereWithoutTriderInput[]
-    deleteMany?: RideRequestScalarWhereInput | RideRequestScalarWhereInput[]
-  }
-
   export type TriderQueueItemUpdateManyWithoutTriderNestedInput = {
     create?: XOR<TriderQueueItemCreateWithoutTriderInput, TriderQueueItemUncheckedCreateWithoutTriderInput> | TriderQueueItemCreateWithoutTriderInput[] | TriderQueueItemUncheckedCreateWithoutTriderInput[]
     connectOrCreate?: TriderQueueItemCreateOrConnectWithoutTriderInput | TriderQueueItemCreateOrConnectWithoutTriderInput[]
@@ -9951,7 +9580,7 @@ export namespace Prisma {
     deleteMany?: TriderQueueItemScalarWhereInput | TriderQueueItemScalarWhereInput[]
   }
 
-  export type RideRequestUncheckedUpdateManyWithoutTriderNestedInput = {
+  export type RideRequestUpdateManyWithoutTriderNestedInput = {
     create?: XOR<RideRequestCreateWithoutTriderInput, RideRequestUncheckedCreateWithoutTriderInput> | RideRequestCreateWithoutTriderInput[] | RideRequestUncheckedCreateWithoutTriderInput[]
     connectOrCreate?: RideRequestCreateOrConnectWithoutTriderInput | RideRequestCreateOrConnectWithoutTriderInput[]
     upsert?: RideRequestUpsertWithWhereUniqueWithoutTriderInput | RideRequestUpsertWithWhereUniqueWithoutTriderInput[]
@@ -9977,6 +9606,20 @@ export namespace Prisma {
     update?: TriderQueueItemUpdateWithWhereUniqueWithoutTriderInput | TriderQueueItemUpdateWithWhereUniqueWithoutTriderInput[]
     updateMany?: TriderQueueItemUpdateManyWithWhereWithoutTriderInput | TriderQueueItemUpdateManyWithWhereWithoutTriderInput[]
     deleteMany?: TriderQueueItemScalarWhereInput | TriderQueueItemScalarWhereInput[]
+  }
+
+  export type RideRequestUncheckedUpdateManyWithoutTriderNestedInput = {
+    create?: XOR<RideRequestCreateWithoutTriderInput, RideRequestUncheckedCreateWithoutTriderInput> | RideRequestCreateWithoutTriderInput[] | RideRequestUncheckedCreateWithoutTriderInput[]
+    connectOrCreate?: RideRequestCreateOrConnectWithoutTriderInput | RideRequestCreateOrConnectWithoutTriderInput[]
+    upsert?: RideRequestUpsertWithWhereUniqueWithoutTriderInput | RideRequestUpsertWithWhereUniqueWithoutTriderInput[]
+    createMany?: RideRequestCreateManyTriderInputEnvelope
+    set?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
+    disconnect?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
+    delete?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
+    connect?: RideRequestWhereUniqueInput | RideRequestWhereUniqueInput[]
+    update?: RideRequestUpdateWithWhereUniqueWithoutTriderInput | RideRequestUpdateWithWhereUniqueWithoutTriderInput[]
+    updateMany?: RideRequestUpdateManyWithWhereWithoutTriderInput | RideRequestUpdateManyWithWhereWithoutTriderInput[]
+    deleteMany?: RideRequestScalarWhereInput | RideRequestScalarWhereInput[]
   }
 
   export type TriderCreateNestedOneWithoutQueue_itemsInput = {
@@ -10015,66 +9658,62 @@ export namespace Prisma {
     update?: XOR<XOR<TodaUpdateToOneWithWhereWithoutQueue_itemsInput, TodaUpdateWithoutQueue_itemsInput>, TodaUncheckedUpdateWithoutQueue_itemsInput>
   }
 
-  export type TodaCreateNestedOneWithoutRidesInput = {
-    create?: XOR<TodaCreateWithoutRidesInput, TodaUncheckedCreateWithoutRidesInput>
-    connectOrCreate?: TodaCreateOrConnectWithoutRidesInput
+  export type TodaCreateNestedOneWithoutRide_requestsInput = {
+    create?: XOR<TodaCreateWithoutRide_requestsInput, TodaUncheckedCreateWithoutRide_requestsInput>
+    connectOrCreate?: TodaCreateOrConnectWithoutRide_requestsInput
     connect?: TodaWhereUniqueInput
   }
 
-  export type LocationCreateNestedOneWithoutPickupsInput = {
-    create?: XOR<LocationCreateWithoutPickupsInput, LocationUncheckedCreateWithoutPickupsInput>
-    connectOrCreate?: LocationCreateOrConnectWithoutPickupsInput
+  export type LocationCreateNestedOneWithoutPickup_requestsInput = {
+    create?: XOR<LocationCreateWithoutPickup_requestsInput, LocationUncheckedCreateWithoutPickup_requestsInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutPickup_requestsInput
     connect?: LocationWhereUniqueInput
   }
 
-  export type LocationCreateNestedOneWithoutDropoffsInput = {
-    create?: XOR<LocationCreateWithoutDropoffsInput, LocationUncheckedCreateWithoutDropoffsInput>
-    connectOrCreate?: LocationCreateOrConnectWithoutDropoffsInput
+  export type LocationCreateNestedOneWithoutDropoff_requestsInput = {
+    create?: XOR<LocationCreateWithoutDropoff_requestsInput, LocationUncheckedCreateWithoutDropoff_requestsInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutDropoff_requestsInput
     connect?: LocationWhereUniqueInput
   }
 
-  export type TriderCreateNestedOneWithoutRidesInput = {
-    create?: XOR<TriderCreateWithoutRidesInput, TriderUncheckedCreateWithoutRidesInput>
-    connectOrCreate?: TriderCreateOrConnectWithoutRidesInput
+  export type TriderCreateNestedOneWithoutRide_requestsInput = {
+    create?: XOR<TriderCreateWithoutRide_requestsInput, TriderUncheckedCreateWithoutRide_requestsInput>
+    connectOrCreate?: TriderCreateOrConnectWithoutRide_requestsInput
     connect?: TriderWhereUniqueInput
   }
 
-  export type EnumRideStatusFieldUpdateOperationsInput = {
-    set?: $Enums.RideStatus
-  }
-
-  export type TodaUpdateOneRequiredWithoutRidesNestedInput = {
-    create?: XOR<TodaCreateWithoutRidesInput, TodaUncheckedCreateWithoutRidesInput>
-    connectOrCreate?: TodaCreateOrConnectWithoutRidesInput
-    upsert?: TodaUpsertWithoutRidesInput
+  export type TodaUpdateOneRequiredWithoutRide_requestsNestedInput = {
+    create?: XOR<TodaCreateWithoutRide_requestsInput, TodaUncheckedCreateWithoutRide_requestsInput>
+    connectOrCreate?: TodaCreateOrConnectWithoutRide_requestsInput
+    upsert?: TodaUpsertWithoutRide_requestsInput
     connect?: TodaWhereUniqueInput
-    update?: XOR<XOR<TodaUpdateToOneWithWhereWithoutRidesInput, TodaUpdateWithoutRidesInput>, TodaUncheckedUpdateWithoutRidesInput>
+    update?: XOR<XOR<TodaUpdateToOneWithWhereWithoutRide_requestsInput, TodaUpdateWithoutRide_requestsInput>, TodaUncheckedUpdateWithoutRide_requestsInput>
   }
 
-  export type LocationUpdateOneRequiredWithoutPickupsNestedInput = {
-    create?: XOR<LocationCreateWithoutPickupsInput, LocationUncheckedCreateWithoutPickupsInput>
-    connectOrCreate?: LocationCreateOrConnectWithoutPickupsInput
-    upsert?: LocationUpsertWithoutPickupsInput
+  export type LocationUpdateOneRequiredWithoutPickup_requestsNestedInput = {
+    create?: XOR<LocationCreateWithoutPickup_requestsInput, LocationUncheckedCreateWithoutPickup_requestsInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutPickup_requestsInput
+    upsert?: LocationUpsertWithoutPickup_requestsInput
     connect?: LocationWhereUniqueInput
-    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutPickupsInput, LocationUpdateWithoutPickupsInput>, LocationUncheckedUpdateWithoutPickupsInput>
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutPickup_requestsInput, LocationUpdateWithoutPickup_requestsInput>, LocationUncheckedUpdateWithoutPickup_requestsInput>
   }
 
-  export type LocationUpdateOneRequiredWithoutDropoffsNestedInput = {
-    create?: XOR<LocationCreateWithoutDropoffsInput, LocationUncheckedCreateWithoutDropoffsInput>
-    connectOrCreate?: LocationCreateOrConnectWithoutDropoffsInput
-    upsert?: LocationUpsertWithoutDropoffsInput
+  export type LocationUpdateOneRequiredWithoutDropoff_requestsNestedInput = {
+    create?: XOR<LocationCreateWithoutDropoff_requestsInput, LocationUncheckedCreateWithoutDropoff_requestsInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutDropoff_requestsInput
+    upsert?: LocationUpsertWithoutDropoff_requestsInput
     connect?: LocationWhereUniqueInput
-    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutDropoffsInput, LocationUpdateWithoutDropoffsInput>, LocationUncheckedUpdateWithoutDropoffsInput>
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutDropoff_requestsInput, LocationUpdateWithoutDropoff_requestsInput>, LocationUncheckedUpdateWithoutDropoff_requestsInput>
   }
 
-  export type TriderUpdateOneWithoutRidesNestedInput = {
-    create?: XOR<TriderCreateWithoutRidesInput, TriderUncheckedCreateWithoutRidesInput>
-    connectOrCreate?: TriderCreateOrConnectWithoutRidesInput
-    upsert?: TriderUpsertWithoutRidesInput
+  export type TriderUpdateOneWithoutRide_requestsNestedInput = {
+    create?: XOR<TriderCreateWithoutRide_requestsInput, TriderUncheckedCreateWithoutRide_requestsInput>
+    connectOrCreate?: TriderCreateOrConnectWithoutRide_requestsInput
+    upsert?: TriderUpsertWithoutRide_requestsInput
     disconnect?: TriderWhereInput | boolean
     delete?: TriderWhereInput | boolean
     connect?: TriderWhereUniqueInput
-    update?: XOR<XOR<TriderUpdateToOneWithWhereWithoutRidesInput, TriderUpdateWithoutRidesInput>, TriderUncheckedUpdateWithoutRidesInput>
+    update?: XOR<XOR<TriderUpdateToOneWithWhereWithoutRide_requestsInput, TriderUpdateWithoutRide_requestsInput>, TriderUncheckedUpdateWithoutRide_requestsInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -10155,13 +9794,6 @@ export namespace Prisma {
     not?: NestedFloatFilter<$PrismaModel> | number
   }
 
-  export type NestedEnumLocationTypeFilter<$PrismaModel = never> = {
-    equals?: $Enums.LocationType | EnumLocationTypeFieldRefInput<$PrismaModel>
-    in?: $Enums.LocationType[] | ListEnumLocationTypeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.LocationType[] | ListEnumLocationTypeFieldRefInput<$PrismaModel>
-    not?: NestedEnumLocationTypeFilter<$PrismaModel> | $Enums.LocationType
-  }
-
   export type NestedStringNullableFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel> | null
     in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
@@ -10192,16 +9824,6 @@ export namespace Prisma {
     _max?: NestedFloatFilter<$PrismaModel>
   }
 
-  export type NestedEnumLocationTypeWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.LocationType | EnumLocationTypeFieldRefInput<$PrismaModel>
-    in?: $Enums.LocationType[] | ListEnumLocationTypeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.LocationType[] | ListEnumLocationTypeFieldRefInput<$PrismaModel>
-    not?: NestedEnumLocationTypeWithAggregatesFilter<$PrismaModel> | $Enums.LocationType
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumLocationTypeFilter<$PrismaModel>
-    _max?: NestedEnumLocationTypeFilter<$PrismaModel>
-  }
-
   export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel> | null
     in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
@@ -10230,13 +9852,6 @@ export namespace Prisma {
     not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
-  export type NestedEnumTriderStatusFilter<$PrismaModel = never> = {
-    equals?: $Enums.TriderStatus | EnumTriderStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.TriderStatus[] | ListEnumTriderStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.TriderStatus[] | ListEnumTriderStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumTriderStatusFilter<$PrismaModel> | $Enums.TriderStatus
-  }
-
   export type NestedFloatNullableFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel> | null
     in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
@@ -10257,16 +9872,6 @@ export namespace Prisma {
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
-  }
-
-  export type NestedEnumTriderStatusWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.TriderStatus | EnumTriderStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.TriderStatus[] | ListEnumTriderStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.TriderStatus[] | ListEnumTriderStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumTriderStatusWithAggregatesFilter<$PrismaModel> | $Enums.TriderStatus
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumTriderStatusFilter<$PrismaModel>
-    _max?: NestedEnumTriderStatusFilter<$PrismaModel>
   }
 
   export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -10315,23 +9920,6 @@ export namespace Prisma {
     _max?: NestedIntFilter<$PrismaModel>
   }
 
-  export type NestedEnumRideStatusFilter<$PrismaModel = never> = {
-    equals?: $Enums.RideStatus | EnumRideStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.RideStatus[] | ListEnumRideStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.RideStatus[] | ListEnumRideStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumRideStatusFilter<$PrismaModel> | $Enums.RideStatus
-  }
-
-  export type NestedEnumRideStatusWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.RideStatus | EnumRideStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.RideStatus[] | ListEnumRideStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.RideStatus[] | ListEnumRideStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumRideStatusWithAggregatesFilter<$PrismaModel> | $Enums.RideStatus
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumRideStatusFilter<$PrismaModel>
-    _max?: NestedEnumRideStatusFilter<$PrismaModel>
-  }
-
   export type LocationCreateWithoutTodaInput = {
     id?: string
     name: string
@@ -10340,11 +9928,11 @@ export namespace Prisma {
     longitude: number
     city: string
     barangay: string
-    type: $Enums.LocationType
+    type: string
     created_at?: Date | string
     updated_at?: Date | string
-    pickups?: RideRequestCreateNestedManyWithoutPickup_locationInput
-    dropoffs?: RideRequestCreateNestedManyWithoutDropoff_locationInput
+    pickup_requests?: RideRequestCreateNestedManyWithoutPickup_locationInput
+    dropoff_requests?: RideRequestCreateNestedManyWithoutDropoff_locationInput
   }
 
   export type LocationUncheckedCreateWithoutTodaInput = {
@@ -10355,11 +9943,11 @@ export namespace Prisma {
     longitude: number
     city: string
     barangay: string
-    type: $Enums.LocationType
+    type: string
     created_at?: Date | string
     updated_at?: Date | string
-    pickups?: RideRequestUncheckedCreateNestedManyWithoutPickup_locationInput
-    dropoffs?: RideRequestUncheckedCreateNestedManyWithoutDropoff_locationInput
+    pickup_requests?: RideRequestUncheckedCreateNestedManyWithoutPickup_locationInput
+    dropoff_requests?: RideRequestUncheckedCreateNestedManyWithoutDropoff_locationInput
   }
 
   export type LocationCreateOrConnectWithoutTodaInput = {
@@ -10380,14 +9968,14 @@ export namespace Prisma {
     contact_number: string
     plate_number: string
     license_number: string
-    status?: $Enums.TriderStatus
+    status: string
     current_latitude?: number | null
     current_longitude?: number | null
     last_online?: Date | string | null
     created_at?: Date | string
     updated_at?: Date | string
-    rides?: RideRequestCreateNestedManyWithoutTriderInput
     queue_items?: TriderQueueItemCreateNestedManyWithoutTriderInput
+    ride_requests?: RideRequestCreateNestedManyWithoutTriderInput
   }
 
   export type TriderUncheckedCreateWithoutTodaInput = {
@@ -10398,14 +9986,14 @@ export namespace Prisma {
     contact_number: string
     plate_number: string
     license_number: string
-    status?: $Enums.TriderStatus
+    status: string
     current_latitude?: number | null
     current_longitude?: number | null
     last_online?: Date | string | null
     created_at?: Date | string
     updated_at?: Date | string
-    rides?: RideRequestUncheckedCreateNestedManyWithoutTriderInput
     queue_items?: TriderQueueItemUncheckedCreateNestedManyWithoutTriderInput
+    ride_requests?: RideRequestUncheckedCreateNestedManyWithoutTriderInput
   }
 
   export type TriderCreateOrConnectWithoutTodaInput = {
@@ -10415,74 +10003,6 @@ export namespace Prisma {
 
   export type TriderCreateManyTodaInputEnvelope = {
     data: TriderCreateManyTodaInput | TriderCreateManyTodaInput[]
-    skipDuplicates?: boolean
-  }
-
-  export type RideRequestCreateWithoutTodaInput = {
-    id?: string
-    booking_code: string
-    passenger_id: string
-    pickup_name: string
-    pickup_address: string
-    pickup_latitude: number
-    pickup_longitude: number
-    dropoff_name: string
-    dropoff_address: string
-    dropoff_latitude: number
-    dropoff_longitude: number
-    status?: $Enums.RideStatus
-    estimated_fare: number
-    estimated_time: number
-    route_distance: number
-    route_duration: number
-    route_geometry?: string | null
-    created_at?: Date | string
-    accepted_at?: Date | string | null
-    picked_up_at?: Date | string | null
-    completed_at?: Date | string | null
-    cancelled_at?: Date | string | null
-    cancellation_reason?: string | null
-    pickup_location: LocationCreateNestedOneWithoutPickupsInput
-    dropoff_location: LocationCreateNestedOneWithoutDropoffsInput
-    trider?: TriderCreateNestedOneWithoutRidesInput
-  }
-
-  export type RideRequestUncheckedCreateWithoutTodaInput = {
-    id?: string
-    booking_code: string
-    passenger_id: string
-    pickup_location_id: string
-    dropoff_location_id: string
-    pickup_name: string
-    pickup_address: string
-    pickup_latitude: number
-    pickup_longitude: number
-    dropoff_name: string
-    dropoff_address: string
-    dropoff_latitude: number
-    dropoff_longitude: number
-    status?: $Enums.RideStatus
-    estimated_fare: number
-    estimated_time: number
-    route_distance: number
-    route_duration: number
-    route_geometry?: string | null
-    trider_id?: string | null
-    created_at?: Date | string
-    accepted_at?: Date | string | null
-    picked_up_at?: Date | string | null
-    completed_at?: Date | string | null
-    cancelled_at?: Date | string | null
-    cancellation_reason?: string | null
-  }
-
-  export type RideRequestCreateOrConnectWithoutTodaInput = {
-    where: RideRequestWhereUniqueInput
-    create: XOR<RideRequestCreateWithoutTodaInput, RideRequestUncheckedCreateWithoutTodaInput>
-  }
-
-  export type RideRequestCreateManyTodaInputEnvelope = {
-    data: RideRequestCreateManyTodaInput | RideRequestCreateManyTodaInput[]
     skipDuplicates?: boolean
   }
 
@@ -10507,6 +10027,58 @@ export namespace Prisma {
 
   export type TriderQueueItemCreateManyTodaInputEnvelope = {
     data: TriderQueueItemCreateManyTodaInput | TriderQueueItemCreateManyTodaInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type RideRequestCreateWithoutTodaInput = {
+    id?: string
+    booking_code: string
+    passenger_id: string
+    status: string
+    estimated_fare: number
+    estimated_time: number
+    route_distance?: number | null
+    route_duration?: number | null
+    route_geometry?: string | null
+    created_at?: Date | string
+    accepted_at?: Date | string | null
+    picked_up_at?: Date | string | null
+    completed_at?: Date | string | null
+    cancelled_at?: Date | string | null
+    cancellation_reason?: string | null
+    pickup_location: LocationCreateNestedOneWithoutPickup_requestsInput
+    dropoff_location: LocationCreateNestedOneWithoutDropoff_requestsInput
+    trider?: TriderCreateNestedOneWithoutRide_requestsInput
+  }
+
+  export type RideRequestUncheckedCreateWithoutTodaInput = {
+    id?: string
+    booking_code: string
+    passenger_id: string
+    pickup_location_id: string
+    dropoff_location_id: string
+    status: string
+    estimated_fare: number
+    estimated_time: number
+    route_distance?: number | null
+    route_duration?: number | null
+    route_geometry?: string | null
+    trider_id?: string | null
+    created_at?: Date | string
+    accepted_at?: Date | string | null
+    picked_up_at?: Date | string | null
+    completed_at?: Date | string | null
+    cancelled_at?: Date | string | null
+    cancellation_reason?: string | null
+  }
+
+  export type RideRequestCreateOrConnectWithoutTodaInput = {
+    where: RideRequestWhereUniqueInput
+    create: XOR<RideRequestCreateWithoutTodaInput, RideRequestUncheckedCreateWithoutTodaInput>
+  }
+
+  export type RideRequestCreateManyTodaInputEnvelope = {
+    data: RideRequestCreateManyTodaInput | RideRequestCreateManyTodaInput[]
     skipDuplicates?: boolean
   }
 
@@ -10537,7 +10109,7 @@ export namespace Prisma {
     longitude?: FloatFilter<"Location"> | number
     city?: StringFilter<"Location"> | string
     barangay?: StringFilter<"Location"> | string
-    type?: EnumLocationTypeFilter<"Location"> | $Enums.LocationType
+    type?: StringFilter<"Location"> | string
     toda_id?: StringNullableFilter<"Location"> | string | null
     created_at?: DateTimeFilter<"Location"> | Date | string
     updated_at?: DateTimeFilter<"Location"> | Date | string
@@ -10571,61 +10143,12 @@ export namespace Prisma {
     contact_number?: StringFilter<"Trider"> | string
     plate_number?: StringFilter<"Trider"> | string
     license_number?: StringFilter<"Trider"> | string
-    status?: EnumTriderStatusFilter<"Trider"> | $Enums.TriderStatus
+    status?: StringFilter<"Trider"> | string
     current_latitude?: FloatNullableFilter<"Trider"> | number | null
     current_longitude?: FloatNullableFilter<"Trider"> | number | null
     last_online?: DateTimeNullableFilter<"Trider"> | Date | string | null
     created_at?: DateTimeFilter<"Trider"> | Date | string
     updated_at?: DateTimeFilter<"Trider"> | Date | string
-  }
-
-  export type RideRequestUpsertWithWhereUniqueWithoutTodaInput = {
-    where: RideRequestWhereUniqueInput
-    update: XOR<RideRequestUpdateWithoutTodaInput, RideRequestUncheckedUpdateWithoutTodaInput>
-    create: XOR<RideRequestCreateWithoutTodaInput, RideRequestUncheckedCreateWithoutTodaInput>
-  }
-
-  export type RideRequestUpdateWithWhereUniqueWithoutTodaInput = {
-    where: RideRequestWhereUniqueInput
-    data: XOR<RideRequestUpdateWithoutTodaInput, RideRequestUncheckedUpdateWithoutTodaInput>
-  }
-
-  export type RideRequestUpdateManyWithWhereWithoutTodaInput = {
-    where: RideRequestScalarWhereInput
-    data: XOR<RideRequestUpdateManyMutationInput, RideRequestUncheckedUpdateManyWithoutTodaInput>
-  }
-
-  export type RideRequestScalarWhereInput = {
-    AND?: RideRequestScalarWhereInput | RideRequestScalarWhereInput[]
-    OR?: RideRequestScalarWhereInput[]
-    NOT?: RideRequestScalarWhereInput | RideRequestScalarWhereInput[]
-    id?: StringFilter<"RideRequest"> | string
-    booking_code?: StringFilter<"RideRequest"> | string
-    passenger_id?: StringFilter<"RideRequest"> | string
-    toda_id?: StringFilter<"RideRequest"> | string
-    pickup_location_id?: StringFilter<"RideRequest"> | string
-    dropoff_location_id?: StringFilter<"RideRequest"> | string
-    pickup_name?: StringFilter<"RideRequest"> | string
-    pickup_address?: StringFilter<"RideRequest"> | string
-    pickup_latitude?: FloatFilter<"RideRequest"> | number
-    pickup_longitude?: FloatFilter<"RideRequest"> | number
-    dropoff_name?: StringFilter<"RideRequest"> | string
-    dropoff_address?: StringFilter<"RideRequest"> | string
-    dropoff_latitude?: FloatFilter<"RideRequest"> | number
-    dropoff_longitude?: FloatFilter<"RideRequest"> | number
-    status?: EnumRideStatusFilter<"RideRequest"> | $Enums.RideStatus
-    estimated_fare?: FloatFilter<"RideRequest"> | number
-    estimated_time?: IntFilter<"RideRequest"> | number
-    route_distance?: FloatFilter<"RideRequest"> | number
-    route_duration?: IntFilter<"RideRequest"> | number
-    route_geometry?: StringNullableFilter<"RideRequest"> | string | null
-    trider_id?: StringNullableFilter<"RideRequest"> | string | null
-    created_at?: DateTimeFilter<"RideRequest"> | Date | string
-    accepted_at?: DateTimeNullableFilter<"RideRequest"> | Date | string | null
-    picked_up_at?: DateTimeNullableFilter<"RideRequest"> | Date | string | null
-    completed_at?: DateTimeNullableFilter<"RideRequest"> | Date | string | null
-    cancelled_at?: DateTimeNullableFilter<"RideRequest"> | Date | string | null
-    cancellation_reason?: StringNullableFilter<"RideRequest"> | string | null
   }
 
   export type TriderQueueItemUpsertWithWhereUniqueWithoutTodaInput = {
@@ -10655,6 +10178,47 @@ export namespace Prisma {
     joined_at?: DateTimeFilter<"TriderQueueItem"> | Date | string
   }
 
+  export type RideRequestUpsertWithWhereUniqueWithoutTodaInput = {
+    where: RideRequestWhereUniqueInput
+    update: XOR<RideRequestUpdateWithoutTodaInput, RideRequestUncheckedUpdateWithoutTodaInput>
+    create: XOR<RideRequestCreateWithoutTodaInput, RideRequestUncheckedCreateWithoutTodaInput>
+  }
+
+  export type RideRequestUpdateWithWhereUniqueWithoutTodaInput = {
+    where: RideRequestWhereUniqueInput
+    data: XOR<RideRequestUpdateWithoutTodaInput, RideRequestUncheckedUpdateWithoutTodaInput>
+  }
+
+  export type RideRequestUpdateManyWithWhereWithoutTodaInput = {
+    where: RideRequestScalarWhereInput
+    data: XOR<RideRequestUpdateManyMutationInput, RideRequestUncheckedUpdateManyWithoutTodaInput>
+  }
+
+  export type RideRequestScalarWhereInput = {
+    AND?: RideRequestScalarWhereInput | RideRequestScalarWhereInput[]
+    OR?: RideRequestScalarWhereInput[]
+    NOT?: RideRequestScalarWhereInput | RideRequestScalarWhereInput[]
+    id?: StringFilter<"RideRequest"> | string
+    booking_code?: StringFilter<"RideRequest"> | string
+    passenger_id?: StringFilter<"RideRequest"> | string
+    toda_id?: StringFilter<"RideRequest"> | string
+    pickup_location_id?: StringFilter<"RideRequest"> | string
+    dropoff_location_id?: StringFilter<"RideRequest"> | string
+    status?: StringFilter<"RideRequest"> | string
+    estimated_fare?: FloatFilter<"RideRequest"> | number
+    estimated_time?: IntFilter<"RideRequest"> | number
+    route_distance?: FloatNullableFilter<"RideRequest"> | number | null
+    route_duration?: FloatNullableFilter<"RideRequest"> | number | null
+    route_geometry?: StringNullableFilter<"RideRequest"> | string | null
+    trider_id?: StringNullableFilter<"RideRequest"> | string | null
+    created_at?: DateTimeFilter<"RideRequest"> | Date | string
+    accepted_at?: DateTimeNullableFilter<"RideRequest"> | Date | string | null
+    picked_up_at?: DateTimeNullableFilter<"RideRequest"> | Date | string | null
+    completed_at?: DateTimeNullableFilter<"RideRequest"> | Date | string | null
+    cancelled_at?: DateTimeNullableFilter<"RideRequest"> | Date | string | null
+    cancellation_reason?: StringNullableFilter<"RideRequest"> | string | null
+  }
+
   export type TodaCreateWithoutLocationsInput = {
     id?: string
     name: string
@@ -10663,8 +10227,8 @@ export namespace Prisma {
     created_at?: Date | string
     updated_at?: Date | string
     triders?: TriderCreateNestedManyWithoutTodaInput
-    rides?: RideRequestCreateNestedManyWithoutTodaInput
     queue_items?: TriderQueueItemCreateNestedManyWithoutTodaInput
+    ride_requests?: RideRequestCreateNestedManyWithoutTodaInput
   }
 
   export type TodaUncheckedCreateWithoutLocationsInput = {
@@ -10675,8 +10239,8 @@ export namespace Prisma {
     created_at?: Date | string
     updated_at?: Date | string
     triders?: TriderUncheckedCreateNestedManyWithoutTodaInput
-    rides?: RideRequestUncheckedCreateNestedManyWithoutTodaInput
     queue_items?: TriderQueueItemUncheckedCreateNestedManyWithoutTodaInput
+    ride_requests?: RideRequestUncheckedCreateNestedManyWithoutTodaInput
   }
 
   export type TodaCreateOrConnectWithoutLocationsInput = {
@@ -10688,19 +10252,11 @@ export namespace Prisma {
     id?: string
     booking_code: string
     passenger_id: string
-    pickup_name: string
-    pickup_address: string
-    pickup_latitude: number
-    pickup_longitude: number
-    dropoff_name: string
-    dropoff_address: string
-    dropoff_latitude: number
-    dropoff_longitude: number
-    status?: $Enums.RideStatus
+    status: string
     estimated_fare: number
     estimated_time: number
-    route_distance: number
-    route_duration: number
+    route_distance?: number | null
+    route_duration?: number | null
     route_geometry?: string | null
     created_at?: Date | string
     accepted_at?: Date | string | null
@@ -10708,9 +10264,9 @@ export namespace Prisma {
     completed_at?: Date | string | null
     cancelled_at?: Date | string | null
     cancellation_reason?: string | null
-    toda: TodaCreateNestedOneWithoutRidesInput
-    dropoff_location: LocationCreateNestedOneWithoutDropoffsInput
-    trider?: TriderCreateNestedOneWithoutRidesInput
+    toda: TodaCreateNestedOneWithoutRide_requestsInput
+    dropoff_location: LocationCreateNestedOneWithoutDropoff_requestsInput
+    trider?: TriderCreateNestedOneWithoutRide_requestsInput
   }
 
   export type RideRequestUncheckedCreateWithoutPickup_locationInput = {
@@ -10719,19 +10275,11 @@ export namespace Prisma {
     passenger_id: string
     toda_id: string
     dropoff_location_id: string
-    pickup_name: string
-    pickup_address: string
-    pickup_latitude: number
-    pickup_longitude: number
-    dropoff_name: string
-    dropoff_address: string
-    dropoff_latitude: number
-    dropoff_longitude: number
-    status?: $Enums.RideStatus
+    status: string
     estimated_fare: number
     estimated_time: number
-    route_distance: number
-    route_duration: number
+    route_distance?: number | null
+    route_duration?: number | null
     route_geometry?: string | null
     trider_id?: string | null
     created_at?: Date | string
@@ -10756,19 +10304,11 @@ export namespace Prisma {
     id?: string
     booking_code: string
     passenger_id: string
-    pickup_name: string
-    pickup_address: string
-    pickup_latitude: number
-    pickup_longitude: number
-    dropoff_name: string
-    dropoff_address: string
-    dropoff_latitude: number
-    dropoff_longitude: number
-    status?: $Enums.RideStatus
+    status: string
     estimated_fare: number
     estimated_time: number
-    route_distance: number
-    route_duration: number
+    route_distance?: number | null
+    route_duration?: number | null
     route_geometry?: string | null
     created_at?: Date | string
     accepted_at?: Date | string | null
@@ -10776,9 +10316,9 @@ export namespace Prisma {
     completed_at?: Date | string | null
     cancelled_at?: Date | string | null
     cancellation_reason?: string | null
-    toda: TodaCreateNestedOneWithoutRidesInput
-    pickup_location: LocationCreateNestedOneWithoutPickupsInput
-    trider?: TriderCreateNestedOneWithoutRidesInput
+    toda: TodaCreateNestedOneWithoutRide_requestsInput
+    pickup_location: LocationCreateNestedOneWithoutPickup_requestsInput
+    trider?: TriderCreateNestedOneWithoutRide_requestsInput
   }
 
   export type RideRequestUncheckedCreateWithoutDropoff_locationInput = {
@@ -10787,19 +10327,11 @@ export namespace Prisma {
     passenger_id: string
     toda_id: string
     pickup_location_id: string
-    pickup_name: string
-    pickup_address: string
-    pickup_latitude: number
-    pickup_longitude: number
-    dropoff_name: string
-    dropoff_address: string
-    dropoff_latitude: number
-    dropoff_longitude: number
-    status?: $Enums.RideStatus
+    status: string
     estimated_fare: number
     estimated_time: number
-    route_distance: number
-    route_duration: number
+    route_distance?: number | null
+    route_duration?: number | null
     route_geometry?: string | null
     trider_id?: string | null
     created_at?: Date | string
@@ -10839,8 +10371,8 @@ export namespace Prisma {
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     triders?: TriderUpdateManyWithoutTodaNestedInput
-    rides?: RideRequestUpdateManyWithoutTodaNestedInput
     queue_items?: TriderQueueItemUpdateManyWithoutTodaNestedInput
+    ride_requests?: RideRequestUpdateManyWithoutTodaNestedInput
   }
 
   export type TodaUncheckedUpdateWithoutLocationsInput = {
@@ -10851,8 +10383,8 @@ export namespace Prisma {
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     triders?: TriderUncheckedUpdateManyWithoutTodaNestedInput
-    rides?: RideRequestUncheckedUpdateManyWithoutTodaNestedInput
     queue_items?: TriderQueueItemUncheckedUpdateManyWithoutTodaNestedInput
+    ride_requests?: RideRequestUncheckedUpdateManyWithoutTodaNestedInput
   }
 
   export type RideRequestUpsertWithWhereUniqueWithoutPickup_locationInput = {
@@ -10895,8 +10427,8 @@ export namespace Prisma {
     created_at?: Date | string
     updated_at?: Date | string
     locations?: LocationCreateNestedManyWithoutTodaInput
-    rides?: RideRequestCreateNestedManyWithoutTodaInput
     queue_items?: TriderQueueItemCreateNestedManyWithoutTodaInput
+    ride_requests?: RideRequestCreateNestedManyWithoutTodaInput
   }
 
   export type TodaUncheckedCreateWithoutTridersInput = {
@@ -10907,81 +10439,13 @@ export namespace Prisma {
     created_at?: Date | string
     updated_at?: Date | string
     locations?: LocationUncheckedCreateNestedManyWithoutTodaInput
-    rides?: RideRequestUncheckedCreateNestedManyWithoutTodaInput
     queue_items?: TriderQueueItemUncheckedCreateNestedManyWithoutTodaInput
+    ride_requests?: RideRequestUncheckedCreateNestedManyWithoutTodaInput
   }
 
   export type TodaCreateOrConnectWithoutTridersInput = {
     where: TodaWhereUniqueInput
     create: XOR<TodaCreateWithoutTridersInput, TodaUncheckedCreateWithoutTridersInput>
-  }
-
-  export type RideRequestCreateWithoutTriderInput = {
-    id?: string
-    booking_code: string
-    passenger_id: string
-    pickup_name: string
-    pickup_address: string
-    pickup_latitude: number
-    pickup_longitude: number
-    dropoff_name: string
-    dropoff_address: string
-    dropoff_latitude: number
-    dropoff_longitude: number
-    status?: $Enums.RideStatus
-    estimated_fare: number
-    estimated_time: number
-    route_distance: number
-    route_duration: number
-    route_geometry?: string | null
-    created_at?: Date | string
-    accepted_at?: Date | string | null
-    picked_up_at?: Date | string | null
-    completed_at?: Date | string | null
-    cancelled_at?: Date | string | null
-    cancellation_reason?: string | null
-    toda: TodaCreateNestedOneWithoutRidesInput
-    pickup_location: LocationCreateNestedOneWithoutPickupsInput
-    dropoff_location: LocationCreateNestedOneWithoutDropoffsInput
-  }
-
-  export type RideRequestUncheckedCreateWithoutTriderInput = {
-    id?: string
-    booking_code: string
-    passenger_id: string
-    toda_id: string
-    pickup_location_id: string
-    dropoff_location_id: string
-    pickup_name: string
-    pickup_address: string
-    pickup_latitude: number
-    pickup_longitude: number
-    dropoff_name: string
-    dropoff_address: string
-    dropoff_latitude: number
-    dropoff_longitude: number
-    status?: $Enums.RideStatus
-    estimated_fare: number
-    estimated_time: number
-    route_distance: number
-    route_duration: number
-    route_geometry?: string | null
-    created_at?: Date | string
-    accepted_at?: Date | string | null
-    picked_up_at?: Date | string | null
-    completed_at?: Date | string | null
-    cancelled_at?: Date | string | null
-    cancellation_reason?: string | null
-  }
-
-  export type RideRequestCreateOrConnectWithoutTriderInput = {
-    where: RideRequestWhereUniqueInput
-    create: XOR<RideRequestCreateWithoutTriderInput, RideRequestUncheckedCreateWithoutTriderInput>
-  }
-
-  export type RideRequestCreateManyTriderInputEnvelope = {
-    data: RideRequestCreateManyTriderInput | RideRequestCreateManyTriderInput[]
-    skipDuplicates?: boolean
   }
 
   export type TriderQueueItemCreateWithoutTriderInput = {
@@ -11008,6 +10472,58 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type RideRequestCreateWithoutTriderInput = {
+    id?: string
+    booking_code: string
+    passenger_id: string
+    status: string
+    estimated_fare: number
+    estimated_time: number
+    route_distance?: number | null
+    route_duration?: number | null
+    route_geometry?: string | null
+    created_at?: Date | string
+    accepted_at?: Date | string | null
+    picked_up_at?: Date | string | null
+    completed_at?: Date | string | null
+    cancelled_at?: Date | string | null
+    cancellation_reason?: string | null
+    toda: TodaCreateNestedOneWithoutRide_requestsInput
+    pickup_location: LocationCreateNestedOneWithoutPickup_requestsInput
+    dropoff_location: LocationCreateNestedOneWithoutDropoff_requestsInput
+  }
+
+  export type RideRequestUncheckedCreateWithoutTriderInput = {
+    id?: string
+    booking_code: string
+    passenger_id: string
+    toda_id: string
+    pickup_location_id: string
+    dropoff_location_id: string
+    status: string
+    estimated_fare: number
+    estimated_time: number
+    route_distance?: number | null
+    route_duration?: number | null
+    route_geometry?: string | null
+    created_at?: Date | string
+    accepted_at?: Date | string | null
+    picked_up_at?: Date | string | null
+    completed_at?: Date | string | null
+    cancelled_at?: Date | string | null
+    cancellation_reason?: string | null
+  }
+
+  export type RideRequestCreateOrConnectWithoutTriderInput = {
+    where: RideRequestWhereUniqueInput
+    create: XOR<RideRequestCreateWithoutTriderInput, RideRequestUncheckedCreateWithoutTriderInput>
+  }
+
+  export type RideRequestCreateManyTriderInputEnvelope = {
+    data: RideRequestCreateManyTriderInput | RideRequestCreateManyTriderInput[]
+    skipDuplicates?: boolean
+  }
+
   export type TodaUpsertWithoutTridersInput = {
     update: XOR<TodaUpdateWithoutTridersInput, TodaUncheckedUpdateWithoutTridersInput>
     create: XOR<TodaCreateWithoutTridersInput, TodaUncheckedCreateWithoutTridersInput>
@@ -11027,8 +10543,8 @@ export namespace Prisma {
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUpdateManyWithoutTodaNestedInput
-    rides?: RideRequestUpdateManyWithoutTodaNestedInput
     queue_items?: TriderQueueItemUpdateManyWithoutTodaNestedInput
+    ride_requests?: RideRequestUpdateManyWithoutTodaNestedInput
   }
 
   export type TodaUncheckedUpdateWithoutTridersInput = {
@@ -11039,24 +10555,8 @@ export namespace Prisma {
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUncheckedUpdateManyWithoutTodaNestedInput
-    rides?: RideRequestUncheckedUpdateManyWithoutTodaNestedInput
     queue_items?: TriderQueueItemUncheckedUpdateManyWithoutTodaNestedInput
-  }
-
-  export type RideRequestUpsertWithWhereUniqueWithoutTriderInput = {
-    where: RideRequestWhereUniqueInput
-    update: XOR<RideRequestUpdateWithoutTriderInput, RideRequestUncheckedUpdateWithoutTriderInput>
-    create: XOR<RideRequestCreateWithoutTriderInput, RideRequestUncheckedCreateWithoutTriderInput>
-  }
-
-  export type RideRequestUpdateWithWhereUniqueWithoutTriderInput = {
-    where: RideRequestWhereUniqueInput
-    data: XOR<RideRequestUpdateWithoutTriderInput, RideRequestUncheckedUpdateWithoutTriderInput>
-  }
-
-  export type RideRequestUpdateManyWithWhereWithoutTriderInput = {
-    where: RideRequestScalarWhereInput
-    data: XOR<RideRequestUpdateManyMutationInput, RideRequestUncheckedUpdateManyWithoutTriderInput>
+    ride_requests?: RideRequestUncheckedUpdateManyWithoutTodaNestedInput
   }
 
   export type TriderQueueItemUpsertWithWhereUniqueWithoutTriderInput = {
@@ -11075,6 +10575,22 @@ export namespace Prisma {
     data: XOR<TriderQueueItemUpdateManyMutationInput, TriderQueueItemUncheckedUpdateManyWithoutTriderInput>
   }
 
+  export type RideRequestUpsertWithWhereUniqueWithoutTriderInput = {
+    where: RideRequestWhereUniqueInput
+    update: XOR<RideRequestUpdateWithoutTriderInput, RideRequestUncheckedUpdateWithoutTriderInput>
+    create: XOR<RideRequestCreateWithoutTriderInput, RideRequestUncheckedCreateWithoutTriderInput>
+  }
+
+  export type RideRequestUpdateWithWhereUniqueWithoutTriderInput = {
+    where: RideRequestWhereUniqueInput
+    data: XOR<RideRequestUpdateWithoutTriderInput, RideRequestUncheckedUpdateWithoutTriderInput>
+  }
+
+  export type RideRequestUpdateManyWithWhereWithoutTriderInput = {
+    where: RideRequestScalarWhereInput
+    data: XOR<RideRequestUpdateManyMutationInput, RideRequestUncheckedUpdateManyWithoutTriderInput>
+  }
+
   export type TriderCreateWithoutQueue_itemsInput = {
     id?: string
     user_id: string
@@ -11083,14 +10599,14 @@ export namespace Prisma {
     contact_number: string
     plate_number: string
     license_number: string
-    status?: $Enums.TriderStatus
+    status: string
     current_latitude?: number | null
     current_longitude?: number | null
     last_online?: Date | string | null
     created_at?: Date | string
     updated_at?: Date | string
     toda: TodaCreateNestedOneWithoutTridersInput
-    rides?: RideRequestCreateNestedManyWithoutTriderInput
+    ride_requests?: RideRequestCreateNestedManyWithoutTriderInput
   }
 
   export type TriderUncheckedCreateWithoutQueue_itemsInput = {
@@ -11102,13 +10618,13 @@ export namespace Prisma {
     contact_number: string
     plate_number: string
     license_number: string
-    status?: $Enums.TriderStatus
+    status: string
     current_latitude?: number | null
     current_longitude?: number | null
     last_online?: Date | string | null
     created_at?: Date | string
     updated_at?: Date | string
-    rides?: RideRequestUncheckedCreateNestedManyWithoutTriderInput
+    ride_requests?: RideRequestUncheckedCreateNestedManyWithoutTriderInput
   }
 
   export type TriderCreateOrConnectWithoutQueue_itemsInput = {
@@ -11125,7 +10641,7 @@ export namespace Prisma {
     updated_at?: Date | string
     locations?: LocationCreateNestedManyWithoutTodaInput
     triders?: TriderCreateNestedManyWithoutTodaInput
-    rides?: RideRequestCreateNestedManyWithoutTodaInput
+    ride_requests?: RideRequestCreateNestedManyWithoutTodaInput
   }
 
   export type TodaUncheckedCreateWithoutQueue_itemsInput = {
@@ -11137,7 +10653,7 @@ export namespace Prisma {
     updated_at?: Date | string
     locations?: LocationUncheckedCreateNestedManyWithoutTodaInput
     triders?: TriderUncheckedCreateNestedManyWithoutTodaInput
-    rides?: RideRequestUncheckedCreateNestedManyWithoutTodaInput
+    ride_requests?: RideRequestUncheckedCreateNestedManyWithoutTodaInput
   }
 
   export type TodaCreateOrConnectWithoutQueue_itemsInput = {
@@ -11164,14 +10680,14 @@ export namespace Prisma {
     contact_number?: StringFieldUpdateOperationsInput | string
     plate_number?: StringFieldUpdateOperationsInput | string
     license_number?: StringFieldUpdateOperationsInput | string
-    status?: EnumTriderStatusFieldUpdateOperationsInput | $Enums.TriderStatus
+    status?: StringFieldUpdateOperationsInput | string
     current_latitude?: NullableFloatFieldUpdateOperationsInput | number | null
     current_longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     last_online?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     toda?: TodaUpdateOneRequiredWithoutTridersNestedInput
-    rides?: RideRequestUpdateManyWithoutTriderNestedInput
+    ride_requests?: RideRequestUpdateManyWithoutTriderNestedInput
   }
 
   export type TriderUncheckedUpdateWithoutQueue_itemsInput = {
@@ -11183,13 +10699,13 @@ export namespace Prisma {
     contact_number?: StringFieldUpdateOperationsInput | string
     plate_number?: StringFieldUpdateOperationsInput | string
     license_number?: StringFieldUpdateOperationsInput | string
-    status?: EnumTriderStatusFieldUpdateOperationsInput | $Enums.TriderStatus
+    status?: StringFieldUpdateOperationsInput | string
     current_latitude?: NullableFloatFieldUpdateOperationsInput | number | null
     current_longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     last_online?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    rides?: RideRequestUncheckedUpdateManyWithoutTriderNestedInput
+    ride_requests?: RideRequestUncheckedUpdateManyWithoutTriderNestedInput
   }
 
   export type TodaUpsertWithoutQueue_itemsInput = {
@@ -11212,7 +10728,7 @@ export namespace Prisma {
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUpdateManyWithoutTodaNestedInput
     triders?: TriderUpdateManyWithoutTodaNestedInput
-    rides?: RideRequestUpdateManyWithoutTodaNestedInput
+    ride_requests?: RideRequestUpdateManyWithoutTodaNestedInput
   }
 
   export type TodaUncheckedUpdateWithoutQueue_itemsInput = {
@@ -11224,10 +10740,10 @@ export namespace Prisma {
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUncheckedUpdateManyWithoutTodaNestedInput
     triders?: TriderUncheckedUpdateManyWithoutTodaNestedInput
-    rides?: RideRequestUncheckedUpdateManyWithoutTodaNestedInput
+    ride_requests?: RideRequestUncheckedUpdateManyWithoutTodaNestedInput
   }
 
-  export type TodaCreateWithoutRidesInput = {
+  export type TodaCreateWithoutRide_requestsInput = {
     id?: string
     name: string
     city: string
@@ -11239,7 +10755,7 @@ export namespace Prisma {
     queue_items?: TriderQueueItemCreateNestedManyWithoutTodaInput
   }
 
-  export type TodaUncheckedCreateWithoutRidesInput = {
+  export type TodaUncheckedCreateWithoutRide_requestsInput = {
     id?: string
     name: string
     city: string
@@ -11251,12 +10767,12 @@ export namespace Prisma {
     queue_items?: TriderQueueItemUncheckedCreateNestedManyWithoutTodaInput
   }
 
-  export type TodaCreateOrConnectWithoutRidesInput = {
+  export type TodaCreateOrConnectWithoutRide_requestsInput = {
     where: TodaWhereUniqueInput
-    create: XOR<TodaCreateWithoutRidesInput, TodaUncheckedCreateWithoutRidesInput>
+    create: XOR<TodaCreateWithoutRide_requestsInput, TodaUncheckedCreateWithoutRide_requestsInput>
   }
 
-  export type LocationCreateWithoutPickupsInput = {
+  export type LocationCreateWithoutPickup_requestsInput = {
     id?: string
     name: string
     address: string
@@ -11264,14 +10780,14 @@ export namespace Prisma {
     longitude: number
     city: string
     barangay: string
-    type: $Enums.LocationType
+    type: string
     created_at?: Date | string
     updated_at?: Date | string
     toda?: TodaCreateNestedOneWithoutLocationsInput
-    dropoffs?: RideRequestCreateNestedManyWithoutDropoff_locationInput
+    dropoff_requests?: RideRequestCreateNestedManyWithoutDropoff_locationInput
   }
 
-  export type LocationUncheckedCreateWithoutPickupsInput = {
+  export type LocationUncheckedCreateWithoutPickup_requestsInput = {
     id?: string
     name: string
     address: string
@@ -11279,19 +10795,19 @@ export namespace Prisma {
     longitude: number
     city: string
     barangay: string
-    type: $Enums.LocationType
+    type: string
     toda_id?: string | null
     created_at?: Date | string
     updated_at?: Date | string
-    dropoffs?: RideRequestUncheckedCreateNestedManyWithoutDropoff_locationInput
+    dropoff_requests?: RideRequestUncheckedCreateNestedManyWithoutDropoff_locationInput
   }
 
-  export type LocationCreateOrConnectWithoutPickupsInput = {
+  export type LocationCreateOrConnectWithoutPickup_requestsInput = {
     where: LocationWhereUniqueInput
-    create: XOR<LocationCreateWithoutPickupsInput, LocationUncheckedCreateWithoutPickupsInput>
+    create: XOR<LocationCreateWithoutPickup_requestsInput, LocationUncheckedCreateWithoutPickup_requestsInput>
   }
 
-  export type LocationCreateWithoutDropoffsInput = {
+  export type LocationCreateWithoutDropoff_requestsInput = {
     id?: string
     name: string
     address: string
@@ -11299,14 +10815,14 @@ export namespace Prisma {
     longitude: number
     city: string
     barangay: string
-    type: $Enums.LocationType
+    type: string
     created_at?: Date | string
     updated_at?: Date | string
     toda?: TodaCreateNestedOneWithoutLocationsInput
-    pickups?: RideRequestCreateNestedManyWithoutPickup_locationInput
+    pickup_requests?: RideRequestCreateNestedManyWithoutPickup_locationInput
   }
 
-  export type LocationUncheckedCreateWithoutDropoffsInput = {
+  export type LocationUncheckedCreateWithoutDropoff_requestsInput = {
     id?: string
     name: string
     address: string
@@ -11314,19 +10830,19 @@ export namespace Prisma {
     longitude: number
     city: string
     barangay: string
-    type: $Enums.LocationType
+    type: string
     toda_id?: string | null
     created_at?: Date | string
     updated_at?: Date | string
-    pickups?: RideRequestUncheckedCreateNestedManyWithoutPickup_locationInput
+    pickup_requests?: RideRequestUncheckedCreateNestedManyWithoutPickup_locationInput
   }
 
-  export type LocationCreateOrConnectWithoutDropoffsInput = {
+  export type LocationCreateOrConnectWithoutDropoff_requestsInput = {
     where: LocationWhereUniqueInput
-    create: XOR<LocationCreateWithoutDropoffsInput, LocationUncheckedCreateWithoutDropoffsInput>
+    create: XOR<LocationCreateWithoutDropoff_requestsInput, LocationUncheckedCreateWithoutDropoff_requestsInput>
   }
 
-  export type TriderCreateWithoutRidesInput = {
+  export type TriderCreateWithoutRide_requestsInput = {
     id?: string
     user_id: string
     first_name: string
@@ -11334,7 +10850,7 @@ export namespace Prisma {
     contact_number: string
     plate_number: string
     license_number: string
-    status?: $Enums.TriderStatus
+    status: string
     current_latitude?: number | null
     current_longitude?: number | null
     last_online?: Date | string | null
@@ -11344,7 +10860,7 @@ export namespace Prisma {
     queue_items?: TriderQueueItemCreateNestedManyWithoutTriderInput
   }
 
-  export type TriderUncheckedCreateWithoutRidesInput = {
+  export type TriderUncheckedCreateWithoutRide_requestsInput = {
     id?: string
     user_id: string
     toda_id: string
@@ -11353,7 +10869,7 @@ export namespace Prisma {
     contact_number: string
     plate_number: string
     license_number: string
-    status?: $Enums.TriderStatus
+    status: string
     current_latitude?: number | null
     current_longitude?: number | null
     last_online?: Date | string | null
@@ -11362,23 +10878,23 @@ export namespace Prisma {
     queue_items?: TriderQueueItemUncheckedCreateNestedManyWithoutTriderInput
   }
 
-  export type TriderCreateOrConnectWithoutRidesInput = {
+  export type TriderCreateOrConnectWithoutRide_requestsInput = {
     where: TriderWhereUniqueInput
-    create: XOR<TriderCreateWithoutRidesInput, TriderUncheckedCreateWithoutRidesInput>
+    create: XOR<TriderCreateWithoutRide_requestsInput, TriderUncheckedCreateWithoutRide_requestsInput>
   }
 
-  export type TodaUpsertWithoutRidesInput = {
-    update: XOR<TodaUpdateWithoutRidesInput, TodaUncheckedUpdateWithoutRidesInput>
-    create: XOR<TodaCreateWithoutRidesInput, TodaUncheckedCreateWithoutRidesInput>
+  export type TodaUpsertWithoutRide_requestsInput = {
+    update: XOR<TodaUpdateWithoutRide_requestsInput, TodaUncheckedUpdateWithoutRide_requestsInput>
+    create: XOR<TodaCreateWithoutRide_requestsInput, TodaUncheckedCreateWithoutRide_requestsInput>
     where?: TodaWhereInput
   }
 
-  export type TodaUpdateToOneWithWhereWithoutRidesInput = {
+  export type TodaUpdateToOneWithWhereWithoutRide_requestsInput = {
     where?: TodaWhereInput
-    data: XOR<TodaUpdateWithoutRidesInput, TodaUncheckedUpdateWithoutRidesInput>
+    data: XOR<TodaUpdateWithoutRide_requestsInput, TodaUncheckedUpdateWithoutRide_requestsInput>
   }
 
-  export type TodaUpdateWithoutRidesInput = {
+  export type TodaUpdateWithoutRide_requestsInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
@@ -11390,7 +10906,7 @@ export namespace Prisma {
     queue_items?: TriderQueueItemUpdateManyWithoutTodaNestedInput
   }
 
-  export type TodaUncheckedUpdateWithoutRidesInput = {
+  export type TodaUncheckedUpdateWithoutRide_requestsInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
@@ -11402,18 +10918,18 @@ export namespace Prisma {
     queue_items?: TriderQueueItemUncheckedUpdateManyWithoutTodaNestedInput
   }
 
-  export type LocationUpsertWithoutPickupsInput = {
-    update: XOR<LocationUpdateWithoutPickupsInput, LocationUncheckedUpdateWithoutPickupsInput>
-    create: XOR<LocationCreateWithoutPickupsInput, LocationUncheckedCreateWithoutPickupsInput>
+  export type LocationUpsertWithoutPickup_requestsInput = {
+    update: XOR<LocationUpdateWithoutPickup_requestsInput, LocationUncheckedUpdateWithoutPickup_requestsInput>
+    create: XOR<LocationCreateWithoutPickup_requestsInput, LocationUncheckedCreateWithoutPickup_requestsInput>
     where?: LocationWhereInput
   }
 
-  export type LocationUpdateToOneWithWhereWithoutPickupsInput = {
+  export type LocationUpdateToOneWithWhereWithoutPickup_requestsInput = {
     where?: LocationWhereInput
-    data: XOR<LocationUpdateWithoutPickupsInput, LocationUncheckedUpdateWithoutPickupsInput>
+    data: XOR<LocationUpdateWithoutPickup_requestsInput, LocationUncheckedUpdateWithoutPickup_requestsInput>
   }
 
-  export type LocationUpdateWithoutPickupsInput = {
+  export type LocationUpdateWithoutPickup_requestsInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     address?: StringFieldUpdateOperationsInput | string
@@ -11421,14 +10937,14 @@ export namespace Prisma {
     longitude?: FloatFieldUpdateOperationsInput | number
     city?: StringFieldUpdateOperationsInput | string
     barangay?: StringFieldUpdateOperationsInput | string
-    type?: EnumLocationTypeFieldUpdateOperationsInput | $Enums.LocationType
+    type?: StringFieldUpdateOperationsInput | string
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     toda?: TodaUpdateOneWithoutLocationsNestedInput
-    dropoffs?: RideRequestUpdateManyWithoutDropoff_locationNestedInput
+    dropoff_requests?: RideRequestUpdateManyWithoutDropoff_locationNestedInput
   }
 
-  export type LocationUncheckedUpdateWithoutPickupsInput = {
+  export type LocationUncheckedUpdateWithoutPickup_requestsInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     address?: StringFieldUpdateOperationsInput | string
@@ -11436,25 +10952,25 @@ export namespace Prisma {
     longitude?: FloatFieldUpdateOperationsInput | number
     city?: StringFieldUpdateOperationsInput | string
     barangay?: StringFieldUpdateOperationsInput | string
-    type?: EnumLocationTypeFieldUpdateOperationsInput | $Enums.LocationType
+    type?: StringFieldUpdateOperationsInput | string
     toda_id?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    dropoffs?: RideRequestUncheckedUpdateManyWithoutDropoff_locationNestedInput
+    dropoff_requests?: RideRequestUncheckedUpdateManyWithoutDropoff_locationNestedInput
   }
 
-  export type LocationUpsertWithoutDropoffsInput = {
-    update: XOR<LocationUpdateWithoutDropoffsInput, LocationUncheckedUpdateWithoutDropoffsInput>
-    create: XOR<LocationCreateWithoutDropoffsInput, LocationUncheckedCreateWithoutDropoffsInput>
+  export type LocationUpsertWithoutDropoff_requestsInput = {
+    update: XOR<LocationUpdateWithoutDropoff_requestsInput, LocationUncheckedUpdateWithoutDropoff_requestsInput>
+    create: XOR<LocationCreateWithoutDropoff_requestsInput, LocationUncheckedCreateWithoutDropoff_requestsInput>
     where?: LocationWhereInput
   }
 
-  export type LocationUpdateToOneWithWhereWithoutDropoffsInput = {
+  export type LocationUpdateToOneWithWhereWithoutDropoff_requestsInput = {
     where?: LocationWhereInput
-    data: XOR<LocationUpdateWithoutDropoffsInput, LocationUncheckedUpdateWithoutDropoffsInput>
+    data: XOR<LocationUpdateWithoutDropoff_requestsInput, LocationUncheckedUpdateWithoutDropoff_requestsInput>
   }
 
-  export type LocationUpdateWithoutDropoffsInput = {
+  export type LocationUpdateWithoutDropoff_requestsInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     address?: StringFieldUpdateOperationsInput | string
@@ -11462,14 +10978,14 @@ export namespace Prisma {
     longitude?: FloatFieldUpdateOperationsInput | number
     city?: StringFieldUpdateOperationsInput | string
     barangay?: StringFieldUpdateOperationsInput | string
-    type?: EnumLocationTypeFieldUpdateOperationsInput | $Enums.LocationType
+    type?: StringFieldUpdateOperationsInput | string
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     toda?: TodaUpdateOneWithoutLocationsNestedInput
-    pickups?: RideRequestUpdateManyWithoutPickup_locationNestedInput
+    pickup_requests?: RideRequestUpdateManyWithoutPickup_locationNestedInput
   }
 
-  export type LocationUncheckedUpdateWithoutDropoffsInput = {
+  export type LocationUncheckedUpdateWithoutDropoff_requestsInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     address?: StringFieldUpdateOperationsInput | string
@@ -11477,25 +10993,25 @@ export namespace Prisma {
     longitude?: FloatFieldUpdateOperationsInput | number
     city?: StringFieldUpdateOperationsInput | string
     barangay?: StringFieldUpdateOperationsInput | string
-    type?: EnumLocationTypeFieldUpdateOperationsInput | $Enums.LocationType
+    type?: StringFieldUpdateOperationsInput | string
     toda_id?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    pickups?: RideRequestUncheckedUpdateManyWithoutPickup_locationNestedInput
+    pickup_requests?: RideRequestUncheckedUpdateManyWithoutPickup_locationNestedInput
   }
 
-  export type TriderUpsertWithoutRidesInput = {
-    update: XOR<TriderUpdateWithoutRidesInput, TriderUncheckedUpdateWithoutRidesInput>
-    create: XOR<TriderCreateWithoutRidesInput, TriderUncheckedCreateWithoutRidesInput>
+  export type TriderUpsertWithoutRide_requestsInput = {
+    update: XOR<TriderUpdateWithoutRide_requestsInput, TriderUncheckedUpdateWithoutRide_requestsInput>
+    create: XOR<TriderCreateWithoutRide_requestsInput, TriderUncheckedCreateWithoutRide_requestsInput>
     where?: TriderWhereInput
   }
 
-  export type TriderUpdateToOneWithWhereWithoutRidesInput = {
+  export type TriderUpdateToOneWithWhereWithoutRide_requestsInput = {
     where?: TriderWhereInput
-    data: XOR<TriderUpdateWithoutRidesInput, TriderUncheckedUpdateWithoutRidesInput>
+    data: XOR<TriderUpdateWithoutRide_requestsInput, TriderUncheckedUpdateWithoutRide_requestsInput>
   }
 
-  export type TriderUpdateWithoutRidesInput = {
+  export type TriderUpdateWithoutRide_requestsInput = {
     id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
     first_name?: StringFieldUpdateOperationsInput | string
@@ -11503,7 +11019,7 @@ export namespace Prisma {
     contact_number?: StringFieldUpdateOperationsInput | string
     plate_number?: StringFieldUpdateOperationsInput | string
     license_number?: StringFieldUpdateOperationsInput | string
-    status?: EnumTriderStatusFieldUpdateOperationsInput | $Enums.TriderStatus
+    status?: StringFieldUpdateOperationsInput | string
     current_latitude?: NullableFloatFieldUpdateOperationsInput | number | null
     current_longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     last_online?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -11513,7 +11029,7 @@ export namespace Prisma {
     queue_items?: TriderQueueItemUpdateManyWithoutTriderNestedInput
   }
 
-  export type TriderUncheckedUpdateWithoutRidesInput = {
+  export type TriderUncheckedUpdateWithoutRide_requestsInput = {
     id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
     toda_id?: StringFieldUpdateOperationsInput | string
@@ -11522,7 +11038,7 @@ export namespace Prisma {
     contact_number?: StringFieldUpdateOperationsInput | string
     plate_number?: StringFieldUpdateOperationsInput | string
     license_number?: StringFieldUpdateOperationsInput | string
-    status?: EnumTriderStatusFieldUpdateOperationsInput | $Enums.TriderStatus
+    status?: StringFieldUpdateOperationsInput | string
     current_latitude?: NullableFloatFieldUpdateOperationsInput | number | null
     current_longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     last_online?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -11539,7 +11055,7 @@ export namespace Prisma {
     longitude: number
     city: string
     barangay: string
-    type: $Enums.LocationType
+    type: string
     created_at?: Date | string
     updated_at?: Date | string
   }
@@ -11552,12 +11068,19 @@ export namespace Prisma {
     contact_number: string
     plate_number: string
     license_number: string
-    status?: $Enums.TriderStatus
+    status: string
     current_latitude?: number | null
     current_longitude?: number | null
     last_online?: Date | string | null
     created_at?: Date | string
     updated_at?: Date | string
+  }
+
+  export type TriderQueueItemCreateManyTodaInput = {
+    id?: string
+    trider_id: string
+    queue_position: number
+    joined_at?: Date | string
   }
 
   export type RideRequestCreateManyTodaInput = {
@@ -11566,19 +11089,11 @@ export namespace Prisma {
     passenger_id: string
     pickup_location_id: string
     dropoff_location_id: string
-    pickup_name: string
-    pickup_address: string
-    pickup_latitude: number
-    pickup_longitude: number
-    dropoff_name: string
-    dropoff_address: string
-    dropoff_latitude: number
-    dropoff_longitude: number
-    status?: $Enums.RideStatus
+    status: string
     estimated_fare: number
     estimated_time: number
-    route_distance: number
-    route_duration: number
+    route_distance?: number | null
+    route_duration?: number | null
     route_geometry?: string | null
     trider_id?: string | null
     created_at?: Date | string
@@ -11589,13 +11104,6 @@ export namespace Prisma {
     cancellation_reason?: string | null
   }
 
-  export type TriderQueueItemCreateManyTodaInput = {
-    id?: string
-    trider_id: string
-    queue_position: number
-    joined_at?: Date | string
-  }
-
   export type LocationUpdateWithoutTodaInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -11604,11 +11112,11 @@ export namespace Prisma {
     longitude?: FloatFieldUpdateOperationsInput | number
     city?: StringFieldUpdateOperationsInput | string
     barangay?: StringFieldUpdateOperationsInput | string
-    type?: EnumLocationTypeFieldUpdateOperationsInput | $Enums.LocationType
+    type?: StringFieldUpdateOperationsInput | string
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    pickups?: RideRequestUpdateManyWithoutPickup_locationNestedInput
-    dropoffs?: RideRequestUpdateManyWithoutDropoff_locationNestedInput
+    pickup_requests?: RideRequestUpdateManyWithoutPickup_locationNestedInput
+    dropoff_requests?: RideRequestUpdateManyWithoutDropoff_locationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutTodaInput = {
@@ -11619,11 +11127,11 @@ export namespace Prisma {
     longitude?: FloatFieldUpdateOperationsInput | number
     city?: StringFieldUpdateOperationsInput | string
     barangay?: StringFieldUpdateOperationsInput | string
-    type?: EnumLocationTypeFieldUpdateOperationsInput | $Enums.LocationType
+    type?: StringFieldUpdateOperationsInput | string
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    pickups?: RideRequestUncheckedUpdateManyWithoutPickup_locationNestedInput
-    dropoffs?: RideRequestUncheckedUpdateManyWithoutDropoff_locationNestedInput
+    pickup_requests?: RideRequestUncheckedUpdateManyWithoutPickup_locationNestedInput
+    dropoff_requests?: RideRequestUncheckedUpdateManyWithoutDropoff_locationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutTodaInput = {
@@ -11634,7 +11142,7 @@ export namespace Prisma {
     longitude?: FloatFieldUpdateOperationsInput | number
     city?: StringFieldUpdateOperationsInput | string
     barangay?: StringFieldUpdateOperationsInput | string
-    type?: EnumLocationTypeFieldUpdateOperationsInput | $Enums.LocationType
+    type?: StringFieldUpdateOperationsInput | string
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -11647,14 +11155,14 @@ export namespace Prisma {
     contact_number?: StringFieldUpdateOperationsInput | string
     plate_number?: StringFieldUpdateOperationsInput | string
     license_number?: StringFieldUpdateOperationsInput | string
-    status?: EnumTriderStatusFieldUpdateOperationsInput | $Enums.TriderStatus
+    status?: StringFieldUpdateOperationsInput | string
     current_latitude?: NullableFloatFieldUpdateOperationsInput | number | null
     current_longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     last_online?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    rides?: RideRequestUpdateManyWithoutTriderNestedInput
     queue_items?: TriderQueueItemUpdateManyWithoutTriderNestedInput
+    ride_requests?: RideRequestUpdateManyWithoutTriderNestedInput
   }
 
   export type TriderUncheckedUpdateWithoutTodaInput = {
@@ -11665,14 +11173,14 @@ export namespace Prisma {
     contact_number?: StringFieldUpdateOperationsInput | string
     plate_number?: StringFieldUpdateOperationsInput | string
     license_number?: StringFieldUpdateOperationsInput | string
-    status?: EnumTriderStatusFieldUpdateOperationsInput | $Enums.TriderStatus
+    status?: StringFieldUpdateOperationsInput | string
     current_latitude?: NullableFloatFieldUpdateOperationsInput | number | null
     current_longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     last_online?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    rides?: RideRequestUncheckedUpdateManyWithoutTriderNestedInput
     queue_items?: TriderQueueItemUncheckedUpdateManyWithoutTriderNestedInput
+    ride_requests?: RideRequestUncheckedUpdateManyWithoutTriderNestedInput
   }
 
   export type TriderUncheckedUpdateManyWithoutTodaInput = {
@@ -11683,99 +11191,12 @@ export namespace Prisma {
     contact_number?: StringFieldUpdateOperationsInput | string
     plate_number?: StringFieldUpdateOperationsInput | string
     license_number?: StringFieldUpdateOperationsInput | string
-    status?: EnumTriderStatusFieldUpdateOperationsInput | $Enums.TriderStatus
+    status?: StringFieldUpdateOperationsInput | string
     current_latitude?: NullableFloatFieldUpdateOperationsInput | number | null
     current_longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     last_online?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type RideRequestUpdateWithoutTodaInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    booking_code?: StringFieldUpdateOperationsInput | string
-    passenger_id?: StringFieldUpdateOperationsInput | string
-    pickup_name?: StringFieldUpdateOperationsInput | string
-    pickup_address?: StringFieldUpdateOperationsInput | string
-    pickup_latitude?: FloatFieldUpdateOperationsInput | number
-    pickup_longitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_name?: StringFieldUpdateOperationsInput | string
-    dropoff_address?: StringFieldUpdateOperationsInput | string
-    dropoff_latitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_longitude?: FloatFieldUpdateOperationsInput | number
-    status?: EnumRideStatusFieldUpdateOperationsInput | $Enums.RideStatus
-    estimated_fare?: FloatFieldUpdateOperationsInput | number
-    estimated_time?: IntFieldUpdateOperationsInput | number
-    route_distance?: FloatFieldUpdateOperationsInput | number
-    route_duration?: IntFieldUpdateOperationsInput | number
-    route_geometry?: NullableStringFieldUpdateOperationsInput | string | null
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    accepted_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    picked_up_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    completed_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    cancelled_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    cancellation_reason?: NullableStringFieldUpdateOperationsInput | string | null
-    pickup_location?: LocationUpdateOneRequiredWithoutPickupsNestedInput
-    dropoff_location?: LocationUpdateOneRequiredWithoutDropoffsNestedInput
-    trider?: TriderUpdateOneWithoutRidesNestedInput
-  }
-
-  export type RideRequestUncheckedUpdateWithoutTodaInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    booking_code?: StringFieldUpdateOperationsInput | string
-    passenger_id?: StringFieldUpdateOperationsInput | string
-    pickup_location_id?: StringFieldUpdateOperationsInput | string
-    dropoff_location_id?: StringFieldUpdateOperationsInput | string
-    pickup_name?: StringFieldUpdateOperationsInput | string
-    pickup_address?: StringFieldUpdateOperationsInput | string
-    pickup_latitude?: FloatFieldUpdateOperationsInput | number
-    pickup_longitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_name?: StringFieldUpdateOperationsInput | string
-    dropoff_address?: StringFieldUpdateOperationsInput | string
-    dropoff_latitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_longitude?: FloatFieldUpdateOperationsInput | number
-    status?: EnumRideStatusFieldUpdateOperationsInput | $Enums.RideStatus
-    estimated_fare?: FloatFieldUpdateOperationsInput | number
-    estimated_time?: IntFieldUpdateOperationsInput | number
-    route_distance?: FloatFieldUpdateOperationsInput | number
-    route_duration?: IntFieldUpdateOperationsInput | number
-    route_geometry?: NullableStringFieldUpdateOperationsInput | string | null
-    trider_id?: NullableStringFieldUpdateOperationsInput | string | null
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    accepted_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    picked_up_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    completed_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    cancelled_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    cancellation_reason?: NullableStringFieldUpdateOperationsInput | string | null
-  }
-
-  export type RideRequestUncheckedUpdateManyWithoutTodaInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    booking_code?: StringFieldUpdateOperationsInput | string
-    passenger_id?: StringFieldUpdateOperationsInput | string
-    pickup_location_id?: StringFieldUpdateOperationsInput | string
-    dropoff_location_id?: StringFieldUpdateOperationsInput | string
-    pickup_name?: StringFieldUpdateOperationsInput | string
-    pickup_address?: StringFieldUpdateOperationsInput | string
-    pickup_latitude?: FloatFieldUpdateOperationsInput | number
-    pickup_longitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_name?: StringFieldUpdateOperationsInput | string
-    dropoff_address?: StringFieldUpdateOperationsInput | string
-    dropoff_latitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_longitude?: FloatFieldUpdateOperationsInput | number
-    status?: EnumRideStatusFieldUpdateOperationsInput | $Enums.RideStatus
-    estimated_fare?: FloatFieldUpdateOperationsInput | number
-    estimated_time?: IntFieldUpdateOperationsInput | number
-    route_distance?: FloatFieldUpdateOperationsInput | number
-    route_duration?: IntFieldUpdateOperationsInput | number
-    route_geometry?: NullableStringFieldUpdateOperationsInput | string | null
-    trider_id?: NullableStringFieldUpdateOperationsInput | string | null
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    accepted_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    picked_up_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    completed_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    cancelled_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    cancellation_reason?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type TriderQueueItemUpdateWithoutTodaInput = {
@@ -11799,25 +11220,80 @@ export namespace Prisma {
     joined_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type RideRequestUpdateWithoutTodaInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    booking_code?: StringFieldUpdateOperationsInput | string
+    passenger_id?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    estimated_fare?: FloatFieldUpdateOperationsInput | number
+    estimated_time?: IntFieldUpdateOperationsInput | number
+    route_distance?: NullableFloatFieldUpdateOperationsInput | number | null
+    route_duration?: NullableFloatFieldUpdateOperationsInput | number | null
+    route_geometry?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    accepted_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    picked_up_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completed_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelled_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancellation_reason?: NullableStringFieldUpdateOperationsInput | string | null
+    pickup_location?: LocationUpdateOneRequiredWithoutPickup_requestsNestedInput
+    dropoff_location?: LocationUpdateOneRequiredWithoutDropoff_requestsNestedInput
+    trider?: TriderUpdateOneWithoutRide_requestsNestedInput
+  }
+
+  export type RideRequestUncheckedUpdateWithoutTodaInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    booking_code?: StringFieldUpdateOperationsInput | string
+    passenger_id?: StringFieldUpdateOperationsInput | string
+    pickup_location_id?: StringFieldUpdateOperationsInput | string
+    dropoff_location_id?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    estimated_fare?: FloatFieldUpdateOperationsInput | number
+    estimated_time?: IntFieldUpdateOperationsInput | number
+    route_distance?: NullableFloatFieldUpdateOperationsInput | number | null
+    route_duration?: NullableFloatFieldUpdateOperationsInput | number | null
+    route_geometry?: NullableStringFieldUpdateOperationsInput | string | null
+    trider_id?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    accepted_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    picked_up_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completed_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelled_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancellation_reason?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type RideRequestUncheckedUpdateManyWithoutTodaInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    booking_code?: StringFieldUpdateOperationsInput | string
+    passenger_id?: StringFieldUpdateOperationsInput | string
+    pickup_location_id?: StringFieldUpdateOperationsInput | string
+    dropoff_location_id?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    estimated_fare?: FloatFieldUpdateOperationsInput | number
+    estimated_time?: IntFieldUpdateOperationsInput | number
+    route_distance?: NullableFloatFieldUpdateOperationsInput | number | null
+    route_duration?: NullableFloatFieldUpdateOperationsInput | number | null
+    route_geometry?: NullableStringFieldUpdateOperationsInput | string | null
+    trider_id?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    accepted_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    picked_up_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completed_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelled_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancellation_reason?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
   export type RideRequestCreateManyPickup_locationInput = {
     id?: string
     booking_code: string
     passenger_id: string
     toda_id: string
     dropoff_location_id: string
-    pickup_name: string
-    pickup_address: string
-    pickup_latitude: number
-    pickup_longitude: number
-    dropoff_name: string
-    dropoff_address: string
-    dropoff_latitude: number
-    dropoff_longitude: number
-    status?: $Enums.RideStatus
+    status: string
     estimated_fare: number
     estimated_time: number
-    route_distance: number
-    route_duration: number
+    route_distance?: number | null
+    route_duration?: number | null
     route_geometry?: string | null
     trider_id?: string | null
     created_at?: Date | string
@@ -11834,19 +11310,11 @@ export namespace Prisma {
     passenger_id: string
     toda_id: string
     pickup_location_id: string
-    pickup_name: string
-    pickup_address: string
-    pickup_latitude: number
-    pickup_longitude: number
-    dropoff_name: string
-    dropoff_address: string
-    dropoff_latitude: number
-    dropoff_longitude: number
-    status?: $Enums.RideStatus
+    status: string
     estimated_fare: number
     estimated_time: number
-    route_distance: number
-    route_duration: number
+    route_distance?: number | null
+    route_duration?: number | null
     route_geometry?: string | null
     trider_id?: string | null
     created_at?: Date | string
@@ -11861,19 +11329,11 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     booking_code?: StringFieldUpdateOperationsInput | string
     passenger_id?: StringFieldUpdateOperationsInput | string
-    pickup_name?: StringFieldUpdateOperationsInput | string
-    pickup_address?: StringFieldUpdateOperationsInput | string
-    pickup_latitude?: FloatFieldUpdateOperationsInput | number
-    pickup_longitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_name?: StringFieldUpdateOperationsInput | string
-    dropoff_address?: StringFieldUpdateOperationsInput | string
-    dropoff_latitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_longitude?: FloatFieldUpdateOperationsInput | number
-    status?: EnumRideStatusFieldUpdateOperationsInput | $Enums.RideStatus
+    status?: StringFieldUpdateOperationsInput | string
     estimated_fare?: FloatFieldUpdateOperationsInput | number
     estimated_time?: IntFieldUpdateOperationsInput | number
-    route_distance?: FloatFieldUpdateOperationsInput | number
-    route_duration?: IntFieldUpdateOperationsInput | number
+    route_distance?: NullableFloatFieldUpdateOperationsInput | number | null
+    route_duration?: NullableFloatFieldUpdateOperationsInput | number | null
     route_geometry?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     accepted_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -11881,9 +11341,9 @@ export namespace Prisma {
     completed_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     cancelled_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     cancellation_reason?: NullableStringFieldUpdateOperationsInput | string | null
-    toda?: TodaUpdateOneRequiredWithoutRidesNestedInput
-    dropoff_location?: LocationUpdateOneRequiredWithoutDropoffsNestedInput
-    trider?: TriderUpdateOneWithoutRidesNestedInput
+    toda?: TodaUpdateOneRequiredWithoutRide_requestsNestedInput
+    dropoff_location?: LocationUpdateOneRequiredWithoutDropoff_requestsNestedInput
+    trider?: TriderUpdateOneWithoutRide_requestsNestedInput
   }
 
   export type RideRequestUncheckedUpdateWithoutPickup_locationInput = {
@@ -11892,19 +11352,11 @@ export namespace Prisma {
     passenger_id?: StringFieldUpdateOperationsInput | string
     toda_id?: StringFieldUpdateOperationsInput | string
     dropoff_location_id?: StringFieldUpdateOperationsInput | string
-    pickup_name?: StringFieldUpdateOperationsInput | string
-    pickup_address?: StringFieldUpdateOperationsInput | string
-    pickup_latitude?: FloatFieldUpdateOperationsInput | number
-    pickup_longitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_name?: StringFieldUpdateOperationsInput | string
-    dropoff_address?: StringFieldUpdateOperationsInput | string
-    dropoff_latitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_longitude?: FloatFieldUpdateOperationsInput | number
-    status?: EnumRideStatusFieldUpdateOperationsInput | $Enums.RideStatus
+    status?: StringFieldUpdateOperationsInput | string
     estimated_fare?: FloatFieldUpdateOperationsInput | number
     estimated_time?: IntFieldUpdateOperationsInput | number
-    route_distance?: FloatFieldUpdateOperationsInput | number
-    route_duration?: IntFieldUpdateOperationsInput | number
+    route_distance?: NullableFloatFieldUpdateOperationsInput | number | null
+    route_duration?: NullableFloatFieldUpdateOperationsInput | number | null
     route_geometry?: NullableStringFieldUpdateOperationsInput | string | null
     trider_id?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -11921,19 +11373,11 @@ export namespace Prisma {
     passenger_id?: StringFieldUpdateOperationsInput | string
     toda_id?: StringFieldUpdateOperationsInput | string
     dropoff_location_id?: StringFieldUpdateOperationsInput | string
-    pickup_name?: StringFieldUpdateOperationsInput | string
-    pickup_address?: StringFieldUpdateOperationsInput | string
-    pickup_latitude?: FloatFieldUpdateOperationsInput | number
-    pickup_longitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_name?: StringFieldUpdateOperationsInput | string
-    dropoff_address?: StringFieldUpdateOperationsInput | string
-    dropoff_latitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_longitude?: FloatFieldUpdateOperationsInput | number
-    status?: EnumRideStatusFieldUpdateOperationsInput | $Enums.RideStatus
+    status?: StringFieldUpdateOperationsInput | string
     estimated_fare?: FloatFieldUpdateOperationsInput | number
     estimated_time?: IntFieldUpdateOperationsInput | number
-    route_distance?: FloatFieldUpdateOperationsInput | number
-    route_duration?: IntFieldUpdateOperationsInput | number
+    route_distance?: NullableFloatFieldUpdateOperationsInput | number | null
+    route_duration?: NullableFloatFieldUpdateOperationsInput | number | null
     route_geometry?: NullableStringFieldUpdateOperationsInput | string | null
     trider_id?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -11948,19 +11392,11 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     booking_code?: StringFieldUpdateOperationsInput | string
     passenger_id?: StringFieldUpdateOperationsInput | string
-    pickup_name?: StringFieldUpdateOperationsInput | string
-    pickup_address?: StringFieldUpdateOperationsInput | string
-    pickup_latitude?: FloatFieldUpdateOperationsInput | number
-    pickup_longitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_name?: StringFieldUpdateOperationsInput | string
-    dropoff_address?: StringFieldUpdateOperationsInput | string
-    dropoff_latitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_longitude?: FloatFieldUpdateOperationsInput | number
-    status?: EnumRideStatusFieldUpdateOperationsInput | $Enums.RideStatus
+    status?: StringFieldUpdateOperationsInput | string
     estimated_fare?: FloatFieldUpdateOperationsInput | number
     estimated_time?: IntFieldUpdateOperationsInput | number
-    route_distance?: FloatFieldUpdateOperationsInput | number
-    route_duration?: IntFieldUpdateOperationsInput | number
+    route_distance?: NullableFloatFieldUpdateOperationsInput | number | null
+    route_duration?: NullableFloatFieldUpdateOperationsInput | number | null
     route_geometry?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     accepted_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -11968,9 +11404,9 @@ export namespace Prisma {
     completed_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     cancelled_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     cancellation_reason?: NullableStringFieldUpdateOperationsInput | string | null
-    toda?: TodaUpdateOneRequiredWithoutRidesNestedInput
-    pickup_location?: LocationUpdateOneRequiredWithoutPickupsNestedInput
-    trider?: TriderUpdateOneWithoutRidesNestedInput
+    toda?: TodaUpdateOneRequiredWithoutRide_requestsNestedInput
+    pickup_location?: LocationUpdateOneRequiredWithoutPickup_requestsNestedInput
+    trider?: TriderUpdateOneWithoutRide_requestsNestedInput
   }
 
   export type RideRequestUncheckedUpdateWithoutDropoff_locationInput = {
@@ -11979,19 +11415,11 @@ export namespace Prisma {
     passenger_id?: StringFieldUpdateOperationsInput | string
     toda_id?: StringFieldUpdateOperationsInput | string
     pickup_location_id?: StringFieldUpdateOperationsInput | string
-    pickup_name?: StringFieldUpdateOperationsInput | string
-    pickup_address?: StringFieldUpdateOperationsInput | string
-    pickup_latitude?: FloatFieldUpdateOperationsInput | number
-    pickup_longitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_name?: StringFieldUpdateOperationsInput | string
-    dropoff_address?: StringFieldUpdateOperationsInput | string
-    dropoff_latitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_longitude?: FloatFieldUpdateOperationsInput | number
-    status?: EnumRideStatusFieldUpdateOperationsInput | $Enums.RideStatus
+    status?: StringFieldUpdateOperationsInput | string
     estimated_fare?: FloatFieldUpdateOperationsInput | number
     estimated_time?: IntFieldUpdateOperationsInput | number
-    route_distance?: FloatFieldUpdateOperationsInput | number
-    route_duration?: IntFieldUpdateOperationsInput | number
+    route_distance?: NullableFloatFieldUpdateOperationsInput | number | null
+    route_duration?: NullableFloatFieldUpdateOperationsInput | number | null
     route_geometry?: NullableStringFieldUpdateOperationsInput | string | null
     trider_id?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -12008,19 +11436,11 @@ export namespace Prisma {
     passenger_id?: StringFieldUpdateOperationsInput | string
     toda_id?: StringFieldUpdateOperationsInput | string
     pickup_location_id?: StringFieldUpdateOperationsInput | string
-    pickup_name?: StringFieldUpdateOperationsInput | string
-    pickup_address?: StringFieldUpdateOperationsInput | string
-    pickup_latitude?: FloatFieldUpdateOperationsInput | number
-    pickup_longitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_name?: StringFieldUpdateOperationsInput | string
-    dropoff_address?: StringFieldUpdateOperationsInput | string
-    dropoff_latitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_longitude?: FloatFieldUpdateOperationsInput | number
-    status?: EnumRideStatusFieldUpdateOperationsInput | $Enums.RideStatus
+    status?: StringFieldUpdateOperationsInput | string
     estimated_fare?: FloatFieldUpdateOperationsInput | number
     estimated_time?: IntFieldUpdateOperationsInput | number
-    route_distance?: FloatFieldUpdateOperationsInput | number
-    route_duration?: IntFieldUpdateOperationsInput | number
+    route_distance?: NullableFloatFieldUpdateOperationsInput | number | null
+    route_duration?: NullableFloatFieldUpdateOperationsInput | number | null
     route_geometry?: NullableStringFieldUpdateOperationsInput | string | null
     trider_id?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -12031,35 +11451,6 @@ export namespace Prisma {
     cancellation_reason?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
-  export type RideRequestCreateManyTriderInput = {
-    id?: string
-    booking_code: string
-    passenger_id: string
-    toda_id: string
-    pickup_location_id: string
-    dropoff_location_id: string
-    pickup_name: string
-    pickup_address: string
-    pickup_latitude: number
-    pickup_longitude: number
-    dropoff_name: string
-    dropoff_address: string
-    dropoff_latitude: number
-    dropoff_longitude: number
-    status?: $Enums.RideStatus
-    estimated_fare: number
-    estimated_time: number
-    route_distance: number
-    route_duration: number
-    route_geometry?: string | null
-    created_at?: Date | string
-    accepted_at?: Date | string | null
-    picked_up_at?: Date | string | null
-    completed_at?: Date | string | null
-    cancelled_at?: Date | string | null
-    cancellation_reason?: string | null
-  }
-
   export type TriderQueueItemCreateManyTriderInput = {
     id?: string
     toda_id: string
@@ -12067,91 +11458,25 @@ export namespace Prisma {
     joined_at?: Date | string
   }
 
-  export type RideRequestUpdateWithoutTriderInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    booking_code?: StringFieldUpdateOperationsInput | string
-    passenger_id?: StringFieldUpdateOperationsInput | string
-    pickup_name?: StringFieldUpdateOperationsInput | string
-    pickup_address?: StringFieldUpdateOperationsInput | string
-    pickup_latitude?: FloatFieldUpdateOperationsInput | number
-    pickup_longitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_name?: StringFieldUpdateOperationsInput | string
-    dropoff_address?: StringFieldUpdateOperationsInput | string
-    dropoff_latitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_longitude?: FloatFieldUpdateOperationsInput | number
-    status?: EnumRideStatusFieldUpdateOperationsInput | $Enums.RideStatus
-    estimated_fare?: FloatFieldUpdateOperationsInput | number
-    estimated_time?: IntFieldUpdateOperationsInput | number
-    route_distance?: FloatFieldUpdateOperationsInput | number
-    route_duration?: IntFieldUpdateOperationsInput | number
-    route_geometry?: NullableStringFieldUpdateOperationsInput | string | null
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    accepted_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    picked_up_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    completed_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    cancelled_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    cancellation_reason?: NullableStringFieldUpdateOperationsInput | string | null
-    toda?: TodaUpdateOneRequiredWithoutRidesNestedInput
-    pickup_location?: LocationUpdateOneRequiredWithoutPickupsNestedInput
-    dropoff_location?: LocationUpdateOneRequiredWithoutDropoffsNestedInput
-  }
-
-  export type RideRequestUncheckedUpdateWithoutTriderInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    booking_code?: StringFieldUpdateOperationsInput | string
-    passenger_id?: StringFieldUpdateOperationsInput | string
-    toda_id?: StringFieldUpdateOperationsInput | string
-    pickup_location_id?: StringFieldUpdateOperationsInput | string
-    dropoff_location_id?: StringFieldUpdateOperationsInput | string
-    pickup_name?: StringFieldUpdateOperationsInput | string
-    pickup_address?: StringFieldUpdateOperationsInput | string
-    pickup_latitude?: FloatFieldUpdateOperationsInput | number
-    pickup_longitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_name?: StringFieldUpdateOperationsInput | string
-    dropoff_address?: StringFieldUpdateOperationsInput | string
-    dropoff_latitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_longitude?: FloatFieldUpdateOperationsInput | number
-    status?: EnumRideStatusFieldUpdateOperationsInput | $Enums.RideStatus
-    estimated_fare?: FloatFieldUpdateOperationsInput | number
-    estimated_time?: IntFieldUpdateOperationsInput | number
-    route_distance?: FloatFieldUpdateOperationsInput | number
-    route_duration?: IntFieldUpdateOperationsInput | number
-    route_geometry?: NullableStringFieldUpdateOperationsInput | string | null
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    accepted_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    picked_up_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    completed_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    cancelled_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    cancellation_reason?: NullableStringFieldUpdateOperationsInput | string | null
-  }
-
-  export type RideRequestUncheckedUpdateManyWithoutTriderInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    booking_code?: StringFieldUpdateOperationsInput | string
-    passenger_id?: StringFieldUpdateOperationsInput | string
-    toda_id?: StringFieldUpdateOperationsInput | string
-    pickup_location_id?: StringFieldUpdateOperationsInput | string
-    dropoff_location_id?: StringFieldUpdateOperationsInput | string
-    pickup_name?: StringFieldUpdateOperationsInput | string
-    pickup_address?: StringFieldUpdateOperationsInput | string
-    pickup_latitude?: FloatFieldUpdateOperationsInput | number
-    pickup_longitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_name?: StringFieldUpdateOperationsInput | string
-    dropoff_address?: StringFieldUpdateOperationsInput | string
-    dropoff_latitude?: FloatFieldUpdateOperationsInput | number
-    dropoff_longitude?: FloatFieldUpdateOperationsInput | number
-    status?: EnumRideStatusFieldUpdateOperationsInput | $Enums.RideStatus
-    estimated_fare?: FloatFieldUpdateOperationsInput | number
-    estimated_time?: IntFieldUpdateOperationsInput | number
-    route_distance?: FloatFieldUpdateOperationsInput | number
-    route_duration?: IntFieldUpdateOperationsInput | number
-    route_geometry?: NullableStringFieldUpdateOperationsInput | string | null
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    accepted_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    picked_up_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    completed_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    cancelled_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    cancellation_reason?: NullableStringFieldUpdateOperationsInput | string | null
+  export type RideRequestCreateManyTriderInput = {
+    id?: string
+    booking_code: string
+    passenger_id: string
+    toda_id: string
+    pickup_location_id: string
+    dropoff_location_id: string
+    status: string
+    estimated_fare: number
+    estimated_time: number
+    route_distance?: number | null
+    route_duration?: number | null
+    route_geometry?: string | null
+    created_at?: Date | string
+    accepted_at?: Date | string | null
+    picked_up_at?: Date | string | null
+    completed_at?: Date | string | null
+    cancelled_at?: Date | string | null
+    cancellation_reason?: string | null
   }
 
   export type TriderQueueItemUpdateWithoutTriderInput = {
@@ -12173,6 +11498,69 @@ export namespace Prisma {
     toda_id?: StringFieldUpdateOperationsInput | string
     queue_position?: IntFieldUpdateOperationsInput | number
     joined_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RideRequestUpdateWithoutTriderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    booking_code?: StringFieldUpdateOperationsInput | string
+    passenger_id?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    estimated_fare?: FloatFieldUpdateOperationsInput | number
+    estimated_time?: IntFieldUpdateOperationsInput | number
+    route_distance?: NullableFloatFieldUpdateOperationsInput | number | null
+    route_duration?: NullableFloatFieldUpdateOperationsInput | number | null
+    route_geometry?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    accepted_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    picked_up_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completed_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelled_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancellation_reason?: NullableStringFieldUpdateOperationsInput | string | null
+    toda?: TodaUpdateOneRequiredWithoutRide_requestsNestedInput
+    pickup_location?: LocationUpdateOneRequiredWithoutPickup_requestsNestedInput
+    dropoff_location?: LocationUpdateOneRequiredWithoutDropoff_requestsNestedInput
+  }
+
+  export type RideRequestUncheckedUpdateWithoutTriderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    booking_code?: StringFieldUpdateOperationsInput | string
+    passenger_id?: StringFieldUpdateOperationsInput | string
+    toda_id?: StringFieldUpdateOperationsInput | string
+    pickup_location_id?: StringFieldUpdateOperationsInput | string
+    dropoff_location_id?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    estimated_fare?: FloatFieldUpdateOperationsInput | number
+    estimated_time?: IntFieldUpdateOperationsInput | number
+    route_distance?: NullableFloatFieldUpdateOperationsInput | number | null
+    route_duration?: NullableFloatFieldUpdateOperationsInput | number | null
+    route_geometry?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    accepted_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    picked_up_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completed_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelled_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancellation_reason?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type RideRequestUncheckedUpdateManyWithoutTriderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    booking_code?: StringFieldUpdateOperationsInput | string
+    passenger_id?: StringFieldUpdateOperationsInput | string
+    toda_id?: StringFieldUpdateOperationsInput | string
+    pickup_location_id?: StringFieldUpdateOperationsInput | string
+    dropoff_location_id?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    estimated_fare?: FloatFieldUpdateOperationsInput | number
+    estimated_time?: IntFieldUpdateOperationsInput | number
+    route_distance?: NullableFloatFieldUpdateOperationsInput | number | null
+    route_duration?: NullableFloatFieldUpdateOperationsInput | number | null
+    route_geometry?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    accepted_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    picked_up_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completed_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelled_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancellation_reason?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
 

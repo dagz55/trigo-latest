@@ -172,14 +172,6 @@ exports.Prisma.RideRequestScalarFieldEnum = {
   toda_id: 'toda_id',
   pickup_location_id: 'pickup_location_id',
   dropoff_location_id: 'dropoff_location_id',
-  pickup_name: 'pickup_name',
-  pickup_address: 'pickup_address',
-  pickup_latitude: 'pickup_latitude',
-  pickup_longitude: 'pickup_longitude',
-  dropoff_name: 'dropoff_name',
-  dropoff_address: 'dropoff_address',
-  dropoff_latitude: 'dropoff_latitude',
-  dropoff_longitude: 'dropoff_longitude',
   status: 'status',
   estimated_fare: 'estimated_fare',
   estimated_time: 'estimated_time',
@@ -209,25 +201,7 @@ exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
 };
-exports.LocationType = exports.$Enums.LocationType = {
-  terminal: 'terminal',
-  custom: 'custom'
-};
 
-exports.TriderStatus = exports.$Enums.TriderStatus = {
-  offline: 'offline',
-  online: 'online',
-  busy: 'busy'
-};
-
-exports.RideStatus = exports.$Enums.RideStatus = {
-  pending: 'pending',
-  accepted: 'accepted',
-  picked_up: 'picked_up',
-  completed: 'completed',
-  cancelled: 'cancelled',
-  waiting_for_trider: 'waiting_for_trider'
-};
 
 exports.Prisma.ModelName = {
   Toda: 'Toda',
