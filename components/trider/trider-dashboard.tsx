@@ -19,6 +19,20 @@ import { type UserProfile } from "@/contexts/user-context" // Import UserProfile
 import { toast } from "sonner" // Import toast directly
 import { Loader2, MapPin, Navigation } from "lucide-react"
 
+// Helper function to calculate distance between two points
+const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+  const R = 6371e3 // Earth's radius in meters
+  const φ1 = (lat1 * Math.PI) / 180
+  const φ2 = (lat2 * Math.PI) / 180
+  const Δφ = ((lat2 - lat1) * Math.PI) / 180
+  const Δλ = ((lon2 - lon1) * Math.PI) / 180
+
+  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+
+  return R * c // Distance in meters
+}
+
 // Correct component name and use UserProfile type
 export function TriderDashboard({ user }: { user: UserProfile }) {
   // Find the associated trider profile based on user.id - ASSUMPTION: user.id links to triders.user_id
@@ -111,6 +125,77 @@ export function TriderDashboard({ user }: { user: UserProfile }) {
     } else {
       // If going offline, just update status
       handleUpdateTriderStatus('offline');
+    }
+  };
+
+  // Function to handle accepting a booking
+  const handleAcceptBooking = async (bookingId: string, notificationId: string) => {
+    if (!triderProfile) return;
+
+    try {
+      // 1. Update the notification status
+      const { error: notificationError } = await supabase
+        .from('trider_notifications')
+        .update({ status: 'accepted' })
+        .eq('id', notificationId);
+
+      if (notificationError) throw notificationError;
+
+      // 2. Update the booking with this trider's ID
+      const { error: bookingError } = await supabase
+        .from('bookings')
+        .update({
+          trider_id: triderProfile.id,
+          status: 'accepted',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', bookingId);
+
+      if (bookingError) throw bookingError;
+
+      // 3. Update trider status to busy
+      await updateTriderStatusUtil(
+        triderProfile.id,
+        'busy',
+        currentLocation?.lat,
+        currentLocation?.lng
+      );
+
+      toast.success("Booking Accepted", {
+        description: "You have accepted the booking. Please proceed to pickup location."
+      });
+
+      // 4. Fetch rides to update the UI
+      fetchRides();
+
+    } catch (error) {
+      console.error("Error accepting booking:", error);
+      toast.error("Failed to Accept", {
+        description: "There was an error accepting the booking. Please try again."
+      });
+    }
+  };
+
+  // Function to handle declining a booking
+  const handleDeclineBooking = async (notificationId: string) => {
+    try {
+      // Update the notification status to declined
+      const { error } = await supabase
+        .from('trider_notifications')
+        .update({ status: 'declined' })
+        .eq('id', notificationId);
+
+      if (error) throw error;
+
+      toast.info("Booking Declined", {
+        description: "You have declined the booking request."
+      });
+
+    } catch (error) {
+      console.error("Error declining booking:", error);
+      toast.error("Failed to Decline", {
+        description: "There was an error declining the booking. Please try again."
+      });
     }
   };
 
@@ -232,11 +317,94 @@ export function TriderDashboard({ user }: { user: UserProfile }) {
          }
       });
 
+    // Subscribe to trider notifications for new booking requests
+    const notificationsSubscription = supabase
+      .channel(`public:trider_notifications:trider=${triderProfile?.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "trider_notifications",
+          filter: `trider_id=eq.${triderProfile?.id} AND status=eq.pending`,
+        },
+        async (payload) => {
+          console.log("New booking notification received!", payload);
+
+          // Fetch the booking details
+          const { data: booking, error } = await supabase
+            .from('bookings')
+            .select(`
+              *,
+              pickup_location:locations!pickup_location_id(*),
+              dropoff_location:locations!dropoff_location_id(*),
+              passenger:users!passenger_id(*)
+            `)
+            .eq('id', payload.new.booking_id)
+            .single();
+
+          if (error) {
+            console.error("Error fetching booking details:", error);
+            return;
+          }
+
+          // Calculate distance to pickup
+          const distanceToPickup = calculateDistance(
+            currentLocation?.lat || 0,
+            currentLocation?.lng || 0,
+            booking.pickup_location.latitude,
+            booking.pickup_location.longitude
+          );
+
+          const distanceInKm = (distanceToPickup / 1000).toFixed(1);
+
+          // Show notification to trider with accept/decline buttons
+          toast({
+            title: "New Ride Request",
+            description: (
+              <div className="space-y-2">
+                <div>
+                  <strong>From:</strong> {booking.pickup_location.name}<br/>
+                  <strong>To:</strong> {booking.dropoff_location.name}<br/>
+                  <strong>Distance:</strong> {distanceInKm} km<br/>
+                  <strong>Fare:</strong> {booking.estimated_fare}
+                </div>
+                <div className="flex space-x-2 pt-2">
+                  <button
+                    onClick={() => handleAcceptBooking(booking.id, payload.new.id)}
+                    className="flex-1 px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600"
+                  >
+                    Accept
+                  </button>
+                  <button
+                    onClick={() => handleDeclineBooking(payload.new.id)}
+                    className="flex-1 px-3 py-1 bg-gray-500 text-white text-sm rounded hover:bg-gray-600"
+                  >
+                    Decline
+                  </button>
+                </div>
+              </div>
+            ),
+            duration: 30000, // 30 seconds to decide
+          });
+        }
+      )
+      .subscribe((status, err) => {
+         if (status === 'SUBSCRIBED') {
+            console.log('Subscribed to notification updates for trider:', triderProfile?.id);
+         }
+         if (status === 'CHANNEL_ERROR' || err) {
+            console.error('Notification subscription error:', err);
+            toast.error("Real-time Error", { description: "Could not subscribe to booking notifications." });
+         }
+      });
+
 
     // Cleanup function
     return () => {
-      console.log("Removing ride subscription channel.");
+      console.log("Removing subscription channels.");
       supabase.removeChannel(ridesSubscription);
+      supabase.removeChannel(notificationsSubscription);
     };
   }, [triderProfile]); // Depend on triderProfile now
 

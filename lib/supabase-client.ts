@@ -9,19 +9,25 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Update LocationType enum to match database
-export type LocationType = 'terminal' | 'custom' 
+export type LocationType = 'terminal' | 'pickup' | 'dropoff' | 'custom'
+
 export type TodaStatus = 'active' | 'inactive'
 
-export type Toda = {
+export interface Toda {
   id: string
   name: string
+  code: string
   city: string
   barangay: string
+  terminal_address?: string
+  contact_number?: string
+  president_name?: string
+  status: 'active' | 'inactive'
   created_at?: string
   updated_at?: string
 }
 
-export type Location = {
+export interface Location {
   id: string
   name: string
   address: string
@@ -31,7 +37,6 @@ export type Location = {
   barangay: string
   type: LocationType
   toda_id?: string
-  toda?: Toda
   created_at?: string
   updated_at?: string
 }

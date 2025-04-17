@@ -17,12 +17,12 @@ export const metadata = {
   icons: {
     icon: [
       {
-        url: "/images/trigologo1.png",
-        href: "/images/trigologo1.png",
+        url: "/images/trigo-logo.png",
+        href: "/images/trigo-logo.png",
       },
     ],
   },
-    generator: 'v0.dev'
+  generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -33,7 +33,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/images/trigologo1.png" />
+        <link rel="icon" href="/images/trigo-logo.png" />
       </head>
       <body className="min-h-screen bg-background text-foreground">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>

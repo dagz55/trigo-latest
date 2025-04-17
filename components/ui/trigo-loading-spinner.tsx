@@ -42,7 +42,7 @@ export function TrigoLoadingSpinner({ size = "md", className, textClassName }: T
     <div className={cn("relative flex items-center justify-center", sizeClasses[size], className)}>
       {/* Logo in the center */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <img src="/images/trigologo1.png" alt="Trigo Logo" className="w-full h-full object-contain" />
+        <img src="/images/trigo-logo.png" alt="Trigo Logo" className="w-full h-full object-contain" />
       </div>
 
       {/* Rotating outer glow */}

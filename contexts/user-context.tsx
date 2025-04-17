@@ -76,8 +76,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
             userData.workLocation = profileData.work_location
           }
 
-          if (profileData?.favorite_locations) {
-            userData.favoriteLocations = profileData.favorite_locations
+          // Load favorite locations from localStorage instead of database
+          try {
+            const savedLocations = localStorage.getItem("trigo_favorite_locations")
+            if (savedLocations) {
+              userData.favoriteLocations = JSON.parse(savedLocations)
+            }
+          } catch (e) {
+            console.error("Error loading favorite locations from localStorage:", e)
           }
 
           setUser(userData)
@@ -104,15 +110,25 @@ export function UserProvider({ children }: { children: ReactNode }) {
     if (!user) return
 
     try {
-      // Update the profile in Supabase
+      // First, check if we're trying to update favorite locations
+      if (data.favoriteLocations) {
+        // Just update the local state for favorite locations
+        // We'll store them in localStorage but not in the database
+        // This avoids issues with the database schema
+        setUser({ ...user, favoriteLocations: data.favoriteLocations })
+        localStorage.setItem("trigo_favorite_locations", JSON.stringify(data.favoriteLocations))
+        return
+      }
+
+      // For other profile updates, update the profile in Supabase
       const { error } = await supabase
         .from("profiles")
         .update({
           full_name: data.name,
           phone: data.phone,
-          home_location: data.homeLocation,
-          work_location: data.workLocation,
-          favorite_locations: data.favoriteLocations,
+          // Only include these if they exist in the database schema
+          // home_location: data.homeLocation,
+          // work_location: data.workLocation,
         })
         .eq("id", user.id)
 

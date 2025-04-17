@@ -24,13 +24,10 @@ export function Header() {
             href={user ? (user.role === "passenger" ? "/passenger" : `/${user.role}`) : pathname} 
             className="flex items-center space-x-2"
           >
-            <div className="flex items-center -space-x-1">
-              <div className="h-9 w-9 flex items-center justify-center">
-                <img src="/images/trigologo1.png" alt="Trigo Logo" className="h-9 w-auto" />
-              </div>
-              <span className="font-bold text-lg">
-                <span className="text-black dark:text-white">Tri</span>
-                <span className="text-primary">Go</span>
+            <div className="flex items-center space-x-2">
+              <span className="font-bold text-xl">
+                <span className="text-white">Trigo</span>
+                <span className="text-[#9333EA]">Go</span>
               </span>
             </div>
           </Link>

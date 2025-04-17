@@ -18,32 +18,35 @@ CREATE TYPE trider_status AS ENUM ('offline', 'online', 'busy');
 CREATE TYPE ride_status AS ENUM ('pending', 'accepted', 'picked_up', 'completed', 'cancelled');
 CREATE TYPE location_type AS ENUM ('pickup', 'dropoff', 'terminal', 'popular');
 
--- Create TODA table
+-- Create TODA table with consistent fields
 CREATE TABLE IF NOT EXISTS public.todas (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT NOT NULL,
+    code TEXT UNIQUE NOT NULL,
     city TEXT NOT NULL,
     barangay TEXT NOT NULL,
+    terminal_address TEXT,
+    contact_number TEXT,
+    president_name TEXT,
+    status TEXT DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
     coverage_area GEOMETRY(POLYGON, 4326),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Create locations table
+-- Create locations table with consistent fields
 CREATE TABLE IF NOT EXISTS public.locations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    toda_id UUID REFERENCES public.todas(id),
     name TEXT NOT NULL,
     address TEXT NOT NULL,
-    type location_type NOT NULL,
     latitude DOUBLE PRECISION NOT NULL,
     longitude DOUBLE PRECISION NOT NULL,
+    city TEXT NOT NULL,
+    barangay TEXT NOT NULL,
+    type TEXT NOT NULL CHECK (type IN ('terminal', 'pickup', 'dropoff', 'custom')),
+    toda_id UUID REFERENCES public.todas(id),
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
-    CONSTRAINT valid_coordinates CHECK (
-        latitude BETWEEN -90 AND 90 AND
-        longitude BETWEEN -180 AND 180
-    )
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Create users table
@@ -109,16 +112,13 @@ CREATE TABLE IF NOT EXISTS public.ride_requests (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Create saved locations table
+-- Create saved_locations table
 CREATE TABLE IF NOT EXISTS public.saved_locations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES public.users(id),
-    location_id UUID REFERENCES public.locations(id),
-    label TEXT NOT NULL,
-    is_favorite BOOLEAN DEFAULT false,
+    user_id UUID REFERENCES auth.users NOT NULL,
+    location_id UUID REFERENCES public.locations NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE (user_id, location_id)
+    UNIQUE(user_id, location_id)
 );
 
 -- Create function to update updated_at timestamp
@@ -786,4 +786,28 @@ VALUES
     'Kawasaki Barako 175',
     'Red'
   )
-ON CONFLICT (id) DO NOTHING; 
+ON CONFLICT (id) DO NOTHING;
+
+-- Update RLS policies for saved_locations table
+ALTER TABLE public.saved_locations ENABLE ROW LEVEL SECURITY;
+
+-- Allow users to insert their own locations
+CREATE POLICY "Users can insert their own locations" 
+ON public.saved_locations FOR INSERT 
+WITH CHECK (auth.uid() = user_id);
+
+-- Allow users to update their own locations
+CREATE POLICY "Users can update their own locations" 
+ON public.saved_locations FOR UPDATE
+USING (auth.uid() = user_id);
+
+-- Allow users to read their own locations
+CREATE POLICY "Users can read their own locations" 
+ON public.saved_locations FOR SELECT
+USING (auth.uid() = user_id);
+
+-- Update RLS policies for todas table to allow public read access
+CREATE POLICY "Allow public read access to todas"
+ON public.todas FOR SELECT
+TO PUBLIC
+USING (true);

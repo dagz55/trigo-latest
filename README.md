@@ -2,7 +2,7 @@
 
 TriGo is a modern ride-hailing platform specifically designed for Tricycle Operators and Drivers Associations (TODA) in the Philippines. The application connects passengers with local tricycle drivers, providing an efficient, affordable, and accessible transportation solution.
 
-![TriGo Logo](public/images/trigologo1.png)
+![TriGo Logo](public/images/trigo-logo.png)
 
 ## Features
 
