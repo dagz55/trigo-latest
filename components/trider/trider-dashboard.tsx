@@ -145,7 +145,7 @@ export function TriderDashboard({ user }: { user: UserProfile }) {
       const { error: bookingError } = await supabase
         .from('bookings')
         .update({
-          trider_id: triderProfile.id,
+          assigned_to: triderProfile.id,
           status: 'accepted',
           updated_at: new Date().toISOString()
         })

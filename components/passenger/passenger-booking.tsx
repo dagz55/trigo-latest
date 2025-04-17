@@ -956,7 +956,7 @@ export function PassengerBooking() {
         console.log('Booking update received:', payload);
 
         // Check if a trider has been assigned
-        if (payload.new.trider_id && payload.new.status === 'accepted') {
+        if (payload.new.assigned_to && payload.new.status === 'accepted') {
           setBookingStatus('accepted');
           toast.success("Ride Accepted", {
             description: "A trider has accepted your booking and is on the way."

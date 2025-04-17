@@ -79,7 +79,7 @@ export function DispatcherDashboard({ user }: { user: UserProfile }) { // Use Us
             *,
             pickup_location:locations!pickup_location_id(*),
             dropoff_location:locations!dropoff_location_id(*),
-            trider:triders(*) 
+            trider:triders(*)
           `) // Select trider info
           .in("status", ["accepted", "picked_up"]) // Correct statuses
           .order("requested_at", { ascending: true }); // Correct column
@@ -365,7 +365,7 @@ export function DispatcherDashboard({ user }: { user: UserProfile }) { // Use Us
       const { error } = await supabase
         .from('bookings')
         .update({
-          trider_id: triderId,
+          assigned_to: triderId,
           status: 'accepted',
           updated_at: new Date().toISOString()
         })
