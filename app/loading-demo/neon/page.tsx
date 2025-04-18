@@ -39,9 +39,7 @@ export default function NeonLoadingDemoPage() {
       // Remove the explicit "dark" class here.
       // Tailwind's dark: variants will work based on the <html> tag's class.
       <div className="min-h-screen dark:bg-gray-900">
-        <LoadingPage message="Loading TriGo...">
-          <NeonLoadingSpinner size="xl" />
-        </LoadingPage>
+        <LoadingPage message="Loading TriGo..." />
       </div>
     );
   }
@@ -49,11 +47,7 @@ export default function NeonLoadingDemoPage() {
   return (
     // Remove the outer div that only added the "dark" class
     <div className="dark:bg-gray-900 min-h-screen transition-colors duration-300">
-      {showOverlay && (
-        <LoadingOverlay message="Processing your request...">
-          <NeonLoadingSpinner size="lg" />
-        </LoadingOverlay>
-      )}
+      {showOverlay && <LoadingOverlay message="Processing your request..." />}
 
       <div className="container mx-auto py-12">
         <div className="flex justify-between items-center mb-8">
