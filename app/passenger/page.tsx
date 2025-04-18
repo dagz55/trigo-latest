@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { useUser } from "@/contexts/user-context"
 import { LoadingPage } from "@/components/ui/loading-page"
 import { Header } from "@/components/layout/header"
+import { LocationTracker } from "@/components/location/location-tracker"
 
 export default function PassengerPage() {
   const { user, loading } = useUser()
@@ -34,6 +35,9 @@ export default function PassengerPage() {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Passenger Dashboard</h1>
           <div className="flex items-center gap-2">
+            {user && (
+              <LocationTracker showControls={true} className="mr-2" />
+            )}
             {user ? (
               <Link href="/profile">
                 <Button variant="outline" className="flex items-center gap-2">

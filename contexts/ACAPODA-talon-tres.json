@@ -1,0 +1,23 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "toda": "ACAPODA",
+        "area": "Admiral Village, Talon Tres",
+        "color": "#FF5500"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [121.0005, 14.4382],
+          [121.0035, 14.4382],
+          [121.0035, 14.4407],
+          [121.0005, 14.4407],
+          [121.0005, 14.4382]
+        ]]
+      }
+    }
+  ]
+}

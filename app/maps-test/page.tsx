@@ -7,53 +7,47 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { CheckCircle, XCircle, AlertTriangle, RefreshCw } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import { GoogleMap } from "@/components/map/google-map"
-import { isGoogleMapsConfigured } from "@/lib/maps-client"
+import MapboxMap from "@/components/map/mapbox-map"
+import { getMapboxToken } from "@/lib/maps-client"
 
 export default function MapsTestPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [mapStatus, setMapStatus] = useState<"success" | "error" | "loading">("loading")
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [apiKeyConfigured, setApiKeyConfigured] = useState(false)
 
   useEffect(() => {
-    // Check if Google Maps API key is configured
+    // Check if Mapbox token is configured
     const checkMapsConfig = async () => {
       setIsLoading(true)
 
       try {
         // Check if API key is configured
-        const isConfigured = isGoogleMapsConfigured()
-        setApiKeyConfigured(isConfigured)
+        const mapboxToken = getMapboxToken()
 
-        if (!isConfigured) {
+        if (!mapboxToken) {
           setMapStatus("error")
-          setErrorMessage("Google Maps API key is not configured")
+          setErrorMessage("Mapbox access token is not configured")
           return
         }
 
-        // Wait for Google Maps to load
-        const checkGoogleMapsLoaded = () => {
-          return window.google && window.google.maps
-        }
-
-        if (checkGoogleMapsLoaded()) {
-          setMapStatus("success")
-        } else {
-          // Wait for Google Maps to load with a timeout
-          let attempts = 0
-          const interval = setInterval(() => {
-            attempts++
-            if (checkGoogleMapsLoaded()) {
-              clearInterval(interval)
+        // Test if we can fetch the Mapbox token from our API
+        try {
+          const response = await fetch('/api/maps')
+          if (response.ok) {
+            const data = await response.json()
+            if (data.token) {
               setMapStatus("success")
-            } else if (attempts > 20) {
-              // 10 second timeout
-              clearInterval(interval)
+            } else {
               setMapStatus("error")
-              setErrorMessage("Timed out waiting for Google Maps to load")
+              setErrorMessage("API returned invalid Mapbox token")
             }
-          }, 500)
+          } else {
+            setMapStatus("error")
+            setErrorMessage(`API returned status ${response.status}`)
+          }
+        } catch (fetchError: any) {
+          setMapStatus("error")
+          setErrorMessage(`Failed to fetch Mapbox token: ${fetchError.message}`)
         }
       } catch (error: any) {
         console.error("Maps test failed:", error)
@@ -75,33 +69,33 @@ export default function MapsTestPage() {
     <>
       <Header />
       <div className="container mx-auto py-8">
-        <h1 className="text-3xl font-bold mb-6">Google Maps Integration Test</h1>
+        <h1 className="text-3xl font-bold mb-6">Mapbox Integration Test</h1>
 
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Google Maps Status</CardTitle>
-            <CardDescription>Testing Google Maps API integration</CardDescription>
+            <CardTitle>Mapbox Status</CardTitle>
+            <CardDescription>Testing Mapbox API integration</CardDescription>
           </CardHeader>
           <CardContent>
             {mapStatus === "loading" ? (
               <div className="flex items-center justify-center py-8">
                 <LoadingSpinner size="md" />
-                <span className="ml-4">Testing Google Maps integration...</span>
+                <span className="ml-4">Testing Mapbox integration...</span>
               </div>
             ) : mapStatus === "success" ? (
               <Alert className="bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800">
                 <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
-                <AlertTitle className="text-green-800 dark:text-green-300">Google Maps Loaded Successfully</AlertTitle>
+                <AlertTitle className="text-green-800 dark:text-green-300">Mapbox Loaded Successfully</AlertTitle>
                 <AlertDescription className="text-green-700 dark:text-green-400">
-                  <p>Google Maps API has been successfully loaded and initialized.</p>
+                  <p>Mapbox API has been successfully loaded and initialized.</p>
                 </AlertDescription>
               </Alert>
             ) : (
               <Alert className="bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800">
                 <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
-                <AlertTitle className="text-red-800 dark:text-red-300">Google Maps Failed to Load</AlertTitle>
+                <AlertTitle className="text-red-800 dark:text-red-300">Mapbox Failed to Load</AlertTitle>
                 <AlertDescription className="text-red-700 dark:text-red-400">
-                  <p>Failed to load Google Maps API. Please check your configuration.</p>
+                  <p>Failed to load Mapbox API. Please check your configuration.</p>
                   {errorMessage && (
                     <div className="mt-2 p-2 bg-red-100 dark:bg-red-900/40 rounded text-sm">
                       <p>
@@ -120,7 +114,7 @@ export default function MapsTestPage() {
                 <AlertDescription className="text-amber-700 dark:text-amber-400">
                   <p>Make sure you have set the following environment variables:</p>
                   <ul className="mt-2 list-disc list-inside space-y-1 text-sm">
-                    <li>GOOGLE_MAPS_API_KEY</li>
+                    <li>NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN</li>
                     <li>VERCEL_URL (for production deployments)</li>
                   </ul>
                 </AlertDescription>
@@ -131,9 +125,15 @@ export default function MapsTestPage() {
               <div className="mt-6">
                 <h3 className="text-lg font-medium mb-3">Map Preview</h3>
                 <div className="rounded-md overflow-hidden border">
-                  <GoogleMap
+                  <MapboxMap
                     center={{ lat: 14.5995, lng: 120.9842 }} // Manila
-                    markers={[{ lat: 14.5995, lng: 120.9842, title: "Manila" }]}
+                    zoom={12}
+                    markers={[{
+                      lat: 14.5995,
+                      lng: 120.9842,
+                      title: "Manila",
+                      type: "terminal"
+                    }]}
                     height="300px"
                   />
                 </div>

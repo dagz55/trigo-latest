@@ -128,30 +128,65 @@ export function TriderDashboard({ user }: { user: UserProfile }) {
     }
   };
 
-  // Function to handle accepting a booking
+  // Function to handle accepting a booking with enhanced error handling and transaction safety
   const handleAcceptBooking = async (bookingId: string, notificationId: string) => {
-    if (!triderProfile) return;
+    if (!triderProfile) {
+      toast.error("Profile Error", { description: "Trider profile not loaded. Please refresh the page." });
+      return;
+    }
 
     try {
+      // Start by checking if the booking is still available
+      const { data: bookingCheck, error: checkError } = await supabase
+        .from('bookings')
+        .select('status, assigned_to')
+        .eq('id', bookingId)
+        .single();
+
+      if (checkError) throw checkError;
+
+      // If booking is already assigned or not pending, show error
+      if (bookingCheck.assigned_to || bookingCheck.status !== 'pending') {
+        toast.error("Booking Unavailable", {
+          description: "This booking has already been assigned to another trider."
+        });
+        return;
+      }
+
       // 1. Update the notification status
       const { error: notificationError } = await supabase
         .from('trider_notifications')
-        .update({ status: 'accepted' })
+        .update({
+          status: 'accepted',
+          updated_at: new Date().toISOString()
+        })
         .eq('id', notificationId);
 
       if (notificationError) throw notificationError;
 
       // 2. Update the booking with this trider's ID
-      const { error: bookingError } = await supabase
+      const { data: updatedBooking, error: bookingError } = await supabase
         .from('bookings')
         .update({
           assigned_to: triderProfile.id,
           status: 'accepted',
           updated_at: new Date().toISOString()
         })
-        .eq('id', bookingId);
+        .eq('id', bookingId)
+        .eq('status', 'pending') // Only update if still pending (prevents race conditions)
+        .is('assigned_to', null) // Only update if not assigned (prevents race conditions)
+        .select()
+        .single();
 
       if (bookingError) throw bookingError;
+
+      // If no rows were updated (race condition where another trider accepted first)
+      if (!updatedBooking) {
+        toast.error("Booking Already Taken", {
+          description: "Another trider has already accepted this booking."
+        });
+        return;
+      }
 
       // 3. Update trider status to busy
       await updateTriderStatusUtil(
@@ -161,11 +196,26 @@ export function TriderDashboard({ user }: { user: UserProfile }) {
         currentLocation?.lng
       );
 
+      // 4. Update other trider notifications for this booking to 'expired'
+      const { error: otherNotificationsError } = await supabase
+        .from('trider_notifications')
+        .update({
+          status: 'expired',
+          updated_at: new Date().toISOString()
+        })
+        .eq('booking_id', bookingId)
+        .neq('id', notificationId); // Don't update the one we just accepted
+
+      if (otherNotificationsError) {
+        console.warn("Error updating other notifications:", otherNotificationsError);
+        // Non-critical error, don't throw
+      }
+
       toast.success("Booking Accepted", {
         description: "You have accepted the booking. Please proceed to pickup location."
       });
 
-      // 4. Fetch rides to update the UI
+      // 5. Fetch rides to update the UI
       fetchRides();
 
     } catch (error) {
@@ -258,47 +308,51 @@ export function TriderDashboard({ user }: { user: UserProfile }) {
   };
 
   // Fetch trider's assigned rides
+  const fetchRides = async () => {
+    if (!triderProfile?.id) return; // Use triderProfile ID now
+
+    console.log("Fetching rides for trider:", triderProfile.id);
+    try {
+      // Use correct table and column names, and select nested locations
+      const { data, error } = await supabase
+        .from("ride_requests") // Correct table name
+        .select(`
+          *,
+          pickup_location:locations!pickup_location_id(*),
+          dropoff_location:locations!dropoff_location_id(*)
+        `)
+        .eq("trider_id", triderProfile.id) // Correct column name
+        .order("requested_at", { ascending: false }); // Use correct timestamp column
+
+      if (error) throw error; // Throw error to be caught below
+
+      console.log(`Fetched ${data?.length || 0} rides.`);
+      setRides(data || []);
+    } catch (error: any) {
+      console.error("Error fetching rides:", error);
+      toast.error("Error Fetching Rides", {
+        description: error.message || "Could not load ride data.",
+      });
+    }
+  };
+
+  // Use effect to fetch rides and set up subscriptions
   useEffect(() => {
-    const fetchRides = async () => {
-      if (!triderProfile?.id) return; // Use triderProfile ID now
+    if (!triderProfile?.id) return;
 
-      console.log("Fetching rides for trider:", triderProfile.id);
-      try {
-        // Use correct table and column names, and select nested locations
-        const { data, error } = await supabase
-          .from("ride_requests") // Correct table name
-          .select(`
-            *,
-            pickup_location:locations!pickup_location_id(*),
-            dropoff_location:locations!dropoff_location_id(*)
-          `)
-          .eq("trider_id", triderProfile.id) // Correct column name
-          .order("requested_at", { ascending: false }); // Use correct timestamp column
-
-        if (error) throw error; // Throw error to be caught below
-
-        console.log(`Fetched ${data?.length || 0} rides.`);
-        setRides(data || []);
-      } catch (error: any) {
-        console.error("Error fetching rides:", error);
-        toast.error("Error Fetching Rides", {
-          description: error.message || "Could not load ride data.",
-        });
-      }
-    };
-
+    // Initial fetch of rides
     fetchRides();
 
     // Subscribe to changes on the correct table and filter
     const ridesSubscription = supabase
-      .channel(`public:ride_requests:trider=${triderProfile?.id}`) // Unique channel name
+      .channel(`public:ride_requests:trider=${triderProfile.id}`) // Unique channel name
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: "ride_requests", // Correct table name
-          filter: `trider_id=eq.${triderProfile?.id}`, // Correct column name
+          filter: `trider_id=eq.${triderProfile.id}`, // Correct column name
         },
         (payload) => {
           console.log("Ride change received!", payload);
@@ -309,7 +363,7 @@ export function TriderDashboard({ user }: { user: UserProfile }) {
       )
       .subscribe((status, err) => {
          if (status === 'SUBSCRIBED') {
-            console.log('Subscribed to ride updates for trider:', triderProfile?.id);
+            console.log('Subscribed to ride updates for trider:', triderProfile.id);
          }
          if (status === 'CHANNEL_ERROR' || err) {
             console.error('Ride subscription error:', err);
@@ -319,14 +373,14 @@ export function TriderDashboard({ user }: { user: UserProfile }) {
 
     // Subscribe to trider notifications for new booking requests
     const notificationsSubscription = supabase
-      .channel(`public:trider_notifications:trider=${triderProfile?.id}`)
+      .channel(`public:trider_notifications:trider=${triderProfile.id}`)
       .on(
         "postgres_changes",
         {
           event: "INSERT",
           schema: "public",
           table: "trider_notifications",
-          filter: `trider_id=eq.${triderProfile?.id} AND status=eq.pending`,
+          filter: `trider_id=eq.${triderProfile.id} AND status=eq.pending`,
         },
         async (payload) => {
           console.log("New booking notification received!", payload);
@@ -359,8 +413,7 @@ export function TriderDashboard({ user }: { user: UserProfile }) {
           const distanceInKm = (distanceToPickup / 1000).toFixed(1);
 
           // Show notification to trider with accept/decline buttons
-          toast({
-            title: "New Ride Request",
+          toast.success("New Ride Request", {
             description: (
               <div className="space-y-2">
                 <div>
@@ -391,7 +444,7 @@ export function TriderDashboard({ user }: { user: UserProfile }) {
       )
       .subscribe((status, err) => {
          if (status === 'SUBSCRIBED') {
-            console.log('Subscribed to notification updates for trider:', triderProfile?.id);
+            console.log('Subscribed to notification updates for trider:', triderProfile.id);
          }
          if (status === 'CHANNEL_ERROR' || err) {
             console.error('Notification subscription error:', err);
@@ -399,14 +452,13 @@ export function TriderDashboard({ user }: { user: UserProfile }) {
          }
       });
 
-
     // Cleanup function
     return () => {
       console.log("Removing subscription channels.");
       supabase.removeChannel(ridesSubscription);
       supabase.removeChannel(notificationsSubscription);
     };
-  }, [triderProfile]); // Depend on triderProfile now
+  }, [triderProfile, currentLocation]); // Depend on triderProfile and currentLocation
 
   return (
     <div className="container mx-auto py-6">
@@ -466,7 +518,11 @@ export function TriderDashboard({ user }: { user: UserProfile }) {
                   .filter((ride) => ["accepted", "picked_up"].includes(ride.status))
                   .map((ride) => (
                     // Add null check for triderProfile.id just in case, though outer check should suffice
-                    <RideCard key={ride.id} ride={ride} triderId={triderProfile!.id} />
+                    <RideCard
+                      key={ride.id}
+                      ride={ride as unknown as RideRequestWithLocations}
+                      triderId={triderProfile!.id}
+                    />
                   ))}
               </div>
             ) : (
@@ -482,7 +538,12 @@ export function TriderDashboard({ user }: { user: UserProfile }) {
                   .filter((ride) => ["completed", "cancelled"].includes(ride.status))
                   .map((ride) => (
                      // Add null check for triderProfile.id just in case, though outer check should suffice
-                    <RideCard key={ride.id} ride={ride} triderId={triderProfile!.id} isHistory />
+                    <RideCard
+                      key={ride.id}
+                      ride={ride as unknown as RideRequestWithLocations}
+                      triderId={triderProfile!.id}
+                      isHistory
+                    />
                   ))}
               </div>
             ) : (
@@ -496,8 +557,28 @@ export function TriderDashboard({ user }: { user: UserProfile }) {
   )
 }
 
-// Simple ride card component - Use RideRequest type
-function RideCard({ ride, triderId, isHistory = false }: { ride: RideRequest; triderId: string; isHistory?: boolean }) {
+// Extended RideRequest type to include joined fields from the query
+type RideRequestWithLocations = Omit<RideRequest, 'estimated_fare'> & {
+  pickup_location?: {
+    id: string;
+    name: string;
+    address: string;
+    latitude: number;
+    longitude: number;
+  };
+  dropoff_location?: {
+    id: string;
+    name: string;
+    address: string;
+    latitude: number;
+    longitude: number;
+  };
+  estimated_fare?: string;
+  fare_amount?: number;
+}
+
+// Simple ride card component with extended type
+function RideCard({ ride, triderId, isHistory = false }: { ride: RideRequestWithLocations; triderId: string; isHistory?: boolean }) {
   const [cardLoading, setCardLoading] = useState(false);
 
   // Handler for ride actions (Start/Complete)
@@ -506,7 +587,7 @@ function RideCard({ ride, triderId, isHistory = false }: { ride: RideRequest; tr
     const nextStatus = ride.status === 'accepted' ? 'picked_up' : 'completed';
     console.log(`Attempting to update ride ${ride.id} to ${nextStatus}`);
     try {
-      // Use the correct utility function for updating RIDE status (already correct)
+      // Use the correct utility function for updating RIDE status
       await updateRideStatus(ride.id, nextStatus, triderId);
       toast.success(`Ride ${nextStatus === 'picked_up' ? 'Started' : 'Completed'}`, {
          description: `Ride ${ride.id.slice(0, 8)} marked as ${nextStatus}.`
@@ -539,7 +620,7 @@ function RideCard({ ride, triderId, isHistory = false }: { ride: RideRequest; tr
                   ? "bg-green-100 text-green-800"
                   : ride.status === "cancelled"
                     ? "bg-red-100 text-red-800"
-                    : (ride.status === "picked_up") // Use valid status 'picked_up' instead of 'inProgress'
+                    : (ride.status === "picked_up")
                       ? "bg-blue-100 text-blue-800"
                       : "bg-yellow-100 text-yellow-800" // Default for 'accepted' or 'pending'
               }`}
@@ -554,12 +635,11 @@ function RideCard({ ride, triderId, isHistory = false }: { ride: RideRequest; tr
               <MapPin className="w-5 h-5 mr-2 text-green-600 flex-shrink-0" />
               <div>
                 <p className="text-sm font-medium">Pickup</p>
-                {/* Use correct nested location property names */}
                 <p className="text-sm text-muted-foreground">
                   {ride.pickup_location?.name || 'Unknown Pickup'}
                 </p>
-                 <p className="text-xs text-muted-foreground">
-                  {ride.pickup_location?.address}
+                <p className="text-xs text-muted-foreground">
+                  {ride.pickup_location?.address || ''}
                 </p>
               </div>
             </div>
@@ -568,11 +648,11 @@ function RideCard({ ride, triderId, isHistory = false }: { ride: RideRequest; tr
               <MapPin className="w-5 h-5 mr-2 text-red-600 flex-shrink-0" />
               <div>
                 <p className="text-sm font-medium">Dropoff</p>
-                 <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   {ride.dropoff_location?.name || 'Unknown Dropoff'}
                 </p>
-                 <p className="text-xs text-muted-foreground">
-                  {ride.dropoff_location?.address}
+                <p className="text-xs text-muted-foreground">
+                  {ride.dropoff_location?.address || ''}
                 </p>
               </div>
             </div>

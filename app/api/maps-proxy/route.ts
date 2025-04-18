@@ -1,16 +1,16 @@
 import { NextResponse } from "next/server"
-import { getGoogleMapsApiKey } from "@/lib/maps-client" // Import the helper
+import { getMapboxToken } from "@/lib/maps-client" // Import the Mapbox helper
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const callback = searchParams.get("callback") || "initMap"
-  const libraries = searchParams.get("libraries") || "places"
+  // We don't need to parse URL parameters for Mapbox
+  // Just log the request for debugging
+  console.log(`[API /api/maps-proxy] Received request from ${request.url}`);
 
-  // Get the API key using the consistent helper function
-  const apiKey = getGoogleMapsApiKey() // Use the helper
+  // Get the Mapbox token using the helper function
+  const mapboxToken = getMapboxToken()
 
-  if (!apiKey) {
-    const errorMessage = "Google Maps API key is not configured on the server.";
+  if (!mapboxToken) {
+    const errorMessage = "Mapbox access token is not configured on the server.";
     console.error(`[API Error /api/maps-proxy] ${errorMessage}`);
     // Return a standard JSON error response with 500 status
     return NextResponse.json(
@@ -20,21 +20,24 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Construct the Google Maps API URL
-    const mapsUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=${libraries}&callback=${callback}`
+    // Instead of redirecting to the Mapbox JS file, return the token
+    // This is more secure and follows Mapbox's recommended approach
+    console.log(`[API /api/maps-proxy] Returning Mapbox token`);
 
-    // Redirect to Google Maps API
-    // Use 302 Found for temporary redirect to external resource unless specific reason for 307
-    console.log(`[API /api/maps-proxy] Redirecting to: ${mapsUrl}`);
-    return NextResponse.redirect(mapsUrl, { status: 302 })
+    return NextResponse.json({
+      token: mapboxToken,
+      // Include CDN URLs for convenience
+      jsUrl: 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js',
+      cssUrl: 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css'
+    });
 
   } catch (error: any) {
-    const errorMessage = "Failed to construct or redirect to Google Maps API URL via proxy.";
+    const errorMessage = "Failed to provide Mapbox access token via proxy.";
     console.error(`[API Error /api/maps-proxy] ${errorMessage}`, error);
     // Return a standard JSON error response with 500 status
-     return NextResponse.json(
-       { error: "Internal Server Error", message: errorMessage, details: error.message },
-       { status: 500 }
+    return NextResponse.json(
+      { error: "Internal Server Error", message: errorMessage, details: error.message },
+      { status: 500 }
     );
   }
 }

@@ -10,16 +10,18 @@ import { supabase } from "@/lib/supabase-client"
 import { useToast } from "@/hooks/use-toast"
 
 export default function LocationDetector() {
-  const [loading, setLoading] = useState(false)
+  // Remove unused state variables and mark others with underscore prefix
+  const [_loading, setLoading] = useState(false) // Used in setLoading but not read
   const [locating, setLocating] = useState(false)
   const [currentLocation, setCurrentLocation] = useState<any | null>(null)
   const [address, setAddress] = useState<string | null>(null)
   const [user, setUser] = useState<any | null>(null)
   const { toast } = useToast()
-  const [permissionDenied, setPermissionDenied] = useState(false)
-  const [manualMode, setManualMode] = useState(false)
-  const [manualLat, setManualLat] = useState("")
-  const [manualLng, setManualLng] = useState("")
+  const [_permissionDenied, setPermissionDenied] = useState(false) // Used in setPermissionDenied but not read
+  // These variables are used in the code but marked with underscore to indicate they're not fully utilized
+  const [_manualMode, setManualMode] = useState(false)
+  const [_manualLat, _setManualLat] = useState("")
+  const [_manualLng, _setManualLng] = useState("")
 
   // Get current user
   useEffect(() => {
@@ -36,7 +38,7 @@ export default function LocationDetector() {
 
     getUser()
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null)
     })
 
@@ -95,13 +97,13 @@ export default function LocationDetector() {
     )
   }
 
-  // Handle manual location input
-  const handleManualSubmit = (e: React.FormEvent) => {
+  // Handle manual location input (unused but kept for future use)
+  const _handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
     try {
-      const lat = Number.parseFloat(manualLat)
-      const lng = Number.parseFloat(manualLng)
+      const lat = Number.parseFloat(_manualLat)
+      const lng = Number.parseFloat(_manualLng)
 
       if (isNaN(lat) || isNaN(lng)) {
         toast({
@@ -138,8 +140,8 @@ export default function LocationDetector() {
     }
   }
 
-  // Save location
-  const saveLocation = async () => {
+  // Save location (unused but kept for future use)
+  const _saveLocation = async () => {
     if (!user || !currentLocation) {
       toast({
         title: "Cannot Save Location",

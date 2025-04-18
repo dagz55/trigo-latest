@@ -1,16 +1,11 @@
 "use client"
 
-import { MapboxMap } from "@/components/map/mapbox-map"
+import MapboxMap from "@/components/map/mapbox-map"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { type UserProfile } from "@/contexts/user-context"; // Import UserProfile
-import {
-    supabase,
-    updateRideStatus, // Import utility
-    type RideRequest,
-    type Trider
-} from "@/lib/supabase-client"
+import { supabase } from "@/lib/supabase-client"
 import { Loader2 } from "lucide-react"; // Add Loader2 and Navigation
 import { useEffect, useState } from "react"
 import { toast } from "sonner"; // Import toast directly
@@ -39,16 +34,20 @@ interface ActiveBooking {
   dropoff_longitude: number
   status: string
   created_at: string
+  assigned_to?: string
+  trider?: {
+    id: string
+    first_name: string
+    last_name: string
+  }
 }
 
-export function DispatcherDashboard({ user }: { user: UserProfile }) { // Use UserProfile type
-  const [newRides, setNewRides] = useState<RideRequest[]>([]) // Use RideRequest type
-  const [assignedRides, setAssignedRides] = useState<RideRequest[]>([]) // Use RideRequest type
-  const [availableTriders, setAvailableTriders] = useState<Trider[]>([]) // Use Trider type
+export function DispatcherDashboard(_props: { user: UserProfile }) { // Use UserProfile type but mark as unused
+  // Remove unused state variables
   const [loading, setLoading] = useState(true); // Add loading state
   const [onlineTriders, setOnlineTriders] = useState<OnlineTrider[]>([])
   const [activeBookings, setActiveBookings] = useState<ActiveBooking[]>([])
-  const [mapCenter, setMapCenter] = useState({ lat: 14.4507, lng: 120.9826 })
+  const [mapCenter] = useState({ lat: 14.4507, lng: 120.9826 })
   const [mapMarkers, setMapMarkers] = useState<any[]>([])
 
   // Fetch data
@@ -57,56 +56,14 @@ export function DispatcherDashboard({ user }: { user: UserProfile }) { // Use Us
       setLoading(true);
       console.log("Dispatcher: Fetching initial data...");
       try {
-        // Fetch new ride requests (status: pending)
-        const { data: newRidesData, error: newRidesError } = await supabase
-          .from("ride_requests") // Correct table
-          .select(`
-            *,
-            pickup_location:locations!pickup_location_id(*),
-            dropoff_location:locations!dropoff_location_id(*)
-          `)
-          .eq("status", "pending") // Correct status
-          .order("requested_at", { ascending: true }); // Correct column
-
-        if (newRidesError) throw newRidesError;
-        setNewRides(newRidesData || []);
-        console.log(`Dispatcher: Fetched ${newRidesData?.length || 0} new rides.`);
-
-        // Fetch assigned/active rides (status: accepted, picked_up)
-        const { data: assignedData, error: assignedError } = await supabase
-          .from("ride_requests") // Correct table
-          .select(`
-            *,
-            pickup_location:locations!pickup_location_id(*),
-            dropoff_location:locations!dropoff_location_id(*),
-            trider:triders(*)
-          `) // Select trider info
-          .in("status", ["accepted", "picked_up"]) // Correct statuses
-          .order("requested_at", { ascending: true }); // Correct column
-
-        if (assignedError) throw assignedError;
-        setAssignedRides(assignedData || []);
-         console.log(`Dispatcher: Fetched ${assignedData?.length || 0} active rides.`);
-
-        // Fetch available triders (status: online)
-        const { data: tridersData, error: tridersError } = await supabase
-          .from("triders") // Correct table
-          .select("*") // Select necessary fields
-          .eq("status", "online"); // Correct status check
-
-        if (tridersError) throw tridersError;
-        setAvailableTriders(tridersData || []);
-        console.log(`Dispatcher: Fetched ${tridersData?.length || 0} available triders.`);
-
+        // Directly fetch active bookings and online triders
+        await fetchActiveBookings();
+        await fetchOnlineTriders();
       } catch (error: any) {
         console.error("Dispatcher: Error fetching data:", error);
         toast.error("Data Load Failed", {
           description: error.message || "Could not load dashboard data. Please refresh.",
         });
-        // Clear potentially stale data on error?
-        setNewRides([]);
-        setAssignedRides([]);
-        setAvailableTriders([]);
       } finally {
          setLoading(false);
       }
@@ -115,50 +72,50 @@ export function DispatcherDashboard({ user }: { user: UserProfile }) { // Use Us
     fetchData();
 
     // Set up subscriptions with error handling
-    const ridesSubscription = supabase
-      .channel("public:ride_requests:dispatcher") // Unique channel name
+    const bookingsSubscription = supabase
+      .channel("public:bookings:dispatcher") // Unique channel name
       .on(
         "postgres_changes",
         {
           event: "*", // Listen to all events (INSERT, UPDATE, DELETE)
           schema: "public",
-          table: "ride_requests", // Correct table
+          table: "bookings", // Correct table
         },
-        (payload) => {
-          console.log("Dispatcher: Ride change received!", payload);
-          fetchData(); // Refetch all data for simplicity
+        () => {
+          console.log("Dispatcher: Booking change received!");
+          fetchActiveBookings(); // Refetch bookings data
         }
       )
       .subscribe((status, err) => {
          if (status === 'SUBSCRIBED') {
-            console.log('Dispatcher: Subscribed to ride updates.');
+            console.log('Dispatcher: Subscribed to booking updates.');
          }
          if (status === 'CHANNEL_ERROR' || err) {
-            console.error('Dispatcher: Ride subscription error:', err);
-            toast.error("Real-time Error (Rides)", { description: "Could not subscribe to ride updates." });
+            console.error('Dispatcher: Booking subscription error:', err);
+            toast.error("Real-time Error (Bookings)", { description: "Could not subscribe to booking updates." });
          }
       });
 
     const tridersSubscription = supabase
-      .channel("public:triders:dispatcher") // Unique channel name
+      .channel("public:trider_locations:dispatcher") // Unique channel name
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
-          table: "triders", // Correct table
+          table: "trider_locations", // Correct table
         },
-        (payload) => {
-          console.log("Dispatcher: Trider change received!", payload);
-          fetchData(); // Refetch all data for simplicity
+        () => {
+          console.log("Dispatcher: Trider location change received!");
+          fetchOnlineTriders(); // Refetch trider data
         }
       )
        .subscribe((status, err) => {
          if (status === 'SUBSCRIBED') {
-            console.log('Dispatcher: Subscribed to trider updates.');
+            console.log('Dispatcher: Subscribed to trider location updates.');
          }
          if (status === 'CHANNEL_ERROR' || err) {
-            console.error('Dispatcher: Trider subscription error:', err);
+            console.error('Dispatcher: Trider location subscription error:', err);
             toast.error("Real-time Error (Triders)", { description: "Could not subscribe to trider updates." });
          }
       });
@@ -166,7 +123,7 @@ export function DispatcherDashboard({ user }: { user: UserProfile }) { // Use Us
     // Cleanup function
     return () => {
       console.log("Dispatcher: Removing subscription channels.");
-      supabase.removeChannel(ridesSubscription);
+      supabase.removeChannel(bookingsSubscription);
       supabase.removeChannel(tridersSubscription);
     };
   }, []); // Empty dependency array, fetchData runs once and subscriptions handle updates
@@ -220,7 +177,7 @@ export function DispatcherDashboard({ user }: { user: UserProfile }) { // Use Us
         event: 'INSERT',
         schema: 'public',
         table: 'dispatcher_notifications'
-      }, (payload) => {
+      }, () => {
         toast.info("New Booking Alert", {
           description: "A booking requires your attention."
         })
@@ -284,14 +241,15 @@ export function DispatcherDashboard({ user }: { user: UserProfile }) { // Use Us
 
       if (error) throw error
 
-      const triders: OnlineTrider[] = data.map(row => ({
-        id: row.trider.id,
-        name: row.trider.name,
+      // Transform the data to match the OnlineTrider interface
+      const triders: OnlineTrider[] = data.map((row: any) => ({
+        id: row.trider?.id || 'unknown',
+        name: row.trider?.name || 'Unknown Trider',
         current_location: {
           latitude: row.latitude,
           longitude: row.longitude
         },
-        status: row.status,
+        status: row.status as 'available' | 'busy' | 'offline',
         last_updated: row.updated_at
       }))
 
@@ -315,14 +273,38 @@ export function DispatcherDashboard({ user }: { user: UserProfile }) { // Use Us
           dropoff_latitude,
           dropoff_longitude,
           status,
-          created_at
+          assigned_to,
+          created_at,
+          trider:assigned_to(id, first_name, last_name)
         `)
-        .in('status', ['waiting_for_trider', 'accepted'])
+        .in('status', ['pending', 'assigned', 'accepted'])
         .order('created_at', { ascending: false })
 
       if (error) throw error
 
-      setActiveBookings(data)
+      // Transform the data to match the ActiveBooking interface
+      const bookings: ActiveBooking[] = data.map((booking: any) => ({
+        id: booking.id,
+        booking_code: booking.booking_code,
+        passenger: {
+          id: booking.passenger?.id || 'unknown',
+          name: booking.passenger?.name || 'Unknown Passenger'
+        },
+        pickup_latitude: booking.pickup_latitude,
+        pickup_longitude: booking.pickup_longitude,
+        dropoff_latitude: booking.dropoff_latitude,
+        dropoff_longitude: booking.dropoff_longitude,
+        status: booking.status,
+        created_at: booking.created_at,
+        assigned_to: booking.assigned_to,
+        trider: booking.trider ? {
+          id: booking.trider.id,
+          first_name: booking.trider.first_name,
+          last_name: booking.trider.last_name
+        } : undefined
+      }))
+
+      setActiveBookings(bookings)
     } catch (error) {
       console.error('Error fetching active bookings:', error)
       toast.error("Failed to fetch bookings")
@@ -331,57 +313,94 @@ export function DispatcherDashboard({ user }: { user: UserProfile }) { // Use Us
     }
   }
 
-  // Assign a trider to a ride using the utility function
-  const assignTrider = async (rideId: string, triderId: string | undefined) => {
-     if (!triderId) {
-        toast.error("No Trider Selected", { description: "Cannot assign ride without selecting a trider." });
-        return;
-     }
-     if (!user?.id) {
-         toast.error("Dispatcher Info Missing", { description: "Cannot assign ride without dispatcher ID." });
-         return;
-     }
-
-     console.log(`Dispatcher ${user.id} assigning trider ${triderId} to ride ${rideId}`);
-     try {
-       // Use the updateRideStatus utility to set status to 'accepted' and assign trider
-       // Pass dispatcher_id if needed by the function/policy (assuming it's user.id here)
-       await updateRideStatus(rideId, "accepted", triderId /*, user.id */); // Pass dispatcher ID if needed
-
-       toast.success("Trider Assigned", {
-         description: `Trider ${triderId.slice(0, 8)}... assigned to ride ${rideId.slice(0,8)}...`,
-       });
-       // Real-time subscription should update the lists automatically
-     } catch (error: any) {
-       console.error("Error assigning trider:", error);
-       toast.error("Assignment Failed", {
-         description: error.message || "Could not assign the trider to the ride.",
-       });
-     }
-  };
+  // Note: We're using assignTriderToBooking instead of this function
+  // This comment is kept for documentation purposes
 
   const assignTriderToBooking = async (bookingId: string, triderId: string) => {
     try {
-      const { error } = await supabase
+      // First check if the booking is still available
+      const { data: bookingCheck, error: checkError } = await supabase
+        .from('bookings')
+        .select('status, assigned_to')
+        .eq('id', bookingId)
+        .single();
+
+      if (checkError) throw checkError;
+
+      // If booking is already assigned, show error
+      if (bookingCheck.assigned_to || bookingCheck.status !== 'pending') {
+        toast.error("Booking Unavailable", {
+          description: "This booking has already been assigned to another trider."
+        });
+        return;
+      }
+
+      // Check if the trider is still available
+      const { data: triderCheck, error: triderError } = await supabase
+        .from('triders')
+        .select('status')
+        .eq('id', triderId)
+        .single();
+
+      if (triderError) throw triderError;
+
+      if (triderCheck.status !== 'online') {
+        toast.error("Trider Unavailable", {
+          description: "This trider is no longer available."
+        });
+        return;
+      }
+
+      // Update the booking with transaction safety
+      const { data: updatedBooking, error } = await supabase
         .from('bookings')
         .update({
           assigned_to: triderId,
-          status: 'accepted',
+          status: 'assigned', // Use 'assigned' status first
           updated_at: new Date().toISOString()
         })
         .eq('id', bookingId)
+        .eq('status', 'pending') // Only update if still pending
+        .is('assigned_to', null) // Only update if not assigned
+        .select()
+        .single();
 
-      if (error) throw error
+      if (error) throw error;
+
+      // If no rows were updated (race condition)
+      if (!updatedBooking) {
+        toast.error("Assignment Failed", {
+          description: "This booking may have been assigned to another trider."
+        });
+        return;
+      }
+
+      // Create a notification for the trider
+      const { error: notificationError } = await supabase
+        .from('trider_notifications')
+        .insert({
+          trider_id: triderId,
+          booking_id: bookingId,
+          status: 'pending',
+          created_at: new Date().toISOString()
+        });
+
+      if (notificationError) {
+        console.error('Error creating trider notification:', notificationError);
+        // Non-critical error, don't throw
+      }
 
       toast.success("Trider Assigned", {
-        description: "The booking has been assigned successfully."
-      })
+        description: "The booking has been assigned successfully. Waiting for trider to accept."
+      });
 
       // Refresh the bookings list
-      fetchActiveBookings()
+      fetchActiveBookings();
     } catch (error) {
-      console.error('Error assigning trider:', error)
-      toast.error("Failed to assign trider")
+      console.error('Error assigning trider:', error);
+      toast.error("Failed to assign trider", {
+        description: error instanceof Error ? error.message : "An unknown error occurred"
+      });
     }
   }
 
@@ -470,14 +489,26 @@ export function DispatcherDashboard({ user }: { user: UserProfile }) { // Use Us
                     <div key={booking.id} className="p-4 border rounded-lg space-y-2">
                       <div className="flex justify-between items-start">
                         <div>
-                          <p className="font-medium">{booking.booking_code}</p>
-                          <p className="text-sm">{booking.passenger.name}</p>
+                          <p className="font-medium">{booking.booking_code || `Booking #${booking.id.slice(0, 8)}`}</p>
+                          <p className="text-sm">{booking.passenger?.name || 'Unknown passenger'}</p>
+                          {booking.assigned_to && booking.trider && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Assigned to: {booking.trider.first_name} {booking.trider.last_name}
+                            </p>
+                          )}
                         </div>
-                        <Badge variant={booking.status === 'waiting_for_trider' ? 'warning' : 'success'}>
-                          {booking.status}
+                        <Badge
+                          variant={
+                            booking.status === 'pending' ? 'warning' :
+                            booking.status === 'assigned' ? 'secondary' : 'success'
+                          }
+                        >
+                          {booking.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                         </Badge>
                       </div>
-                      {booking.status === 'waiting_for_trider' && onlineTriders.length > 0 && (
+
+                      {/* Only show assignment options for pending bookings */}
+                      {booking.status === 'pending' && onlineTriders.length > 0 && (
                         <div className="pt-2">
                           <p className="text-sm font-medium mb-2">Assign Trider:</p>
                           <div className="flex flex-wrap gap-2">
@@ -494,6 +525,13 @@ export function DispatcherDashboard({ user }: { user: UserProfile }) { // Use Us
                                 </Button>
                               ))}
                           </div>
+                        </div>
+                      )}
+
+                      {/* Show status message for assigned bookings */}
+                      {booking.status === 'assigned' && (
+                        <div className="pt-2 text-sm text-amber-600">
+                          <p>Waiting for trider to accept...</p>
                         </div>
                       )}
                     </div>

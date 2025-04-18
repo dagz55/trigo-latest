@@ -1,34 +1,48 @@
 "use client"
 
-import { GoogleMap } from "@/components/map/google-map"
+import MapboxMap from "@/components/map/mapbox-map"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Switch } from "@/components/ui/switch"
-// import { useToast } from "@/components/ui/use-toast" // Remove old hook
-import { toast } from "sonner" // Import sonner toast
+import { toast } from "sonner"
 import { useUser } from "@/contexts/user-context"
 import {
-  supabase, // Import actual client
+  supabase,
   getPendingRideRequests,
   updateRideStatus,
   updateTriderStatus,
   type RideRequest,
   type Trider
 } from "@/lib/supabase-client"
-// import { supabase } from "@/lib/supabase-instance" // Remove incorrect import
 import { formatDistanceToNow } from "date-fns"
 import { Clock, MapPin } from "lucide-react"
 import { useEffect, useState } from "react"
 
+// Extended RideRequest type to include the fields we need
+interface ExtendedRideRequest extends RideRequest {
+  pickup_location?: {
+    name: string;
+    latitude: number;
+    longitude: number;
+  };
+  dropoff_location?: {
+    name: string;
+    latitude: number;
+    longitude: number;
+  };
+  accepted_at?: string;
+  requested_at: string;
+  fare_amount?: number;
+}
+
 export default function TriderDashboard() {
-  const { user } = useUser()
-  // const { toast } = useToast() // Remove old hook usage
+  const { user, startTracking, stopTracking, isTracking } = useUser()
   const [trider, setTrider] = useState<Trider | null>(null)
   const [isOnline, setIsOnline] = useState(false)
-  const [pendingRides, setPendingRides] = useState<RideRequest[]>([])
-  const [currentRide, setCurrentRide] = useState<RideRequest | null>(null)
+  const [pendingRides, setPendingRides] = useState<ExtendedRideRequest[]>([])
+  const [currentRide, setCurrentRide] = useState<ExtendedRideRequest | null>(null)
   const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null)
 
   useEffect(() => {
@@ -65,10 +79,14 @@ export default function TriderDashboard() {
     const loadPendingRides = async () => {
       try {
         const rides = await getPendingRideRequests(trider.toda_id)
-        setPendingRides(rides)
+        // Map the rides to include required ExtendedRideRequest properties
+        const extendedRides: ExtendedRideRequest[] = rides.map(ride => ({
+          ...ride,
+          requested_at: ride.created_at // Assuming created_at is the equivalent of requested_at
+        }))
+        setPendingRides(extendedRides)
       } catch (error: any) {
         console.error("Error fetching pending rides:", error)
-        // Add toast for this error
         toast.error("Error Fetching Rides", {
           description: error.message || "Could not fetch pending rides.",
         })
@@ -99,54 +117,65 @@ export default function TriderDashboard() {
     }
   }, [trider, isOnline]) // Dependencies seem correct
 
+  // Listen for location updates from the browser
   useEffect(() => {
     if (!isOnline) return
 
-    // Watch location updates
-    const watchId = navigator.geolocation.watchPosition(
+    // Get current position once to initialize the map
+    navigator.geolocation.getCurrentPosition(
       (position) => {
         const newLocation = {
           lat: position.coords.latitude,
           lng: position.coords.longitude
         }
         setCurrentLocation(newLocation)
-
-        // Update trider location in database
-        if (trider) {
-          updateTriderStatus(trider.id, 'online', newLocation.lat, newLocation.lng)
-        }
       },
       (error) => {
-        console.error("Error getting location:", error)
+        console.error("Error getting initial location:", error)
         toast.error("Location Error", {
           description: `${error.message}. Please enable location services.`,
         })
-      },
-      {
-        enableHighAccuracy: true,
-        maximumAge: 30000,
-        timeout: 27000
       }
     )
 
-    return () => {
-      navigator.geolocation.clearWatch(watchId)
+    // Start location tracking if not already tracking
+    if (!isTracking && isOnline) {
+      startTracking()
     }
-  }, [isOnline, trider]) // Remove toast from dependency array
+
+    return () => {
+      // Stop tracking when component unmounts or trider goes offline
+      if (isTracking) {
+        stopTracking()
+      }
+    }
+  }, [isOnline, isTracking, startTracking, stopTracking]) // Dependencies
 
   const handleOnlineToggle = async () => {
     if (!trider) return
 
     try {
+      // Update trider status in the database
       await updateTriderStatus(
         trider.id,
         !isOnline ? 'online' : 'offline',
         currentLocation?.lat,
         currentLocation?.lng
       )
+
+      // Update local state
       setIsOnline(!isOnline)
 
-      // Correct toast call signature
+      // Start or stop location tracking
+      if (!isOnline) {
+        // Going online - start tracking
+        startTracking()
+      } else {
+        // Going offline - stop tracking
+        stopTracking()
+      }
+
+      // Show success message
       toast.success(!isOnline ? "You're now online" : "You're now offline", {
         description: !isOnline
           ? "You can now receive ride requests"
@@ -168,7 +197,11 @@ export default function TriderDashboard() {
     try {
       await updateRideStatus(ride.id, 'accepted', trider.id)
       await updateTriderStatus(trider.id, 'busy')
-      setCurrentRide(ride)
+      // Map the ride to ExtendedRideRequest
+      setCurrentRide({
+        ...ride,
+        requested_at: ride.created_at // Assuming created_at is the equivalent of requested_at
+      })
       setPendingRides(rides => rides.filter(r => r.id !== ride.id))
 
       toast.success("Ride Accepted", {
@@ -179,8 +212,6 @@ export default function TriderDashboard() {
       toast.error("Accept Ride Failed", {
         description: error.message || "Failed to accept ride. Please try again.",
       })
-      // Revert state if needed
-      // await updateTriderStatus(trider.id, 'online'); // Make trider available again
     }
   }
 
@@ -227,14 +258,14 @@ export default function TriderDashboard() {
   }
 
   const getMapMarkers = () => {
-    const markers = []
+    const markers: Array<{ lat: number; lng: number; type: "terminal" | "pickup" | "dropoff"; title?: string }> = []
 
     if (currentLocation) {
       markers.push({
         lat: currentLocation.lat,
         lng: currentLocation.lng,
         title: 'Your Location',
-        type: 'terminal' as const // Use 'terminal' type for trider? Or add a 'trider' type? Using terminal for now.
+        type: 'terminal'
       })
     }
 
@@ -244,7 +275,7 @@ export default function TriderDashboard() {
           lat: currentRide.pickup_location.latitude,
           lng: currentRide.pickup_location.longitude,
           title: 'Pickup: ' + currentRide.pickup_location.name,
-          type: 'pickup' as const // Add 'as const'
+          type: 'pickup'
         })
       }
       if (currentRide.dropoff_location) {
@@ -252,7 +283,7 @@ export default function TriderDashboard() {
           lat: currentRide.dropoff_location.latitude,
           lng: currentRide.dropoff_location.longitude,
           title: 'Drop-off: ' + currentRide.dropoff_location.name,
-          type: 'dropoff' as const // Add 'as const'
+          type: 'dropoff'
         })
       }
     }
@@ -428,9 +459,14 @@ export default function TriderDashboard() {
           </CardHeader>
           <CardContent>
             <div className="h-[400px] rounded-lg overflow-hidden">
-              <GoogleMap
-                center={currentLocation || { lat: 14.4507, lng: 120.9826 }}
-                markers={getMapMarkers()}
+              <MapboxMap
+                center={currentLocation ? { lat: currentLocation.lat, lng: currentLocation.lng } : { lat: 14.4507, lng: 120.9826 }}
+                markers={getMapMarkers().map(marker => ({
+                  lat: marker.lat,
+                  lng: marker.lng,
+                  title: marker.title,
+                  type: marker.type
+                }))}
                 height="400px"
                 zoom={15}
               />

@@ -9,7 +9,8 @@ import { Header } from "@/components/layout/header"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase-client"
-import { isGoogleMapsConfigured } from "@/lib/maps-client"
+// Import the Mapbox token function
+import { getMapboxToken } from "@/lib/maps-client"
 
 export default function IntegrationTestPage() {
   const [supabaseStatus, setSupabaseStatus] = useState<"success" | "error" | "loading">("loading")
@@ -32,30 +33,23 @@ export default function IntegrationTestPage() {
       setSupabaseStatus("error")
     }
 
-    // Test Google Maps
+    // Test Mapbox integration
     try {
-      const isConfigured = isGoogleMapsConfigured()
-      if (!isConfigured) {
+      const mapboxToken = getMapboxToken()
+      if (!mapboxToken) {
         setMapsStatus("error")
       } else {
-        // Check if Google Maps is loaded
-        if (typeof window !== "undefined") {
-          if (window.google && window.google.maps) {
+        // Test if we can fetch the Mapbox token from our API
+        const response = await fetch('/api/maps')
+        if (response.ok) {
+          const data = await response.json()
+          if (data.token) {
             setMapsStatus("success")
           } else {
-            // Wait for Google Maps to load
-            let attempts = 0
-            const interval = setInterval(() => {
-              attempts++
-              if (window.google && window.google.maps) {
-                clearInterval(interval)
-                setMapsStatus("success")
-              } else if (attempts > 10) {
-                clearInterval(interval)
-                setMapsStatus("error")
-              }
-            }, 500)
+            setMapsStatus("error")
           }
+        } else {
+          setMapsStatus("error")
         }
       }
     } catch (error) {
@@ -118,27 +112,27 @@ export default function IntegrationTestPage() {
             <CardHeader>
               <div className="flex items-center">
                 <Map className="h-5 w-5 mr-2 text-primary" />
-                <CardTitle>Google Maps Integration</CardTitle>
+                <CardTitle>Mapbox Integration</CardTitle>
               </div>
-              <CardDescription>Testing Google Maps API</CardDescription>
+              <CardDescription>Testing Mapbox API</CardDescription>
             </CardHeader>
             <CardContent>
               {mapsStatus === "loading" ? (
                 <div className="flex items-center justify-center py-8">
                   <LoadingSpinner size="sm" />
-                  <span className="ml-2">Testing Google Maps API...</span>
+                  <span className="ml-2">Testing Mapbox API...</span>
                 </div>
               ) : mapsStatus === "success" ? (
                 <Alert className="bg-green-50 border-green-200 dark:bg-green-900/20">
                   <CheckCircle className="h-5 w-5 text-green-600" />
                   <AlertTitle>Integration Successful</AlertTitle>
-                  <AlertDescription>Google Maps API loaded successfully!</AlertDescription>
+                  <AlertDescription>Mapbox API loaded successfully!</AlertDescription>
                 </Alert>
               ) : (
                 <Alert className="bg-red-50 border-red-200 dark:bg-red-900/20">
                   <XCircle className="h-5 w-5 text-red-600" />
                   <AlertTitle>Integration Failed</AlertTitle>
-                  <AlertDescription>Failed to load Google Maps API.</AlertDescription>
+                  <AlertDescription>Failed to load Mapbox API.</AlertDescription>
                 </Alert>
               )}
             </CardContent>
@@ -176,7 +170,7 @@ export default function IntegrationTestPage() {
               <div className="flex items-center justify-between p-3 bg-muted rounded-md">
                 <div className="flex items-center">
                   <Map className="h-5 w-5 mr-2 text-primary" />
-                  <span>Google Maps API</span>
+                  <span>Mapbox API</span>
                 </div>
                 {mapsStatus === "loading" ? (
                   <LoadingSpinner size="sm" />

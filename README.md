@@ -7,20 +7,23 @@ TriGo is a modern ride-hailing platform specifically designed for Tricycle Opera
 ## Features
 
 ### Multi-role System
+
 - **Passengers**: Book rides, track triders, save locations
 - **Triders**: Manage ride requests, track earnings, update status
 - **Dispatchers**: Monitor operations, manage queue, track rides
 - **Administrators**: System configuration, user management, analytics
 
 ### Smart Location Services
+
 - Real-time location tracking
 - Auto-detection for pickup locations
-- Place search with Google Maps integration
+- Place search with Mapbox integration
 - Terminal exit selection
 - Saved locations management
 - Popular destinations
 
 ### Ride Management
+
 - Intelligent queue system for triders
 - Real-time ride tracking
 - Accurate fare estimation
@@ -29,6 +32,7 @@ TriGo is a modern ride-hailing platform specifically designed for Tricycle Opera
 - Status updates and notifications
 
 ### Enhanced User Experience
+
 - Modern, responsive design
 - Dark mode support
 - Real-time updates
@@ -39,6 +43,7 @@ TriGo is a modern ride-hailing platform specifically designed for Tricycle Opera
 ## Recent Updates (April 2025)
 
 A significant refactoring and enhancement effort was undertaken to improve the application's stability, error handling, and maintainability. Key improvements include:
+
 - Migration to the latest Supabase SSR library for authentication
 - Enhanced error handling across components and API routes using standardized responses and user-friendly toast notifications
 - Improved type safety throughout the codebase
@@ -55,8 +60,7 @@ A significant refactoring and enhancement effort was undertaken to improve the a
   - React 18.2.0 with TypeScript 5
   - Tailwind CSS 3.4.17 for styling
   - shadcn/ui components
-  - @googlemaps/react-wrapper for Maps integration
-  - Mapbox GL for additional mapping capabilities
+  - Mapbox GL for mapping capabilities
 
 - **Backend**:
   - Supabase (PostgreSQL)
@@ -66,11 +70,11 @@ A significant refactoring and enhancement effort was undertaken to improve the a
   - PostGIS for location data
 
 - **Maps & Location**:
-  - Google Maps JavaScript API
-  - Places API for location search
-  - Geocoding API for address lookup
-  - Distance Matrix API for fare calculation
-  - Custom markers and info windows
+  - Mapbox GL JS for interactive maps
+  - Mapbox Geocoding API for location search
+  - Mapbox Directions API for route planning
+  - Mapbox Matrix API for fare and time calculation
+  - Custom markers and popups
   - Real-time location tracking
   - Fallback demo mode for testing
 
@@ -86,22 +90,23 @@ A significant refactoring and enhancement effort was undertaken to improve the a
 - Node.js 20.19 or higher
 - npm, yarn, or pnpm
 - Supabase account
-- Google Maps API key with:
-  - Maps JavaScript API
-  - Places API
+- Mapbox access token with:
+  - Maps API
   - Geocoding API
-  - Distance Matrix API
-- Mapbox API key (optional, for additional mapping features)
+  - Directions API
+  - Matrix API
 
 ### Environment Setup
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/dagz55/trigo-latest.git
    cd trigo-latest
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    # or
@@ -111,21 +116,22 @@ A significant refactoring and enhancement effort was undertaken to improve the a
    ```
 
 3. Create `.env.local` file:
+
    ```env
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
-   NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_token (optional)
+   NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=your_mapbox_access_token
    ```
 
-4. Configure Google Maps:
-   - Enable required APIs in Google Cloud Console
-   - Set API key restrictions to your domain
-   - Add billing information if required
+4. Configure Mapbox:
+   - Create a Mapbox account at mapbox.com
+   - Create a new access token with the required scopes
+   - Set token restrictions to your domain if needed
 
 ### Running the App
 
 1. Start the development server:
+
    ```bash
    npm run dev
    # or
@@ -135,35 +141,40 @@ A significant refactoring and enhancement effort was undertaken to improve the a
    ```
 
 2. Access the application:
-   - Local: http://localhost:3000 (or :3001 if 3000 is in use)
-   - Network: http://192.168.1.101:3000 (or :3001)
+   - Local: [http://localhost:3000](http://localhost:3000) (or :3001 if 3000 is in use)
+   - Network: [http://192.168.1.101:3000](http://192.168.1.101:3000) (or :3001)
 
 ### Test Accounts
 
 #### Passenger
-```
+
+```text
 Email: passenger.test@trigo.ph
 Password: Passenger123!
 ```
 
 #### Trider
-```
+
+```text
 Email: trider1.test@trigo.ph
 Password: Trider123!
 ```
-```
+
+```text
 Email: trider2.test@trigo.ph
 Password: Trider123!
 ```
 
 #### Dispatcher
-```
+
+```text
 Email: dispatcher.test@trigo.ph
 Password: Dispatcher123!
 ```
 
 #### Administrator
-```
+
+```text
 Email: admin.test@trigo.ph
 Password: Admin123!
 ```
@@ -178,7 +189,8 @@ Password: Admin123!
 ## Development
 
 ### Project Structure
-```
+
+```text
 trigo-latest/
 ├── app/                 # Next.js app router pages
 ├── components/          # React components
@@ -193,6 +205,7 @@ trigo-latest/
 ```
 
 ### Key Components
+
 - `app/`: Route handlers and page components
 - `components/`: Reusable UI components
 - `components/ui/`: UI component library based on shadcn/ui
@@ -203,12 +216,13 @@ trigo-latest/
 ## Support
 
 For technical support or feature requests:
+
 - Create an issue in the repository
-- Contact support@trigo.ph
+- Contact [support@trigo.ph](mailto:support@trigo.ph)
 - Join our Discord community
 
 ## License
+
 Copyright © 2025 TriGo. All rights reserved.
 
 Last updated: April 13, 2025
-Copyright © 2025 TriGo. All rights reserved.

@@ -1,8 +1,12 @@
 "use client"
 
-import { GoogleMap } from "@/components/map/google-map"
+// GoogleMap is not used in this component
+import dynamic from "next/dynamic"
+import { TodaSelector } from "@/components/toda/toda-selector"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 // import { useToast } from "@/components/ui/use-toast" // Remove old hook
@@ -14,14 +18,57 @@ import {
   getPendingRideRequests,
   getTriderQueue,
   getTridersByToda,
-  type RideRequest,
   type Trider,
   type TriderQueueItem
 } from "@/lib/supabase-client"
+
+// Extended RideRequest interface for the dashboard
+interface RideRequest {
+  id: string;
+  booking_code: string;
+  passenger_id: string;
+  toda_id: string;
+  trider_id?: string;
+  pickup_location_id: string;
+  dropoff_location_id: string;
+  status: string;
+  created_at: string;
+  requested_at?: string;
+  accepted_at?: string;
+  pickup_location?: {
+    id: string;
+    name: string;
+    address: string;
+    latitude: number;
+    longitude: number;
+  };
+  dropoff_location?: {
+    id: string;
+    name: string;
+    address: string;
+    latitude: number;
+    longitude: number;
+  };
+  trider?: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    current_latitude?: number;
+    current_longitude?: number;
+  };
+}
 // import { supabase } from "@/lib/supabase-instance" // Remove incorrect import
 import { formatDistanceToNow } from "date-fns"
 import { Activity, Clock, MapPin, User } from "lucide-react"
 import { useEffect, useState } from "react"
+
+// Dynamically import the DispatcherMap component to avoid SSR issues with Mapbox
+const DispatcherMap = dynamic(() => import('@/components/map/dispatcher-map'), {
+  ssr: false,
+  loading: () => <div className="h-[300px] w-full flex items-center justify-center bg-muted rounded-lg">
+    <p className="text-muted-foreground">Loading map...</p>
+  </div>
+});
 
 export default function DispatcherDashboard() {
   const { user } = useUser()
@@ -30,12 +77,30 @@ export default function DispatcherDashboard() {
   const [triderQueue, setTriderQueue] = useState<TriderQueueItem[]>([])
   const [pendingRides, setPendingRides] = useState<RideRequest[]>([])
   const [activeRides, setActiveRides] = useState<RideRequest[]>([])
-  const [selectedRide, setSelectedRide] = useState<RideRequest | null>(null)
+  // This state is used in the onClick handlers but not directly in the JSX
+  const [_selectedRide, setSelectedRide] = useState<RideRequest | null>(null)
+  const [selectedTodaId, setSelectedTodaId] = useState<string | null>(user?.preferredTodaId || null)
+  const [selectedTodaName, setSelectedTodaName] = useState<string | null>(null)
 
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        const toda_id = "TK4-TODA" // Replace with actual TODA ID from context
+        // Use the selected TODA ID or a default one
+        const toda_id = selectedTodaId || "00000000-0000-0000-0000-000000000001"
+
+        // If we have a TODA ID but no name, fetch the name
+        if (selectedTodaId && !selectedTodaName) {
+          const { data, error } = await supabase
+            .from('todas')
+            .select('name')
+            .eq('id', selectedTodaId)
+            .single()
+
+          if (!error && data) {
+            setSelectedTodaName(data.name)
+          }
+        }
+
         const [triderData, queueData, pendingData, activeData] = await Promise.all([
           getTridersByToda(toda_id),
           getTriderQueue(toda_id),
@@ -45,8 +110,9 @@ export default function DispatcherDashboard() {
 
         setTriders(triderData)
         setTriderQueue(queueData)
-        setPendingRides(pendingData)
-        setActiveRides(activeData)
+        // Type cast the API responses to match our local interface
+        setPendingRides(pendingData as unknown as RideRequest[])
+        setActiveRides(activeData as unknown as RideRequest[])
       } catch (error: any) { // Catch errors thrown by the utility functions
         console.error("Error loading dashboard data:", error)
         // Use sonner toast
@@ -113,7 +179,7 @@ export default function DispatcherDashboard() {
       supabase.removeChannel(queueSubscription)
       supabase.removeChannel(rideSubscription)
     }
-  }, []) // Remove toast from dependency array
+  }, [selectedTodaId]) // Include selectedTodaId in dependency array
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -143,43 +209,106 @@ export default function DispatcherDashboard() {
     }
   }
 
-  const getMapMarkers = () => {
-    if (!selectedRide) return []
-
-    const markers = []
-
-    if (selectedRide.pickup_location) {
-      markers.push({
-        lat: selectedRide.pickup_location.latitude,
-        lng: selectedRide.pickup_location.longitude,
-        title: 'Pickup: ' + selectedRide.pickup_location.name,
-        type: 'pickup' as const // Add 'as const' for literal type
-      })
-    }
-
-    if (selectedRide.dropoff_location) {
-      markers.push({
-        lat: selectedRide.dropoff_location.latitude,
-        lng: selectedRide.dropoff_location.longitude,
-        title: 'Drop-off: ' + selectedRide.dropoff_location.name,
-        type: 'dropoff' as const // Add 'as const' for literal type
-      })
-    }
-
-    if (selectedRide.trider && selectedRide.trider.current_latitude && selectedRide.trider.current_longitude) {
-      markers.push({
-        lat: selectedRide.trider.current_latitude,
-        lng: selectedRide.trider.current_longitude,
-        title: `Trider: ${selectedRide.trider.first_name} ${selectedRide.trider.last_name}`,
-        type: 'terminal' as const // Add 'as const' for literal type (or maybe a different 'trider' type?)
-      })
-    }
-
-    return markers
-  }
+  // Map markers are handled by the DispatcherMap component
 
   return (
     <div className="container py-6 space-y-6">
+      {/* TODA Selector */}
+      <Card>
+        <CardHeader>
+          <CardTitle>TODA Selection</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div className="md:col-span-2">
+              <Label htmlFor="toda-selector" className="text-sm font-medium mb-2 block">
+                Select TODA (Tricycle Operators and Drivers Association)
+              </Label>
+              <TodaSelector
+                selectedTodaId={selectedTodaId}
+                onSelect={(todaId) => {
+                  setSelectedTodaId(todaId);
+
+                  // Get the TODA name from the database
+                  supabase
+                    .from('todas')
+                    .select('name')
+                    .eq('id', todaId)
+                    .single()
+                    .then(({ data, error }) => {
+                      if (!error && data) {
+                        setSelectedTodaName(data.name);
+                      }
+                    });
+
+                  // Also save as user preference if user is logged in
+                  if (user?.id) {
+                    // Update user's preferred TODA in the database
+                    supabase
+                      .from('profiles')
+                      .update({ preferred_toda_id: todaId })
+                      .eq('id', user.id)
+                      .then(({ error }) => {
+                        if (error) {
+                          console.warn('Could not save TODA preference:', error);
+                        } else {
+                          console.log('TODA preference saved to profile');
+                        }
+                      });
+                  }
+                }}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Selecting a TODA will filter the dashboard to show only data for this association.
+              </p>
+            </div>
+            <div>
+              <Button
+                className="w-full"
+                onClick={() => {
+                  // Reload data with the selected TODA
+                  toast.success("TODA Selected", {
+                    description: selectedTodaName
+                      ? `Dashboard updated to show data for ${selectedTodaName}.`
+                      : "Dashboard updated with selected TODA."
+                  });
+
+                  // Reload the data
+                  const loadInitialData = async () => {
+                    try {
+                      // Use the selected TODA ID or a default one
+                      const toda_id = selectedTodaId || "00000000-0000-0000-0000-000000000001"
+
+                      const [triderData, queueData, pendingData, activeData] = await Promise.all([
+                        getTridersByToda(toda_id),
+                        getTriderQueue(toda_id),
+                        getPendingRideRequests(toda_id),
+                        getActiveRideRequests(toda_id)
+                      ])
+
+                      setTriders(triderData)
+                      setTriderQueue(queueData)
+                      // Type cast the API responses to match our local interface
+                      setPendingRides(pendingData as unknown as RideRequest[])
+                      setActiveRides(activeData as unknown as RideRequest[])
+                    } catch (error: any) {
+                      console.error("Error loading dashboard data:", error)
+                      toast.error("Error Loading Data", {
+                        description: error.message || "Failed to load dashboard data. Please try again.",
+                      })
+                    }
+                  }
+
+                  loadInitialData()
+                }}
+              >
+                Update Dashboard
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
@@ -285,7 +414,7 @@ export default function DispatcherDashboard() {
                       >
                         <div className="flex items-center justify-between mb-2">
                           <Badge variant="secondary">
-                            {formatDistanceToNow(new Date(ride.requested_at), { addSuffix: true })}
+                            {ride.requested_at ? formatDistanceToNow(new Date(ride.requested_at), { addSuffix: true }) : 'Recently'}
                           </Badge>
                           <Badge className={getRideStatusColor(ride.status)}>
                             {ride.status}
@@ -358,7 +487,8 @@ export default function DispatcherDashboard() {
                           <div className="flex items-center space-x-2 mt-2">
                             <Clock className="w-4 h-4" />
                             <span className="text-xs text-muted-foreground">
-                              Started {formatDistanceToNow(new Date(ride.accepted_at || ride.requested_at), { addSuffix: true })}
+                              Started {ride.accepted_at ? formatDistanceToNow(new Date(ride.accepted_at), { addSuffix: true }) :
+                                (ride.requested_at ? formatDistanceToNow(new Date(ride.requested_at), { addSuffix: true }) : 'recently')}
                             </span>
                           </div>
                         </div>
@@ -374,22 +504,12 @@ export default function DispatcherDashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Live Map</CardTitle>
+            <p className="text-sm text-muted-foreground">Track triders and passengers in real-time</p>
           </CardHeader>
-          <CardContent>
-            <div className="h-[300px] rounded-lg overflow-hidden">
-              <GoogleMap
-                center={
-                  selectedRide?.pickup_location
-                    ? {
-                        lat: selectedRide.pickup_location.latitude,
-                        lng: selectedRide.pickup_location.longitude,
-                      }
-                    : { lat: 14.4507, lng: 120.9826 }
-                }
-                markers={getMapMarkers()}
-                height="300px"
-                zoom={15}
-              />
+          <CardContent className="p-0">
+            <div className="rounded-lg overflow-hidden">
+              {/* Use the new DispatcherMap component */}
+              <DispatcherMap />
             </div>
           </CardContent>
         </Card>

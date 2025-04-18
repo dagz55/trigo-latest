@@ -1,16 +1,15 @@
 import { NextResponse } from "next/server"
-import { getGoogleMapsApiKey } from "@/lib/maps-client"
+import { getMapboxToken } from "@/lib/maps-client"
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const callback = searchParams.get("callback") || "initMap"
-  const libraries = searchParams.get("libraries") || "places"
+export async function GET(_request: Request) {
+  // We don't need searchParams for Mapbox token endpoint
+  // const { searchParams } = new URL(request.url)
 
-  // Get the API key from environment variable
-  const apiKey = getGoogleMapsApiKey()
+  // Get the Mapbox token from environment variable
+  const mapboxToken = getMapboxToken()
 
-  if (!apiKey) {
-    const errorMessage = "Google Maps API key is not configured on the server.";
+  if (!mapboxToken) {
+    const errorMessage = "Mapbox access token is not configured on the server.";
     console.error(`[API Error /api/maps] ${errorMessage}`);
     // Return a standard JSON error response with 500 status
     return NextResponse.json(
@@ -20,19 +19,15 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Construct the Google Maps API URL
-    const mapsUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=${libraries}&callback=${callback}`
-
-    // Redirect to Google Maps API
-    // Use 302 Found for temporary redirect to external resource unless specific reason for 307
-    return NextResponse.redirect(mapsUrl, { status: 302 })
+    // Return the Mapbox token as JSON
+    return NextResponse.json({ token: mapboxToken });
   } catch (error: any) {
-    const errorMessage = "Failed to construct or redirect to Google Maps API URL.";
+    const errorMessage = "Failed to provide Mapbox access token.";
     console.error(`[API Error /api/maps] ${errorMessage}`, error);
     // Return a standard JSON error response with 500 status
-     return NextResponse.json(
-       { error: "Internal Server Error", message: errorMessage, details: error.message },
-       { status: 500 }
+    return NextResponse.json(
+      { error: "Internal Server Error", message: errorMessage, details: error.message },
+      { status: 500 }
     );
   }
 }

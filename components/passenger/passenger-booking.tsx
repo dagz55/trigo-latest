@@ -1,20 +1,20 @@
 "use client"
 
+import { TodaSelector } from "@/components/toda/toda-selector"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { LoadingOverlay } from "@/components/ui/loading-overlay"
 import { useUser } from "@/contexts/user-context"
-import type { UserLocation } from "@/contexts/user-context"
 // import { useToast } from "@/hooks/use-toast" // Remove useToast hook
 import { getLocationsByCity, supabase, type Location } from "@/lib/supabase-client"
 import { Calendar, Check, Clock, Loader2, MapPin, Navigation, X } from "lucide-react"
@@ -27,7 +27,7 @@ import { SavedLocations } from "@/components/passenger/saved-locations"
 // Import dynamically
 import { debounce } from 'lodash'
 import dynamic from 'next/dynamic'
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid'
 
 const MapboxMap = dynamic(() =>
   import('@/components/map/mapbox-map').then(mod => mod.default),
@@ -77,6 +77,24 @@ export function PassengerBooking() {
   const [dispatcherNotified, setDispatcherNotified] = useState(false)
   const [showSaveLocationDialog, setShowSaveLocationDialog] = useState(false)
   const [tempDropoffLocation, setTempDropoffLocation] = useState<Location | null>(null)
+  const [selectedTodaId, setSelectedTodaId] = useState<string | null>(user?.preferredTodaId || null)
+  const [selectedTodaName, setSelectedTodaName] = useState<string | null>(null)
+
+  // Load TODA name if user has a preferred TODA
+  useEffect(() => {
+    if (selectedTodaId) {
+      supabase
+        .from('todas')
+        .select('name')
+        .eq('id', selectedTodaId)
+        .single()
+        .then(({ data, error }) => {
+          if (!error && data) {
+            setSelectedTodaName(data.name);
+          }
+        });
+    }
+  }, [selectedTodaId]);
 
   // Update the useEffect to fetch locations from Supabase
   useEffect(() => {
@@ -597,29 +615,38 @@ export function PassengerBooking() {
   }
 
   // Function to notify nearby triders about a new booking
-  const notifyNearbyTriders = async (bookingId: string, pickupLat: number, pickupLng: number, todaId: string | undefined) => {
+  // Returns the number of triders notified, or 0 if none were found or notification failed
+  const notifyNearbyTriders = async (bookingId: string, pickupLat: number, pickupLng: number, todaId: string | undefined): Promise<number> => {
     if (!todaId) {
-      console.log('No TODA ID provided, notifying dispatcher directly');
-      await notifyDispatcher(bookingId);
-      return;
+      console.log('No TODA ID provided');
+      return 0; // Return 0 to indicate no triders were notified
     }
+
+    // Default to using the virtual TODA ID if the provided ID is the default one
+    const effectiveTodaId = todaId === "00000000-0000-0000-0000-000000000000" ? undefined : todaId;
+
     try {
       // 1. Get all online triders
-      const { data: onlineTriders, error: tridersError } = await supabase
+      let query = supabase
         .from('triders')
         .select('*')
-        .eq('status', 'online')
-        .eq('toda_id', todaId);
+        .eq('status', 'online');
+
+      // Only filter by TODA ID if we have a real one
+      if (effectiveTodaId) {
+        query = query.eq('toda_id', effectiveTodaId);
+      }
+
+      const { data: onlineTriders, error: tridersError } = await query;
 
       if (tridersError) {
-        throw new Error(tridersError.message);
+        console.error('Error fetching online triders:', tridersError);
+        return 0; // Return 0 instead of throwing
       }
 
       if (!onlineTriders || onlineTriders.length === 0) {
-        console.log('No online triders found, will notify dispatcher directly');
-        // If no online triders, notify dispatcher immediately instead of waiting
-        await notifyDispatcher(bookingId);
-        return;
+        console.log('No online triders found');
+        return 0; // Return 0 to indicate no triders were notified
       }
 
       // 2. Filter triders by distance (within 2km of pickup location)
@@ -638,10 +665,8 @@ export function PassengerBooking() {
       });
 
       if (nearbyTriders.length === 0) {
-        console.log('No nearby triders found, will notify dispatcher directly');
-        // If no nearby triders, notify dispatcher immediately
-        await notifyDispatcher(bookingId);
-        return;
+        console.log('No nearby triders found');
+        return 0; // Return 0 to indicate no triders were notified
       }
 
       // 3. Create trider notifications for each nearby trider
@@ -659,26 +684,56 @@ export function PassengerBooking() {
         };
       });
 
+      // Handle the case where we have no notifications to insert
+      if (notifications.length === 0) {
+        console.log('No notifications to insert');
+        return 0;
+      }
+
       const { error: notificationError } = await supabase
         .from('trider_notifications')
         .insert(notifications);
 
       if (notificationError) {
-        throw new Error(notificationError.message);
+        console.error('Error inserting trider notifications:', notificationError);
+        return 0; // Return 0 instead of throwing
       }
 
       console.log(`Notified ${nearbyTriders.length} nearby triders about booking ${bookingId}`);
+      return nearbyTriders.length; // Return the number of triders notified
 
     } catch (error) {
       console.error('Error notifying nearby triders:', error);
-      // Fallback to dispatcher notification if trider notification fails
-      await notifyDispatcher(bookingId);
+      return 0; // Return 0 to indicate notification failed
     }
   };
 
-  // Add this function to handle dispatcher notification
+  // Enhanced function to handle dispatcher notification with booking status check
   const notifyDispatcher = async (bookingId: string) => {
+    if (dispatcherNotified) {
+      console.log('Dispatcher already notified for this booking');
+      return;
+    }
+
     try {
+      console.log(`Notifying dispatcher about booking ${bookingId}`);
+
+      // First, check if the booking is still pending and unassigned
+      const { data: bookingCheck, error: checkError } = await supabase
+        .from('bookings')
+        .select('status, assigned_to')
+        .eq('id', bookingId)
+        .single();
+
+      if (checkError) throw checkError;
+
+      // Only notify dispatcher if booking is still pending and not assigned
+      if (bookingCheck.status !== 'pending' || bookingCheck.assigned_to) {
+        console.log('Booking already assigned or not pending, no need to notify dispatcher');
+        return;
+      }
+
+      // Create a notification for the dispatcher
       const { error: dispatcherError } = await supabase
         .from('dispatcher_notifications')
         .insert([{
@@ -691,38 +746,72 @@ export function PassengerBooking() {
 
       if (dispatcherError) throw dispatcherError;
 
+      // Update the booking status to indicate it's been sent to dispatcher
+      const { error: updateError } = await supabase
+        .from('bookings')
+        .update({
+          dispatcher_notified: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', bookingId)
+        .eq('status', 'pending') // Only update if still pending
+        .is('assigned_to', null); // Only update if not assigned
+
+      if (updateError) {
+        console.warn('Error updating booking with dispatcher notification status:', updateError);
+        // Non-critical error, don't throw
+      }
+
       setDispatcherNotified(true);
       toast.info("Dispatcher Notified", {
         description: "A dispatcher has been notified and will assign a trider soon."
       });
     } catch (error) {
       console.error("Error notifying dispatcher:", error);
+      toast.error("Dispatcher Notification Failed", {
+        description: "Could not notify dispatcher. Please try again or contact support."
+      });
     }
   };
 
-  // Helper function to find nearest TODA (client-side implementation)
-  const findNearestToda = async (latitude: number, longitude: number) => {
-    try {
-      // Get all TODAs from the database
-      const { data: todas, error: todasError } = await supabase
-        .from('todas')
-        .select('*');
+  // Helper function to find nearest TODA from a list
+  const findNearestTodaFromList = (latitude: number, longitude: number, todasList: any[]) => {
+    // Calculate distance to each TODA and find the nearest one
+    let nearestToda = null;
+    let shortestDistance = Infinity;
 
-      if (todasError) {
-        throw new Error(todasError.message);
+    // First try to find TODAs with proper coverage area
+    for (const toda of todasList) {
+      // Check if toda has the required fields for precise location matching
+      if (toda.center_latitude && toda.center_longitude && toda.radius) {
+        const distance = calculateDistance(
+          latitude,
+          longitude,
+          toda.center_latitude,
+          toda.center_longitude
+        );
+
+        // Convert distance to kilometers
+        const distanceInKm = distance / 1000;
+
+        // Check if this TODA is within its service radius and closer than previous matches
+        if (distanceInKm <= toda.radius && distanceInKm < shortestDistance) {
+          nearestToda = toda;
+          shortestDistance = distanceInKm;
+        }
       }
+    }
 
-      if (!todas || todas.length === 0) {
-        throw new Error("No TODAs available in the system");
-      }
+    // If no TODA was found within its radius, just return the closest one
+    // regardless of distance (if we found any TODAs at all)
+    if (!nearestToda && todasList.length > 0) {
+      console.warn("No TODA found within service radius, using closest one");
 
-      // Calculate distance to each TODA and find the nearest one
-      let nearestToda = null;
-      let shortestDistance = Infinity;
+      // Reset shortest distance to find any TODA regardless of radius
+      shortestDistance = Infinity;
 
-      for (const toda of todas) {
-        // Check if toda has the required fields
-        if (toda.center_latitude && toda.center_longitude && toda.radius) {
+      for (const toda of todasList) {
+        if (toda.center_latitude && toda.center_longitude) {
           const distance = calculateDistance(
             latitude,
             longitude,
@@ -733,22 +822,105 @@ export function PassengerBooking() {
           // Convert distance to kilometers
           const distanceInKm = distance / 1000;
 
-          // Check if this TODA is within its service radius and closer than previous matches
-          if (distanceInKm <= toda.radius && distanceInKm < shortestDistance) {
+          // Just find the closest one regardless of radius
+          if (distanceInKm < shortestDistance) {
             nearestToda = toda;
             shortestDistance = distanceInKm;
           }
         }
       }
 
-      return nearestToda;
+      // If we still don't have a TODA with coordinates, just use the first one
+      if (!nearestToda && todasList.length > 0) {
+        nearestToda = todasList[0];
+        console.warn("Using first available TODA as fallback", nearestToda);
+      }
+    }
+
+    // If we still don't have a TODA, return a default one
+    if (!nearestToda) {
+      console.warn("No suitable TODA found, using default TODA");
+      return {
+        id: "00000000-0000-0000-0000-000000000001",
+        name: "Talon Kuatro TODA",
+        code: "TK-TODA",
+        city: "Las Piñas City",
+        barangay: "Talon Kuatro",
+        status: "active"
+      };
+    }
+
+    return nearestToda;
+  };
+
+  // Helper function to find nearest TODA (client-side implementation)
+  const findNearestToda = async (latitude: number, longitude: number) => {
+    // Define sample TODAs to use as fallback
+    const sampleTodas = [
+      {
+        id: "00000000-0000-0000-0000-000000000001",
+        name: "Talon Kuatro TODA",
+        code: "TK-TODA",
+        city: "Las Piñas City",
+        barangay: "Talon Kuatro",
+        status: "active",
+        center_latitude: 14.4507,
+        center_longitude: 120.9826,
+        radius: 5
+      },
+      {
+        id: "00000000-0000-0000-0000-000000000002",
+        name: "Talon Singko TODA",
+        code: "TS-TODA",
+        city: "Las Piñas City",
+        barangay: "Talon Singko",
+        status: "active",
+        center_latitude: 14.4607,
+        center_longitude: 120.9726,
+        radius: 5
+      },
+      {
+        id: "00000000-0000-0000-0000-000000000003",
+        name: "Almanza TODA",
+        code: "ALM-TODA",
+        city: "Las Piñas City",
+        barangay: "Almanza",
+        status: "active",
+        center_latitude: 14.4407,
+        center_longitude: 120.9926,
+        radius: 5
+      }
+    ];
+
+    try {
+      // Get all TODAs from the database
+      const { data: todas, error: todasError } = await supabase
+        .from('todas')
+        .select('*');
+
+      // If there was an error or no TODAs found, use sample TODAs
+      if (todasError || !todas || todas.length === 0) {
+        if (todasError) {
+          console.error("Error fetching TODAs:", todasError);
+        } else {
+          console.warn("No TODAs found in the database");
+        }
+
+        // Use sample TODAs instead
+        console.log("Using sample TODAs as fallback");
+        return findNearestTodaFromList(latitude, longitude, sampleTodas);
+      }
+
+      // Use our helper function to find the nearest TODA from the database results
+      return findNearestTodaFromList(latitude, longitude, todas);
     } catch (error) {
       console.error("Error finding nearest TODA:", error);
-      throw error;
+      // Use sample TODAs as fallback
+      return findNearestTodaFromList(latitude, longitude, sampleTodas);
     }
   };
 
-  // Update the handleConfirmBooking function with enhanced implementation
+  // Enhanced handleConfirmBooking function with improved notification flow
   const handleConfirmBooking = async () => {
     try {
       setIsLoading(true);
@@ -791,37 +963,148 @@ export function PassengerBooking() {
         dropoffCoords[0], dropoffCoords[1]
       );
 
-      // Calculate fare based on distance
-      const baseFare = 25; // PHP
-      const farePerExtraKm = 10; // PHP per km after first km
+      // Calculate fare based on distance using the correct formula:
+      // PHP 20.00 base fare + PHP 10.00 per additional kilometer
+      const baseFare = 20; // PHP base fare
+      const farePerExtraKm = 10; // PHP per additional km
+
+      // Calculate the base fare plus additional distance
       let estimatedFareValue = baseFare;
       if (distanceInKm > 1) {
+        // Add PHP 10 for each additional kilometer (rounded up)
         estimatedFareValue += Math.ceil(distanceInKm - 1) * farePerExtraKm;
       }
-      // Add a small range for traffic/waiting
-      const fareRange = `₱${estimatedFareValue} - ₱${estimatedFareValue + 10}`;
 
-      // 2. Call nearest TODA zone (via Supabase RPC function or client-side implementation)
-      let todaData;
+      // Add a small range to account for potential traffic or waiting time
+      // The upper bound is calculated as base fare + 15% to account for traffic conditions
+      const upperBound = Math.ceil(estimatedFareValue * 1.15);
+      const fareRange = `₱${estimatedFareValue} - ₱${upperBound}`;
+
+      // Calculate estimated time based on distance and traffic conditions
+      // For more accurate results, we should use Mapbox Matrix API in production
+      // For now, we'll use a more sophisticated estimation based on time of day and distance
+
+      // Get current hour to estimate traffic conditions
+      const currentHour = new Date().getHours();
+
+      // Adjust speed based on time of day (rush hour vs non-rush hour)
+      // Rush hours: 7-9 AM and 5-7 PM typically have slower speeds
+      let avgSpeedKmh = 20; // Default average speed in km/h
+
+      if ((currentHour >= 7 && currentHour <= 9) || (currentHour >= 17 && currentHour <= 19)) {
+        // Rush hour - slower speed
+        avgSpeedKmh = 15;
+      } else if (currentHour >= 22 || currentHour <= 5) {
+        // Late night/early morning - faster speed
+        avgSpeedKmh = 25;
+      }
+
+      // Calculate base time in minutes
+      const baseTimeMinutes = Math.ceil((distanceInKm / avgSpeedKmh) * 60);
+
+      // Add buffer time for short trips (minimum 5 minutes)
+      const estimatedTimeMinutes = Math.max(5, baseTimeMinutes);
+
+      // Add a range to account for variability
+      const timeRangeEnd = Math.ceil(estimatedTimeMinutes * 1.2); // 20% buffer
+      const estimatedTimeStr = `${estimatedTimeMinutes}-${timeRangeEnd} minutes`;
+
+      // 2. Get TODA - first try selected TODA, then user's preferred TODA, then nearest TODA
+      // Define a default TODA to use as fallback
+      let todaData = {
+        id: "00000000-0000-0000-0000-000000000001", // Use the first sample TODA ID
+        name: "Talon Kuatro TODA",
+        code: "TK-TODA",
+        city: "Las Piñas City",
+        barangay: "Talon Kuatro",
+        status: "active"
+      };
+
       try {
-        // Try using the RPC function first
-        const { data, error } = await supabase
-          .rpc('find_nearest_toda', {
-            lat: pickupCoords[0],
-            lng: pickupCoords[1]
-          });
+        // First check if a TODA was selected for this booking
+        if (selectedTodaId) {
+          console.log("TODA selected for this booking:", selectedTodaId);
+          try {
+            const { data: selectedToda, error: selectedTodaError } = await supabase
+              .from('todas')
+              .select('*')
+              .eq('id', selectedTodaId)
+              .single();
 
-        if (error) throw error;
-        todaData = data;
+            if (!selectedTodaError && selectedToda) {
+              todaData = selectedToda;
+              console.log("Using selected TODA:", selectedToda.name);
+            } else {
+              console.warn("Selected TODA not found, will try user's preferred TODA");
+              // If we have a name for the selected TODA, use it with the default TODA
+              if (selectedTodaName) {
+                todaData.name = selectedTodaName;
+                console.log("Using selected TODA name with default TODA:", selectedTodaName);
+              }
+            }
+          } catch (error) {
+            console.warn("Error fetching selected TODA:", error);
+            // If we have a name for the selected TODA, use it with the default TODA
+            if (selectedTodaName) {
+              todaData.name = selectedTodaName;
+              console.log("Using selected TODA name with default TODA:", selectedTodaName);
+            }
+          }
+        }
+
+        // If no TODA was selected or it wasn't found, try user's preferred TODA
+        if (todaData.id === "00000000-0000-0000-0000-000000000001" && user?.preferredTodaId) {
+          console.log("User has preferred TODA:", user.preferredTodaId);
+          try {
+            const { data: preferredToda, error: preferredTodaError } = await supabase
+              .from('todas')
+              .select('*')
+              .eq('id', user.preferredTodaId)
+              .single();
+
+            if (!preferredTodaError && preferredToda) {
+              todaData = preferredToda;
+              console.log("Using preferred TODA:", preferredToda.name);
+            } else {
+              console.warn("Preferred TODA not found, will try to find nearest TODA");
+            }
+          } catch (error) {
+            console.warn("Error fetching preferred TODA:", error);
+          }
+        }
+
+        // If no TODA was selected or preferred, or they weren't found, try to find nearest TODA
+        if (todaData.id === "00000000-0000-0000-0000-000000000001") {
+          try {
+            const nearestToda = await findNearestToda(pickupCoords[0], pickupCoords[1]);
+
+            // Only use the nearest TODA if it's not the default one
+            if (nearestToda.id !== "00000000-0000-0000-0000-000000000000") {
+              todaData = nearestToda;
+              console.log("Using nearest TODA:", nearestToda.name);
+            } else {
+              // We're already using a default TODA, so just show a warning
+              toast.warning("Using Default TODA", {
+                description: "No TODA is available in your area. Using a default TODA for your booking."
+              });
+            }
+          } catch (error) {
+            console.warn("Error finding nearest TODA:", error);
+            // We're already using a default TODA, so just show a warning
+            toast.warning("Using Default TODA", {
+              description: "Could not find a TODA for your area. Using a default TODA for your booking."
+            });
+          }
+        }
       } catch (todaError) {
-        console.warn("RPC function failed, falling back to client-side implementation", todaError);
-        // Fall back to client-side implementation
-        todaData = await findNearestToda(pickupCoords[0], pickupCoords[1]);
+        console.warn("Error in TODA selection process, using default", todaError);
+        toast.warning("Using Default TODA", {
+          description: "Could not find a TODA for your area. Using a default TODA for your booking."
+        });
       }
 
-      if (!todaData?.id) {
-        throw new Error("No TODA available in this area");
-      }
+      // Generate a unique booking code
+      const bookingCode = `TG-${Math.floor(100000 + Math.random() * 900000)}`;
 
       // 3. Create booking payload
       const bookingPayload = {
@@ -837,19 +1120,95 @@ export function PassengerBooking() {
         dropoff_lng: dropoffCoords[1],
         status: 'pending',
         estimated_fare: fareRange,
-        estimated_time: estimatedTime,
+        estimated_time: estimatedTimeStr,
+        code: bookingCode,
         created_at: new Date().toISOString()
       };
 
-      // 4. Insert booking into DB
-      const { data: booking, error: bookingError } = await supabase
-        .from('bookings')
-        .insert(bookingPayload)
-        .select()
-        .single();
+      // 4. Insert booking into DB with fallback for schema cache issues
+      let booking;
+      let bookingError;
 
-      if (bookingError) {
-        throw new Error(bookingError.message);
+      try {
+        // First attempt with full payload
+        console.log("Attempting to insert booking with full payload");
+        const result = await supabase
+          .from('bookings')
+          .insert(bookingPayload)
+          .select()
+          .single();
+
+        booking = result.data;
+        bookingError = result.error;
+
+        if (bookingError) {
+          console.error("Error inserting booking with full payload:", bookingError);
+
+          // Check if it's a schema cache issue
+          if (bookingError.message?.includes('schema cache') ||
+              bookingError.message?.includes('column') ||
+              bookingError.message?.includes('not found')) {
+
+            console.log("Schema cache issue detected, trying with minimal payload");
+
+            // Create a minimal payload with only essential fields
+            const minimalPayload = {
+              passenger_id: passenger.id,
+              status: 'pending',
+              code: bookingCode,
+              created_at: new Date().toISOString()
+            };
+
+            // Try inserting with minimal payload
+            const fallbackResult = await supabase
+              .from('bookings')
+              .insert(minimalPayload)
+              .select()
+              .single();
+
+            booking = fallbackResult.data;
+            bookingError = fallbackResult.error;
+
+            if (fallbackResult.error) {
+              console.error("Error inserting booking with minimal payload:", fallbackResult.error);
+              throw new Error(fallbackResult.error.message);
+            }
+
+            if (!fallbackResult.data) {
+              throw new Error("Failed to create booking with minimal payload");
+            }
+
+            // If successful, try to update with the remaining fields
+            console.log("Minimal booking created, updating with additional fields");
+            try {
+              await supabase
+                .from('bookings')
+                .update({
+                  passenger_name: passenger.name,
+                  cp_number: passenger.cp_number,
+                  toda_id: todaData.id,
+                  pickup_lat: pickupCoords[0],
+                  pickup_lng: pickupCoords[1],
+                  dropoff_lat: dropoffCoords[0],
+                  dropoff_lng: dropoffCoords[1],
+                  estimated_fare: fareRange,
+                  estimated_time: estimatedTimeStr
+                })
+                .eq('id', booking.id);
+
+              console.log("Successfully updated booking with additional fields");
+            } catch (updateError) {
+              console.warn("Could not update booking with additional fields:", updateError);
+              // Non-critical error, continue with the booking we have
+            }
+          } else {
+            // If it's not a schema cache issue, throw the original error
+            throw bookingError;
+          }
+        }
+      } catch (error) {
+        console.error("Booking insertion failed:", error);
+        throw new Error(error instanceof Error ? error.message : "Failed to create booking");
       }
 
       if (!booking) {
@@ -857,24 +1216,61 @@ export function PassengerBooking() {
       }
 
       // 5. Handle successful booking
-      setBookingCode(booking.code || '');
+      setBookingCode(booking.code || bookingCode);
       setBookingSuccess(true);
       setBookingStatus('waiting');
       setShowConfirmation(false);
 
       toast.success("Booking Confirmed", {
-        description: "Your booking has been confirmed. Waiting for a driver."
+        description: "Your booking has been confirmed. Searching for nearby triders..."
       });
 
       // 6. Notify nearby triders immediately
-      await notifyNearbyTriders(booking.id, pickupCoords[0], pickupCoords[1], todaData.id);
+      try {
+        const notifiedTriders = await notifyNearbyTriders(booking.id, pickupCoords[0], pickupCoords[1], todaData.id);
 
-      // 7. Start dispatcher notification timeout (if no trider accepts within 30 seconds)
-      setTimeout(() => {
-        if (bookingStatus === 'waiting' && booking.id) {
-          notifyDispatcher(booking.id);
+        // 7. If no nearby triders were found or notification failed, notify dispatcher immediately
+        if (!notifiedTriders || notifiedTriders === 0) {
+          await notifyDispatcher(booking.id);
+        } else {
+          // Otherwise, start dispatcher notification timeout (if no trider accepts within 30 seconds)
+          setTimeout(() => {
+            // Check current booking status before notifying dispatcher
+            const checkBookingStatus = async () => {
+              try {
+                const { data: currentBooking, error } = await supabase
+                  .from('bookings')
+                  .select('status, assigned_to')
+                  .eq('id', booking.id)
+                  .single();
+
+                if (error) throw error;
+
+                // Only notify dispatcher if booking is still pending and not assigned
+                if (currentBooking && currentBooking.status === 'pending' && !currentBooking.assigned_to) {
+                  await notifyDispatcher(booking.id);
+                }
+              } catch (error) {
+                console.error("Error checking booking status:", error);
+                // Notify dispatcher anyway as a fallback
+                await notifyDispatcher(booking.id);
+              }
+            };
+
+            checkBookingStatus();
+          }, 30000); // 30 seconds timeout
         }
-      }, 30000);
+      } catch (notificationError) {
+        console.error("Error in trider notification process:", notificationError);
+        // Notify dispatcher as fallback if trider notification process fails
+        try {
+          await notifyDispatcher(booking.id);
+        } catch (dispatcherError) {
+          console.error("Error notifying dispatcher:", dispatcherError);
+          // At this point, we've created the booking but failed to notify anyone
+          // The booking will still be visible in the dispatcher dashboard
+        }
+      }
 
     } catch (error) {
       console.error("Booking error:", error);
@@ -940,7 +1336,7 @@ export function PassengerBooking() {
     return R * c
   }
 
-  // Listen for booking status updates
+  // Listen for booking status updates with enhanced error handling and more status updates
   useEffect(() => {
     if (!bookingSuccess || !user) return;
 
@@ -961,9 +1357,50 @@ export function PassengerBooking() {
           toast.success("Ride Accepted", {
             description: "A trider has accepted your booking and is on the way."
           });
+
+          // Fetch trider details to show to the passenger
+          const fetchTriderDetails = async () => {
+            try {
+              const { data: trider, error } = await supabase
+                .from('triders')
+                .select('first_name, last_name, contact_number, plate_number')
+                .eq('id', payload.new.assigned_to)
+                .single();
+
+              if (error) throw error;
+
+              if (trider) {
+                toast.info("Trider Information", {
+                  description: `${trider.first_name} ${trider.last_name} (${trider.plate_number}) will be your driver. Contact: ${trider.contact_number}`
+                });
+              }
+            } catch (error) {
+              console.error("Error fetching trider details:", error);
+            }
+          };
+
+          fetchTriderDetails();
+        } else if (payload.new.status === 'cancelled') {
+          setBookingStatus('cancelled');
+          toast.error("Ride Cancelled", {
+            description: "Your booking has been cancelled."
+          });
+        } else if (payload.new.status === 'completed') {
+          setBookingStatus('completed');
+          toast.success("Ride Completed", {
+            description: "Your ride has been completed. Thank you for using TriGo!"
+          });
         }
       })
-      .subscribe();
+      .subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Subscribed to booking updates for passenger:', user.id);
+        }
+        if (status === 'CHANNEL_ERROR' || err) {
+          console.error('Booking subscription error:', err);
+          toast.error("Real-time Error", { description: "Could not subscribe to booking updates. Please refresh the page." });
+        }
+      });
 
     // Cleanup subscription on unmount or when booking is no longer active
     return () => {
@@ -1215,19 +1652,70 @@ export function PassengerBooking() {
                 )}
 
                 {!bookingSuccess && (
-                  <div className="mt-4">
-                    <TerminalExits
-                      onSelect={(terminal) => {
-                        setSelectedDropoff(terminal)
-                        setDropoffLocation(terminal.name)
-                        setShowDropoffResults(false)
+                  <div className="mt-4 space-y-4">
+                    {/* TODA Selector */}
+                    <div>
+                      <Label htmlFor="toda-selector" className="text-sm font-medium mb-2 block">
+                        Select TODA (Tricycle Operators and Drivers Association)
+                      </Label>
+                      <TodaSelector
+                        selectedTodaId={selectedTodaId}
+                        onSelect={(todaId) => {
+                          setSelectedTodaId(todaId);
 
-                        // Use direct toast import
-                        toast.info("Terminal Selected", {
-                          description: `${terminal.name} has been set as your drop-off location.`,
-                        })
-                      }}
-                    />
+                          // Get the TODA name from the database
+                          supabase
+                            .from('todas')
+                            .select('name')
+                            .eq('id', todaId)
+                            .single()
+                            .then(({ data, error }) => {
+                              if (!error && data) {
+                                setSelectedTodaName(data.name);
+                              }
+                            });
+
+                          // Also save as user preference if user is logged in
+                          if (user?.id) {
+                            // Update user's preferred TODA in the database
+                            supabase
+                              .from('profiles')
+                              .update({ preferred_toda_id: todaId })
+                              .eq('id', user.id)
+                              .then(({ error }) => {
+                                if (error) {
+                                  console.warn('Could not save TODA preference:', error);
+                                } else {
+                                  console.log('TODA preference saved to profile');
+                                }
+                              });
+                          }
+
+                          toast.success("TODA Selected", {
+                            description: "Your preferred TODA has been set for this booking."
+                          });
+                        }}
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Selecting a TODA will prioritize triders from this association.
+                      </p>
+                    </div>
+
+                    {/* Terminal Exits */}
+                    <div>
+                      <TerminalExits
+                        onSelect={(terminal) => {
+                          setSelectedDropoff(terminal)
+                          setDropoffLocation(terminal.name)
+                          setShowDropoffResults(false)
+
+                          // Use direct toast import
+                          toast.info("Terminal Selected", {
+                            description: `${terminal.name} has been set as your drop-off location.`,
+                          })
+                        }}
+                      />
+                    </div>
                   </div>
                 )}
               </>
@@ -1347,23 +1835,48 @@ export function PassengerBooking() {
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4 pt-2">
-              <div className="p-3 bg-muted rounded-md">
-                <div className="flex items-center">
-                  <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Estimated Time</p>
-                    <p className="text-sm font-medium">{estimatedTime}</p>
+            <div className="space-y-4 pt-2">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-3 bg-muted rounded-md">
+                  <div className="flex items-center">
+                    <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Estimated Time</p>
+                      <p className="text-sm font-medium">{estimatedTime}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-3 bg-muted rounded-md">
+                  <div className="flex items-center">
+                    <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Estimated Fare</p>
+                      <p className="text-sm font-medium">{estimatedFare}</p>
+                    </div>
                   </div>
                 </div>
               </div>
+
+              {/* Show selected TODA */}
               <div className="p-3 bg-muted rounded-md">
-                <div className="flex items-center">
-                  <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Estimated Fare</p>
-                    <p className="text-sm font-medium">{estimatedFare}</p>
-                  </div>
+                <p className="text-xs text-muted-foreground mb-1">Selected TODA</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium">
+                    {selectedTodaId ? (
+                      selectedTodaName || "Custom TODA Selected"
+                    ) : "Using Nearest TODA"}
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => {
+                      // Open the TODA selector section
+                      setShowConfirmation(false);
+                    }}
+                  >
+                    Change
+                  </Button>
                 </div>
               </div>
             </div>

@@ -1,6 +1,7 @@
 "use client"
 
 import { Header } from "@/components/layout/header"
+import { TodaPreferences } from "@/components/profile/toda-preferences"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -16,11 +17,11 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
-const MapboxMap = dynamic(() => 
-  import('@/components/map/mapbox-map').then(mod => mod.MapboxMap), 
-  { 
+const MapboxMap = dynamic(() =>
+  import('@/components/map/mapbox-map').then(mod => mod.default),
+  {
     ssr: false, // Ensure it only renders client-side
-    loading: () => <div className="flex items-center justify-center h-[150px] bg-muted text-muted-foreground">Loading Map...</div> 
+    loading: () => <div className="flex items-center justify-center h-[150px] bg-muted text-muted-foreground">Loading Map...</div>
   }
 )
 
@@ -183,7 +184,7 @@ export default function ProfilePage() {
                         <div className="space-y-3">
                           <MapboxMap
                             center={{ lat: user.homeLocation.lat, lng: user.homeLocation.lng }}
-                            markers={[{ lat: user.homeLocation.lat, lng: user.homeLocation.lng, title: "Home" }]}
+                            markers={[{ lat: user.homeLocation.lat, lng: user.homeLocation.lng, title: "Home", type: "terminal" }]}
                             height="150px"
                             zoom={16}
                           />
@@ -219,7 +220,7 @@ export default function ProfilePage() {
                         <div className="space-y-3">
                           <MapboxMap
                             center={{ lat: user.workLocation.lat, lng: user.workLocation.lng }}
-                            markers={[{ lat: user.workLocation.lat, lng: user.workLocation.lng, title: "Work" }]}
+                            markers={[{ lat: user.workLocation.lat, lng: user.workLocation.lng, title: "Work", type: "terminal" }]}
                             height="150px"
                             zoom={16}
                           />
@@ -289,45 +290,51 @@ export default function ProfilePage() {
               </TabsContent>
 
               <TabsContent value="preferences">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Preferences</CardTitle>
-                    <CardDescription>Customize your app experience</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">Dark Mode</p>
-                          <p className="text-sm text-muted-foreground">Switch between light and dark themes</p>
-                        </div>
-                        <Button variant="outline">Toggle Theme</Button>
-                      </div>
+                <div className="space-y-6">
+                  {/* TODA Preferences */}
+                  <TodaPreferences />
 
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">Notifications</p>
-                          <p className="text-sm text-muted-foreground">Manage your notification preferences</p>
+                  {/* App Preferences */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>App Preferences</CardTitle>
+                      <CardDescription>Customize your app experience</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium">Dark Mode</p>
+                            <p className="text-sm text-muted-foreground">Switch between light and dark themes</p>
+                          </div>
+                          <Button variant="outline">Toggle Theme</Button>
                         </div>
-                        <Button variant="outline">Configure</Button>
-                      </div>
 
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">Language</p>
-                          <p className="text-sm text-muted-foreground">Choose your preferred language</p>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium">Notifications</p>
+                            <p className="text-sm text-muted-foreground">Manage your notification preferences</p>
+                          </div>
+                          <Button variant="outline">Configure</Button>
                         </div>
-                        <select 
-                          aria-label="Select language" 
-                          className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                        >
-                          <option>English</option>
-                          <option>Filipino</option>
-                        </select>
+
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium">Language</p>
+                            <p className="text-sm text-muted-foreground">Choose your preferred language</p>
+                          </div>
+                          <select
+                            aria-label="Select language"
+                            className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          >
+                            <option>English</option>
+                            <option>Filipino</option>
+                          </select>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </div>
               </TabsContent>
             </Tabs>
           </div>

@@ -1,7 +1,8 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, useRef, type ReactNode } from "react"
 import { supabase } from "@/lib/supabase-client"
+import { startLocationTracking } from "@/lib/location-utils"
 
 export type UserLocation = {
   address: string
@@ -21,14 +22,19 @@ export type UserProfile = {
   workLocation?: UserLocation
   favoriteLocations?: UserLocation[]
   isOnline?: boolean
+  preferredTodaId?: string | null
 }
 
 type UserContextType = {
   user: UserProfile | null
   loading: boolean
   setUser: (user: UserProfile | null) => void
-  updateUserProfile: (data: Partial<UserProfile>) => Promise<void>
+  updateUser: (data: Partial<UserProfile>) => Promise<void>
+  updateUserProfile: (data: Partial<UserProfile>) => Promise<void> // Keep for backward compatibility
   logout: () => Promise<void>
+  startTracking: () => void
+  stopTracking: () => void
+  isTracking: boolean
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
@@ -36,6 +42,8 @@ const UserContext = createContext<UserContextType | undefined>(undefined)
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isTracking, setIsTracking] = useState(false)
+  const stopTrackingRef = useRef<(() => void) | null>(null)
 
   // Load user on mount
   useEffect(() => {
@@ -65,6 +73,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
             role: profileData?.role || "passenger",
             name: profileData?.full_name,
             phone: profileData?.phone,
+            preferredTodaId: profileData?.preferred_toda_id || null,
           }
 
           // Add location data if available
@@ -105,8 +114,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }, [user])
 
-  // Update user profile
-  const updateUserProfile = async (data: Partial<UserProfile>) => {
+  // Update user profile - new version
+  const updateUser = async (data: Partial<UserProfile>) => {
     if (!user) return
 
     try {
@@ -120,19 +129,23 @@ export function UserProvider({ children }: { children: ReactNode }) {
         return
       }
 
-      // For other profile updates, update the profile in Supabase
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          full_name: data.name,
-          phone: data.phone,
-          // Only include these if they exist in the database schema
-          // home_location: data.homeLocation,
-          // work_location: data.workLocation,
-        })
-        .eq("id", user.id)
+      // Prepare update payload
+      const updatePayload: any = {}
 
-      if (error) throw error
+      // Only include fields that exist in the database schema
+      if (data.name !== undefined) updatePayload.full_name = data.name
+      if (data.phone !== undefined) updatePayload.phone = data.phone
+      if (data.preferredTodaId !== undefined) updatePayload.preferred_toda_id = data.preferredTodaId
+
+      // Only update if we have fields to update
+      if (Object.keys(updatePayload).length > 0) {
+        const { error } = await supabase
+          .from("profiles")
+          .update(updatePayload)
+          .eq("id", user.id)
+
+        if (error) throw error
+      }
 
       // Update local state
       setUser({ ...user, ...data })
@@ -142,9 +155,59 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // Keep for backward compatibility
+  const updateUserProfile = updateUser
+
+  // Start location tracking
+  const startTracking = () => {
+    if (!user || isTracking) return
+
+    try {
+      // Start tracking and store the stop function
+      const stopTracking = startLocationTracking(user.id)
+      stopTrackingRef.current = stopTracking
+      setIsTracking(true)
+
+      // Update user's isOnline status
+      updateUser({ isOnline: true })
+        .catch(error => console.error("Error updating online status:", error))
+
+      console.log("Location tracking started for user:", user.id)
+    } catch (error) {
+      console.error("Error starting location tracking:", error)
+    }
+  }
+
+  // Stop location tracking
+  const stopTracking = () => {
+    if (!isTracking || !stopTrackingRef.current) return
+
+    try {
+      // Call the stop function
+      stopTrackingRef.current()
+      stopTrackingRef.current = null
+      setIsTracking(false)
+
+      // Update user's isOnline status if they're logged in
+      if (user) {
+        updateUser({ isOnline: false })
+          .catch(error => console.error("Error updating online status:", error))
+      }
+
+      console.log("Location tracking stopped")
+    } catch (error) {
+      console.error("Error stopping location tracking:", error)
+    }
+  }
+
   // Logout
   const logout = async () => {
     try {
+      // Stop tracking if active
+      if (isTracking) {
+        stopTracking()
+      }
+
       await supabase.auth.signOut()
       setUser(null)
     } catch (error) {
@@ -154,7 +217,17 @@ export function UserProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <UserContext.Provider value={{ user, loading, setUser, updateUserProfile, logout }}>
+    <UserContext.Provider value={{
+      user,
+      loading,
+      setUser,
+      updateUser,
+      updateUserProfile,
+      logout,
+      startTracking,
+      stopTracking,
+      isTracking
+    }}>
       {children}
     </UserContext.Provider>
   )
