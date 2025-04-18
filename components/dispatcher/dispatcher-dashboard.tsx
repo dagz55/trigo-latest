@@ -9,6 +9,8 @@ import { supabase } from "@/lib/supabase-client"
 import { Loader2 } from "lucide-react"; // Add Loader2 and Navigation
 import { useEffect, useState } from "react"
 import { toast } from "sonner"; // Import toast directly
+import { useUser } from "@/contexts/user-context"
+import { TodaSelector } from "@/components/toda/toda-selector"
 
 interface OnlineTrider {
   id: string
@@ -42,34 +44,80 @@ interface ActiveBooking {
   }
 }
 
-export function DispatcherDashboard(_props: { user: UserProfile }) { // Use UserProfile type but mark as unused
-  // Remove unused state variables
-  const [loading, setLoading] = useState(true); // Add loading state
+export function DispatcherDashboard({ user }: { user: UserProfile }) {
+  const [loading, setLoading] = useState(true)
+  const [selectedTodaId, setSelectedTodaId] = useState<string | null>(user?.preferredTodaId || null)
+  const [selectedTodaName, setSelectedTodaName] = useState<string>("")
   const [onlineTriders, setOnlineTriders] = useState<OnlineTrider[]>([])
   const [activeBookings, setActiveBookings] = useState<ActiveBooking[]>([])
   const [mapCenter] = useState({ lat: 14.4507, lng: 120.9826 })
   const [mapMarkers, setMapMarkers] = useState<any[]>([])
 
+  // Add function to handle TODA selection and saving
+  const handleTodaSelect = async (todaId: string) => {
+    try {
+      setLoading(true)
+      
+      // Update the profile in Supabase
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          preferred_toda_id: todaId
+        })
+        .eq("id", user.id)
+
+      if (error) throw error
+
+      // Get TODA name
+      const { data: todaData, error: todaError } = await supabase
+        .from('todas')
+        .select('name')
+        .eq('id', todaId)
+        .single()
+
+      if (todaError) throw todaError
+
+      setSelectedTodaId(todaId)
+      setSelectedTodaName(todaData.name)
+
+      toast.success("TODA preference saved", {
+        description: "Your default TODA has been updated."
+      })
+
+      // Refresh dashboard data with new TODA
+      await fetchActiveBookings()
+      await fetchOnlineTriders()
+      
+    } catch (error) {
+      console.error("Error saving TODA preference:", error)
+      toast.error("Failed to save TODA preference", {
+        description: "Please try again or contact support."
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // Fetch data
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      console.log("Dispatcher: Fetching initial data...");
+    const loadInitialData = async () => {
+      if (!selectedTodaId) return
+      
+      setLoading(true)
       try {
-        // Directly fetch active bookings and online triders
-        await fetchActiveBookings();
-        await fetchOnlineTriders();
-      } catch (error: any) {
-        console.error("Dispatcher: Error fetching data:", error);
-        toast.error("Data Load Failed", {
-          description: error.message || "Could not load dashboard data. Please refresh.",
-        });
+        await Promise.all([
+          fetchActiveBookings(),
+          fetchOnlineTriders()
+        ])
+      } catch (error) {
+        console.error("Error loading initial data:", error)
+        toast.error("Failed to load dashboard data")
       } finally {
-         setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchData();
+    loadInitialData()
 
     // Set up subscriptions with error handling
     const bookingsSubscription = supabase
@@ -126,7 +174,7 @@ export function DispatcherDashboard(_props: { user: UserProfile }) { // Use User
       supabase.removeChannel(bookingsSubscription);
       supabase.removeChannel(tridersSubscription);
     };
-  }, []); // Empty dependency array, fetchData runs once and subscriptions handle updates
+  }, [selectedTodaId]); // Add selectedTodaId as dependency
 
   // Subscribe to real-time updates
   useEffect(() => {
@@ -408,141 +456,165 @@ export function DispatcherDashboard(_props: { user: UserProfile }) { // Use User
     <div className="container mx-auto py-6">
       <h1 className="text-3xl font-bold mb-6">Dispatcher Dashboard</h1>
 
+      {/* TODA Selection Card */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>TODA Selection</CardTitle>
+          <CardDescription>
+            Select the TODA you want to manage. This will be saved as your default.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <TodaSelector
+            selectedTodaId={selectedTodaId}
+            onSelect={handleTodaSelect}
+          />
+        </CardContent>
+      </Card>
+
       {loading && (
-         <div className="text-center py-10">
-            <Loader2 className="w-8 h-8 mx-auto animate-spin text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">Loading Dashboard Data...</p>
-         </div>
+        <div className="text-center py-10">
+          <Loader2 className="w-8 h-8 mx-auto animate-spin text-muted-foreground mb-4" />
+          <p className="text-muted-foreground">Loading Dashboard Data...</p>
+        </div>
       )}
 
-      {!loading && (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>Live Map View</CardTitle>
-            <CardDescription>Track triders and active bookings</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="h-[600px] rounded-lg overflow-hidden">
-              <MapboxMap
-                center={mapCenter}
-                markers={mapMarkers}
-                height="600px"
-                zoom={15}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="space-y-6">
-          <Card>
+      {!loading && selectedTodaId && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="md:col-span-2">
             <CardHeader>
-              <CardTitle>Online Triders</CardTitle>
-              <CardDescription>Currently available triders</CardDescription>
+              <CardTitle>Live Map View</CardTitle>
+              <CardDescription>Track triders and active bookings</CardDescription>
             </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="flex items-center justify-center py-4">
-                  <Loader2 className="h-6 w-6 animate-spin" />
-                </div>
-              ) : onlineTriders.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No triders currently online
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {onlineTriders.map(trider => (
-                    <div key={trider.id} className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{trider.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Last updated: {new Date(trider.last_updated).toLocaleTimeString()}
-                        </p>
-                      </div>
-                      <Badge variant={trider.status === 'available' ? 'success' : 'secondary'}>
-                        {trider.status}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              )}
+            <CardContent className="p-0">
+              <div className="h-[600px] rounded-lg overflow-hidden">
+                <MapboxMap
+                  center={mapCenter}
+                  markers={mapMarkers}
+                  height="600px"
+                  zoom={15}
+                />
+              </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Active Bookings</CardTitle>
-              <CardDescription>Pending and ongoing rides</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="flex items-center justify-center py-4">
-                  <Loader2 className="h-6 w-6 animate-spin" />
-                </div>
-              ) : activeBookings.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No active bookings
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {activeBookings.map(booking => (
-                    <div key={booking.id} className="p-4 border rounded-lg space-y-2">
-                      <div className="flex justify-between items-start">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Online Triders</CardTitle>
+                <CardDescription>Currently available triders</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </div>
+                ) : onlineTriders.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No triders currently online
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {onlineTriders.map(trider => (
+                      <div key={trider.id} className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium">{booking.booking_code || `Booking #${booking.id.slice(0, 8)}`}</p>
-                          <p className="text-sm">{booking.passenger?.name || 'Unknown passenger'}</p>
-                          {booking.assigned_to && booking.trider && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Assigned to: {booking.trider.first_name} {booking.trider.last_name}
-                            </p>
-                          )}
+                          <p className="font-medium">{trider.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Last updated: {new Date(trider.last_updated).toLocaleTimeString()}
+                          </p>
                         </div>
-                        <Badge
-                          variant={
-                            booking.status === 'pending' ? 'warning' :
-                            booking.status === 'assigned' ? 'secondary' : 'success'
-                          }
-                        >
-                          {booking.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        <Badge variant={trider.status === 'available' ? 'success' : 'secondary'}>
+                          {trider.status}
                         </Badge>
                       </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-                      {/* Only show assignment options for pending bookings */}
-                      {booking.status === 'pending' && onlineTriders.length > 0 && (
-                        <div className="pt-2">
-                          <p className="text-sm font-medium mb-2">Assign Trider:</p>
-                          <div className="flex flex-wrap gap-2">
-                            {onlineTriders
-                              .filter(trider => trider.status === 'available')
-                              .map(trider => (
-                                <Button
-                                  key={trider.id}
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => assignTriderToBooking(booking.id, trider.id)}
-                                >
-                                  {trider.name}
-                                </Button>
-                              ))}
+            <Card>
+              <CardHeader>
+                <CardTitle>Active Bookings</CardTitle>
+                <CardDescription>Pending and ongoing rides</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </div>
+                ) : activeBookings.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No active bookings
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {activeBookings.map(booking => (
+                      <div key={booking.id} className="p-4 border rounded-lg space-y-2">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium">{booking.booking_code || `Booking #${booking.id.slice(0, 8)}`}</p>
+                            <p className="text-sm">{booking.passenger?.name || 'Unknown passenger'}</p>
+                            {booking.assigned_to && booking.trider && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Assigned to: {booking.trider.first_name} {booking.trider.last_name}
+                              </p>
+                            )}
                           </div>
+                          <Badge
+                            variant={
+                              booking.status === 'pending' ? 'warning' :
+                              booking.status === 'assigned' ? 'secondary' : 'success'
+                            }
+                          >
+                            {booking.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                          </Badge>
                         </div>
-                      )}
 
-                      {/* Show status message for assigned bookings */}
-                      {booking.status === 'assigned' && (
-                        <div className="pt-2 text-sm text-amber-600">
-                          <p>Waiting for trider to accept...</p>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                        {/* Only show assignment options for pending bookings */}
+                        {booking.status === 'pending' && onlineTriders.length > 0 && (
+                          <div className="pt-2">
+                            <p className="text-sm font-medium mb-2">Assign Trider:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {onlineTriders
+                                .filter(trider => trider.status === 'available')
+                                .map(trider => (
+                                  <Button
+                                    key={trider.id}
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => assignTriderToBooking(booking.id, trider.id)}
+                                  >
+                                    {trider.name}
+                                  </Button>
+                                ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Show status message for assigned bookings */}
+                        {booking.status === 'assigned' && (
+                          <div className="pt-2 text-sm text-amber-600">
+                            <p>Waiting for trider to accept...</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </div>
-      )} {/* End conditional rendering based on loading state */}
+      )}
+
+      {!loading && !selectedTodaId && (
+        <Card>
+          <CardContent className="py-8 text-center text-muted-foreground">
+            <p>Please select a TODA to view the dashboard</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

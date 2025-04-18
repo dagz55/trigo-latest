@@ -118,9 +118,9 @@ A significant refactoring and enhancement effort was undertaken to improve the a
 3. Create `.env.local` file:
 
    ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=your_mapbox_access_token
+   NEXT_PUBLIC_SUPABASE_URL="your_supabase_url"
+   NEXT_PUBLIC_SUPABASE_ANON_KEY="your_supabase_anon_key"
+   NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN="your_mapbox_access_token"
    ```
 
 4. Configure Mapbox:
