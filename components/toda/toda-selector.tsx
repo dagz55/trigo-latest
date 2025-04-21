@@ -22,9 +22,10 @@ import { toast } from "sonner"
 interface Toda {
   id: string
   name: string
-  code: string
   city: string
+  province: string
   barangay: string
+  coverage_area?: string
 }
 
 interface TodaSelectorProps {
@@ -33,95 +34,45 @@ interface TodaSelectorProps {
   disabled?: boolean
 }
 
-export function TodaSelector({ selectedTodaId, onSelect, disabled = false }: TodaSelectorProps) {
+export function TodaSelector({ selectedTodaId, onSelect, disabled }: TodaSelectorProps) {
   const [open, setOpen] = useState(false)
   const [todas, setTodas] = useState<Toda[]>([])
-  const [loading, setLoading] = useState(true)
   const [selectedToda, setSelectedToda] = useState<Toda | null>(null)
+  const [loading, setLoading] = useState(false)
 
-  // Define sample TODAs outside the effect to avoid recreation on each render
-  const sampleTodas = [
-    {
-      id: '00000000-0000-0000-0000-000000000001',
-      name: 'Talon Kuatro TODA',
-      code: 'TK-TODA',
-      city: 'Las Piñas City',
-      barangay: 'Talon Kuatro'
-    },
-    {
-      id: '00000000-0000-0000-0000-000000000002',
-      name: 'Talon Singko TODA',
-      code: 'TS-TODA',
-      city: 'Las Piñas City',
-      barangay: 'Talon Singko'
-    },
-    {
-      id: '00000000-0000-0000-0000-000000000003',
-      name: 'Almanza TODA',
-      code: 'ALM-TODA',
-      city: 'Las Piñas City',
-      barangay: 'Almanza'
-    }
-  ]
-
-  // Fetch all active TODAs directly from the table
+  // Fetch TODAs on component mount
   useEffect(() => {
-    let isMounted = true
-
     const fetchTodas = async () => {
+      setLoading(true)
       try {
-        if (isMounted) setLoading(true)
+        const { data, error } = await supabase
+          .from('todas')
+          .select('id, name, city, province, barangay')
+          .order('name')
 
-        // Use sample TODAs immediately to prevent UI from being empty
-        if (isMounted) setTodas(sampleTodas)
+        if (error) throw error
 
-        // Try to fetch from the database
-        try {
-          // Fetch directly from the todas table instead of using RPC
-          const { data, error } = await supabase
-            .from('todas')
-            .select('id, name, code, city, barangay')
-            .eq('status', 'active')
-            .order('name')
-
-          if (error) throw error
-
-          // If we got data from the database, use it
-          if (data && data.length > 0 && isMounted) {
-            setTodas(data)
-
-            // If we have a selectedTodaId, find the corresponding TODA
-            if (selectedTodaId) {
-              const selected = data.find(toda => toda.id === selectedTodaId)
-              if (selected) {
-                setSelectedToda(selected)
-              }
+        if (data && data.length > 0) {
+          setTodas(data)
+          
+          if (selectedTodaId) {
+            const selected = data.find(toda => toda.id === selectedTodaId)
+            if (selected) {
+              setSelectedToda(selected)
             }
           }
-        } catch (dbError) {
-          console.warn("Could not fetch TODAs from database, using sample data", dbError)
-          // We're already using sample TODAs, so no need to set them again
         }
       } catch (error) {
-        console.error("Error in TODA fetching process:", error)
-
-        // We're already using sample TODAs, so no need to set them again
-        if (isMounted) {
-          toast.warning("Using sample TODAs", {
-            description: "Could not connect to the database. Using sample data."
-          })
-        }
+        console.error("Error fetching TODAs:", error)
+        toast.error("Failed to load TODAs", {
+          description: "Please try again or contact support."
+        })
       } finally {
-        if (isMounted) setLoading(false)
+        setLoading(false)
       }
     }
 
     fetchTodas()
-
-    // Cleanup function to prevent state updates after unmount
-    return () => {
-      isMounted = false
-    }
   }, [selectedTodaId])
 
   const handleSelect = (toda: Toda) => {
@@ -141,17 +92,11 @@ export function TodaSelector({ selectedTodaId, onSelect, disabled = false }: Tod
           disabled={disabled || loading}
         >
           {loading ? (
-            <div className="flex items-center">
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              <span>Loading TODAs...</span>
-            </div>
-          ) : selectedToda ? (
-            <div className="flex flex-col items-start">
-              <span>{selectedToda.name}</span>
-              <span className="text-xs text-muted-foreground">{selectedToda.city}, {selectedToda.barangay}</span>
-            </div>
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : selectedToda?.name ? (
+            selectedToda.name
           ) : (
-            "Select TODA"
+            "Select TODA..."
           )}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -175,7 +120,9 @@ export function TodaSelector({ selectedTodaId, onSelect, disabled = false }: Tod
                 />
                 <div className="flex flex-col">
                   <span>{toda.name}</span>
-                  <span className="text-xs text-muted-foreground">{toda.city}, {toda.barangay}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {toda.city}, {toda.barangay}
+                  </span>
                 </div>
               </CommandItem>
             ))}

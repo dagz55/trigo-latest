@@ -9,22 +9,29 @@ import { Button } from "@/components/ui/button"
 import { useUser } from "@/contexts/user-context"
 import { LoadingPage } from "@/components/ui/loading-page"
 import { Header } from "@/components/layout/header"
-import { LocationTracker } from "@/components/location/location-tracker"
+import dynamic from 'next/dynamic'
+
+const LocationTracker = dynamic(
+  () => import('@/components/location/location-tracker').then(mod => mod.LocationTracker),
+  { ssr: false }
+)
 
 export default function PassengerPage() {
-  const { user, loading } = useUser()
+  const { user, loading: userLoading } = useUser()
   const [initialLoading, setInitialLoading] = useState(true)
 
-  // Simulate initial loading
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setInitialLoading(false)
-    }, 1000)
+    // Only start initial loading timer after user context is ready
+    if (!userLoading) {
+      const timer = setTimeout(() => {
+        setInitialLoading(false)
+      }, 1000)
 
-    return () => clearTimeout(timer)
-  }, [])
+      return () => clearTimeout(timer)
+    }
+  }, [userLoading])
 
-  if (initialLoading || loading) {
+  if (userLoading || initialLoading) {
     return <LoadingPage message="Loading Passenger Dashboard..." />
   }
 

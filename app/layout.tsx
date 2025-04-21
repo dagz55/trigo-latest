@@ -1,28 +1,23 @@
 import "@/app/globals.css"
-// Import Mapbox CSS globally
+import 'mapbox-gl/dist/mapbox-gl.css'
 import { SupabaseProvider } from "@/components/supabase-provider"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { UserProvider } from "@/contexts/user-context"
 import { initializeDatabase } from '@/lib/init-db'
-import 'mapbox-gl/dist/mapbox-gl.css'
-import type React from "react"
+import type { Metadata } from 'next'
 
-// Initialize database when app starts
-initializeDatabase().catch(console.error)
+// Initialize database only on server side
+if (typeof window === 'undefined') {
+  initializeDatabase().catch(console.error)
+}
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Trigo Ride Hailing",
   description: "Location-based TODA rider and dispatcher system",
   icons: {
-    icon: [
-      {
-        url: "/images/trigo-logo.png",
-        href: "/images/trigo-logo.png",
-      },
-    ],
+    icon: "/images/trigo-logo.png",
   },
-  generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -32,15 +27,19 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="icon" href="/images/trigo-logo.png" />
-      </head>
-      <body className="min-h-screen bg-background text-foreground">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <body>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
           <SupabaseProvider>
-            <UserProvider>{children}</UserProvider>
+            <UserProvider>
+              {children}
+              <Toaster />
+            </UserProvider>
           </SupabaseProvider>
-          <Toaster richColors position="top-center" />
         </ThemeProvider>
       </body>
     </html>

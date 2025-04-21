@@ -1,4 +1,5 @@
-import { supabase } from './supabase-client';
+import { supabase } from './supabase-client'
+import { toast } from 'sonner'
 
 /**
  * Updates the user's location in the database
@@ -17,28 +18,42 @@ export async function updateUserLocation(
   accuracy?: number,
   heading?: number,
   speed?: number
-): Promise<void> {
+) {
+  if (!userId) {
+    console.warn('No user ID provided for location update')
+    return
+  }
+
   try {
-    // Call the RPC function to update the user's location
-    const { error } = await supabase.rpc('update_user_location', {
-      p_user_id: userId,
-      p_latitude: latitude,
-      p_longitude: longitude,
-      p_accuracy: accuracy || null,
-      p_heading: heading || null,
-      p_speed: speed || null
-    });
+    const { error } = await supabase
+      .from('user_locations')
+      .upsert({
+        user_id: userId,
+        latitude,
+        longitude,
+        accuracy: accuracy || null,
+        heading: heading || null,
+        speed: speed || null,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id'
+      })
 
     if (error) {
-      console.error('Error updating user location:', error);
-      throw error;
+      console.error('Error updating location in database:', error)
+      throw new Error(`Database error: ${error.message}`)
     }
 
-    console.log('User location updated successfully');
   } catch (error) {
-    console.error('Error in updateUserLocation:', error);
-    throw error;
+    console.error('Error updating user location:', error)
+    toast.error('Location Update Failed', {
+      description: 'Unable to update your location. Please check your connection.'
+    })
+    // Don't throw the error, just log it to prevent app crashes
+    return false
   }
+
+  return true
 }
 
 /**
@@ -69,19 +84,19 @@ export function getCurrentPosition(): Promise<GeolocationPosition> {
  * @param userId The user's ID
  * @returns A function to stop watching the user's location
  */
-export function startLocationTracking(userId: string): () => void {
+export function startLocationTracking(userId: string) {
   if (!navigator.geolocation) {
-    console.error('Geolocation is not supported by this browser');
-    return () => {};
+    toast.error('Location Services Unavailable', {
+      description: 'Your browser does not support location tracking.'
+    })
+    return null
   }
 
-  // Start watching the user's location
   const watchId = navigator.geolocation.watchPosition(
     async (position) => {
+      const { latitude, longitude, accuracy, heading, speed } = position.coords
+      
       try {
-        const { latitude, longitude, accuracy, heading, speed } = position.coords;
-        
-        // Update the user's location in the database
         await updateUserLocation(
           userId,
           latitude,
@@ -89,24 +104,41 @@ export function startLocationTracking(userId: string): () => void {
           accuracy,
           heading || undefined,
           speed || undefined
-        );
+        )
       } catch (error) {
-        console.error('Error updating location during tracking:', error);
+        // Error is already handled in updateUserLocation
+        console.debug('Location update failed silently')
       }
     },
     (error) => {
-      console.error('Error watching position:', error);
+      let message = 'Unable to get your location'
+      
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          message = 'Please enable location access in your browser settings'
+          break
+        case error.POSITION_UNAVAILABLE:
+          message = 'Location information is unavailable'
+          break
+        case error.TIMEOUT:
+          message = 'Location request timed out'
+          break
+      }
+
+      toast.error('Location Error', {
+        description: message
+      })
     },
     {
       enableHighAccuracy: true,
       timeout: 10000,
       maximumAge: 0
     }
-  );
+  )
 
-  // Return a function to stop watching the user's location
   return () => {
-    navigator.geolocation.clearWatch(watchId);
-    console.log('Location tracking stopped');
-  };
+    if (watchId) {
+      navigator.geolocation.clearWatch(watchId)
+    }
+  }
 }

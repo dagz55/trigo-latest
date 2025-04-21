@@ -367,7 +367,7 @@ export async function createRideRequest(
 }
 
 export async function getPendingRideRequests(toda_id: string): Promise<RideRequest[]> {
-  const { data: requests, error } = await supabase
+  const { data, error } = await supabase
     .from('ride_requests')
     .select(`
       *,
@@ -375,48 +375,15 @@ export async function getPendingRideRequests(toda_id: string): Promise<RideReque
       dropoff_location:locations!dropoff_location_id(*),
       trider:triders(*)
     `)
-    .eq('toda_id', toda_id)
+    .eq('toda_id', toda_id)  // Updated to use toda_id
     .eq('status', 'pending')
-    .order('created_at', { ascending: true });
+    .order('created_at', { ascending: true })
 
   if (error) {
-    console.error('Error fetching pending ride requests:', error);
-    throw error;
+    console.error(`Error fetching pending ride requests for TODA ${toda_id}:`, error)
+    throw error
   }
-
-  return requests.map(req => ({
-    id: req.id,
-    passenger_id: req.passenger_id,
-    toda_id: req.toda_id,
-    trider_id: req.trider_id || '',
-    pickup_location_id: req.pickup_location_id,
-    dropoff_location_id: req.dropoff_location_id,
-    passenger: {
-      id: req.passenger_id,
-      name: '', // You might want to fetch this from users table
-      contact_number: '' // You might want to fetch this from users table
-    },
-    booking_code: req.booking_code,
-    route_geometry: req.route_geometry || '',
-    status: req.status,
-    estimated_fare: req.estimated_fare || 0,
-    estimated_time: req.estimated_time || 0,
-    route_distance: req.route_distance || 0,
-    route_duration: req.route_duration || 0,
-    pickup_name: req.pickup_location?.name || '',
-    pickup_address: req.pickup_location?.address || '',
-    pickup_latitude: req.pickup_location?.latitude || 0,
-    pickup_longitude: req.pickup_location?.longitude || 0,
-    dropoff_name: req.dropoff_location?.name || '',
-    dropoff_address: req.dropoff_location?.address || '',
-    dropoff_latitude: req.dropoff_location?.latitude || 0,
-    dropoff_longitude: req.dropoff_location?.longitude || 0,
-    pickup_location: req.pickup_location,
-    dropoff_location: req.dropoff_location,
-    trider: req.trider,
-    created_at: req.created_at,
-    cancellation_reason: req.cancellation_reason || null
-  }));
+  return data
 }
 
 export async function getActiveRideRequests(toda_id: string): Promise<RideRequest[]> {
@@ -428,9 +395,9 @@ export async function getActiveRideRequests(toda_id: string): Promise<RideReques
       dropoff_location:locations!dropoff_location_id(*),
       trider:triders(*)
     `)
-    .eq('toda_id', toda_id)
+    .eq('toda_id', toda_id)  // Updated to use toda_id
     .in('status', ['accepted', 'picked_up'])
-    .order('requested_at', { ascending: true })
+    .order('created_at', { ascending: true })
 
   if (error) {
     console.error(`Error fetching active ride requests for TODA ${toda_id}:`, error)

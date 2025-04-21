@@ -1,5 +1,7 @@
+"use client"
+
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Info, Headset, MapPin, Users } from "lucide-react"
+import { Info, Headphones, MapPin, Users } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -69,7 +71,7 @@ export default function DispatcherPage() {
               </TabsList>
               <TabsContent value="pending">
                 <div className="text-center py-12 text-muted-foreground">
-                  <Headset className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                  <Headphones className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
                   <p>No pending ride requests</p>
                   <p className="text-sm">New ride requests will appear here</p>
                 </div>

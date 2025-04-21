@@ -1,50 +1,21 @@
-let userConfig = undefined
-try {
-  userConfig = await import('./v0-user-next.config')
-} catch (e) {
-  // ignore error
-}
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  reactStrictMode: true,
   images: {
-    unoptimized: true,
+    domains: ['localhost', 'nlkxmqyhrrezjhoztlxy.supabase.co'],
+    unoptimized: true
   },
+  // Simplified experimental flags
   experimental: {
-    webpackBuildWorker: true,
-    parallelServerBuildTraces: true,
-    parallelServerCompiles: true,
+    webpackBuildWorker: false
   },
-  // Target CommonJS distributions
-  transpilePackages: ['react-map-gl/dist/cjs', 'mapbox-gl/dist/cjs'],
-}
-
-mergeConfig(nextConfig, userConfig)
-
-function mergeConfig(nextConfig, userConfig) {
-  if (!userConfig) {
-    return
-  }
-
-  for (const key in userConfig) {
-    if (
-      typeof nextConfig[key] === 'object' &&
-      !Array.isArray(nextConfig[key])
-    ) {
-      nextConfig[key] = {
-        ...nextConfig[key],
-        ...userConfig[key],
-      }
-    } else {
-      nextConfig[key] = userConfig[key]
-    }
+  webpack: (config, { dev, isServer }) => {
+    config.resolve.fallback = { 
+      fs: false,
+      path: false
+    };
+    return config;
   }
 }
 
-export default nextConfig
+export default nextConfig;

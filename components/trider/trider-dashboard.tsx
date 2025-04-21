@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from 'react';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
@@ -17,7 +18,7 @@ import {
 } from "@/lib/supabase-client"
 import { type UserProfile } from "@/contexts/user-context" // Import UserProfile from context
 import { toast } from "sonner" // Import toast directly
-import { Loader2, MapPin, Navigation } from "lucide-react"
+import { Loader2, MapPin, Navigation, Clock } from "lucide-react"
 
 // Helper function to calculate distance between two points
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -43,6 +44,11 @@ export function TriderDashboard({ user }: { user: UserProfile }) {
   const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null) // Type location
   const [locating, setLocating] = useState(false)
   const [rides, setRides] = useState<RideRequest[]>([]) // Use RideRequest type
+  const [locationAddress, setLocationAddress] = useState<string>("undefined, Philippines");
+  const [onlineTime, setOnlineTime] = useState<string>("00:00:00");
+  const [onlineStartTime, setOnlineStartTime] = useState<Date | null>(null);
+  const [isTracking, setIsTracking] = useState(false);
+  const [subscriptions, setSubscriptions] = useState<{ [key: string]: RealtimeChannel }>({});
   // const { toast } = useToast() // Remove useToast
 
   // Fetch Trider profile data on mount
@@ -80,6 +86,105 @@ export function TriderDashboard({ user }: { user: UserProfile }) {
     fetchTriderProfile();
   }, [user]);
 
+  // Initialize location tracking when going online
+  useEffect(() => {
+    if (!isOnline) return;
+
+    // Get initial location
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const newLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        };
+        setCurrentLocation(newLocation);
+        updateAddressFromCoords(newLocation.lat, newLocation.lng);
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+        toast.error("Location Error", {
+          description: `${error.message}. Please enable location services.`,
+        });
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+
+    // Start continuous tracking
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const newLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        };
+        setCurrentLocation(newLocation);
+        updateAddressFromCoords(newLocation.lat, newLocation.lng);
+      },
+      (error) => {
+        console.error("Error watching position:", error);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+
+    // Start online time tracking
+    setOnlineStartTime(new Date());
+    setIsTracking(true);
+
+    // Cleanup
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+      setIsTracking(false);
+    };
+  }, [isOnline]);
+
+  // Update online time
+  useEffect(() => {
+    let timerInterval: NodeJS.Timeout | null = null;
+
+    const updateTimer = () => {
+      if (!isOnline || !onlineStartTime) {
+        setOnlineTime("00:00:00");
+        return;
+      }
+
+      const now = new Date();
+      const diff = now.getTime() - onlineStartTime.getTime();
+      const hours = Math.floor(diff / 3600000);
+      const minutes = Math.floor((diff % 3600000) / 60000);
+      const seconds = Math.floor((diff % 60000) / 1000);
+      
+      setOnlineTime(
+        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+      );
+    };
+
+    if (isOnline && onlineStartTime) {
+      updateTimer(); // Initial update
+      timerInterval = setInterval(updateTimer, 1000);
+    } else {
+      setOnlineTime("00:00:00");
+    }
+
+    return () => {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+      }
+    };
+  }, [isOnline, onlineStartTime]);
+
+  // Function to update address using reverse geocoding
+  const updateAddressFromCoords = async (lat: number, lng: number) => {
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}`
+      );
+      const data = await response.json();
+      if (data.features && data.features.length > 0) {
+        setLocationAddress(data.features[0].place_name);
+      }
+    } catch (error) {
+      console.error("Error fetching address:", error);
+    }
+  };
 
   // Local function to handle status updates, now uses the utility
   const handleUpdateTriderStatus = async (newStatus: 'online' | 'offline', newLocation?: { lat: number; lng: number }) => {
@@ -117,16 +222,16 @@ export function TriderDashboard({ user }: { user: UserProfile }) {
   };
 
   // Handle online/offline toggle
-  const handleToggleOnlineStatus = (checked: boolean) => {
-    const newStatus = checked ? 'online' : 'offline';
+  const handleToggleOnlineStatus = useCallback(async (checked: boolean) => {
     if (checked) {
-      // If going online, first try to detect location
-      detectLocation(true); // Pass flag to indicate it's for going online
+      const startTime = new Date();
+      setOnlineStartTime(startTime);
+      await detectLocation(true);
     } else {
-      // If going offline, just update status
-      handleUpdateTriderStatus('offline');
+      await handleUpdateTriderStatus('offline');
+      setOnlineStartTime(null);
     }
-  };
+  }, [detectLocation, handleUpdateTriderStatus]);
 
   // Function to handle accepting a booking with enhanced error handling and transaction safety
   const handleAcceptBooking = async (bookingId: string, notificationId: string) => {
@@ -340,40 +445,25 @@ export function TriderDashboard({ user }: { user: UserProfile }) {
   useEffect(() => {
     if (!triderProfile?.id) return;
 
-    // Initial fetch of rides
-    fetchRides();
-
-    // Subscribe to changes on the correct table and filter
-    const ridesSubscription = supabase
-      .channel(`public:ride_requests:trider=${triderProfile.id}`) // Unique channel name
+    // Create subscriptions
+    const ridesChannel = supabase
+      .channel(`rides-${triderProfile.id}`)
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
-          table: "ride_requests", // Correct table name
-          filter: `trider_id=eq.${triderProfile.id}`, // Correct column name
+          table: "ride_requests",
+          filter: `trider_id=eq.${triderProfile.id}`,
         },
-        (payload) => {
-          console.log("Ride change received!", payload);
-          // Consider more granular updates based on payload (INSERT, UPDATE, DELETE)
-          // For simplicity now, just refetch all rides
+        () => {
           fetchRides();
         }
       )
-      .subscribe((status, err) => {
-         if (status === 'SUBSCRIBED') {
-            console.log('Subscribed to ride updates for trider:', triderProfile.id);
-         }
-         if (status === 'CHANNEL_ERROR' || err) {
-            console.error('Ride subscription error:', err);
-            toast.error("Real-time Error", { description: "Could not subscribe to ride updates." });
-         }
-      });
+      .subscribe();
 
-    // Subscribe to trider notifications for new booking requests
-    const notificationsSubscription = supabase
-      .channel(`public:trider_notifications:trider=${triderProfile.id}`)
+    const notificationsChannel = supabase
+      .channel(`notifications-${triderProfile.id}`)
       .on(
         "postgres_changes",
         {
@@ -383,7 +473,8 @@ export function TriderDashboard({ user }: { user: UserProfile }) {
           filter: `trider_id=eq.${triderProfile.id} AND status=eq.pending`,
         },
         async (payload) => {
-          console.log("New booking notification received!", payload);
+          // Handle notification logic here
+          console.log("New notification received:", payload);
 
           // Fetch the booking details
           const { data: booking, error } = await supabase
@@ -442,23 +533,21 @@ export function TriderDashboard({ user }: { user: UserProfile }) {
           });
         }
       )
-      .subscribe((status, err) => {
-         if (status === 'SUBSCRIBED') {
-            console.log('Subscribed to notification updates for trider:', triderProfile.id);
-         }
-         if (status === 'CHANNEL_ERROR' || err) {
-            console.error('Notification subscription error:', err);
-            toast.error("Real-time Error", { description: "Could not subscribe to booking notifications." });
-         }
-      });
+      .subscribe();
+
+    // Store subscriptions
+    setSubscriptions({
+      rides: ridesChannel,
+      notifications: notificationsChannel,
+    });
 
     // Cleanup function
     return () => {
-      console.log("Removing subscription channels.");
-      supabase.removeChannel(ridesSubscription);
-      supabase.removeChannel(notificationsSubscription);
+      Object.values(subscriptions).forEach(channel => {
+        supabase.removeChannel(channel);
+      });
     };
-  }, [triderProfile, currentLocation]); // Depend on triderProfile and currentLocation
+  }, [triderProfile?.id]); // Only depend on trider ID
 
   return (
     <div className="container mx-auto py-6">
@@ -638,8 +727,8 @@ function RideCard({ ride, triderId, isHistory = false }: { ride: RideRequestWith
                 <p className="text-sm text-muted-foreground">
                   {ride.pickup_location?.name || 'Unknown Pickup'}
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  {ride.pickup_location?.address || ''}
+                <p className="text-sm text-muted-foreground">
+                  {ride.pickup_location?.address || 'Unknown Address'}
                 </p>
               </div>
             </div>
@@ -651,8 +740,8 @@ function RideCard({ ride, triderId, isHistory = false }: { ride: RideRequestWith
                 <p className="text-sm text-muted-foreground">
                   {ride.dropoff_location?.name || 'Unknown Dropoff'}
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  {ride.dropoff_location?.address || ''}
+                <p className="text-sm text-muted-foreground">
+                  {ride.dropoff_location?.address || 'Unknown Address'}
                 </p>
               </div>
             </div>

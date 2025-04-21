@@ -11,7 +11,6 @@ export type UserLocation = {
   isDefault?: boolean
 }
 
-// Update the UserProfile type
 export type UserProfile = {
   id: string
   email: string
@@ -19,7 +18,7 @@ export type UserProfile = {
   phone?: string
   role: "passenger" | "trider" | "dispatcher" | "admin"
   homeLocation?: UserLocation
-  workLocation?: UserLocation
+  terminalExit?: UserLocation // Changed from workLocation
   favoriteLocations?: UserLocation[]
   isOnline?: boolean
   preferredTodaId?: string | null

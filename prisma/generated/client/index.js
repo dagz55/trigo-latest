@@ -242,7 +242,7 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
-  "postinstall": false,
+  "postinstall": true,
   "inlineDatasources": {
     "db": {
       "url": {
@@ -253,7 +253,7 @@ const config = {
   },
   "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\ngenerator client {\n  provider        = \"prisma-client-js\"\n  output          = \"./generated/client\"\n  previewFeatures = [\"driverAdapters\"]\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nenum LocationType {\n  terminal\n  custom\n}\n\nenum TriderStatus {\n  offline\n  online\n  busy\n}\n\nenum RideStatus {\n  pending\n  accepted\n  picked_up\n  completed\n  cancelled\n  waiting_for_trider\n}\n\nmodel Toda {\n  id            String            @id @default(uuid())\n  name          String\n  city          String\n  barangay      String\n  created_at    DateTime          @default(now())\n  updated_at    DateTime          @updatedAt\n  locations     Location[]\n  triders       Trider[]\n  queue_items   TriderQueueItem[]\n  ride_requests RideRequest[]\n}\n\nmodel Location {\n  id               String        @id @default(uuid())\n  name             String\n  address          String\n  latitude         Float\n  longitude        Float\n  city             String\n  barangay         String\n  type             String // terminal or custom\n  toda_id          String?\n  toda             Toda?         @relation(fields: [toda_id], references: [id])\n  created_at       DateTime      @default(now())\n  updated_at       DateTime      @updatedAt\n  pickup_requests  RideRequest[] @relation(\"PickupLocation\")\n  dropoff_requests RideRequest[] @relation(\"DropoffLocation\")\n}\n\nmodel Trider {\n  id                String            @id @default(uuid())\n  user_id           String\n  toda_id           String\n  toda              Toda              @relation(fields: [toda_id], references: [id])\n  first_name        String\n  last_name         String\n  contact_number    String\n  plate_number      String\n  license_number    String\n  status            String // offline, online, busy\n  current_latitude  Float?\n  current_longitude Float?\n  last_online       DateTime?\n  created_at        DateTime          @default(now())\n  updated_at        DateTime          @updatedAt\n  queue_items       TriderQueueItem[]\n  ride_requests     RideRequest[]\n}\n\nmodel TriderQueueItem {\n  id             String   @id @default(uuid())\n  trider_id      String\n  trider         Trider   @relation(fields: [trider_id], references: [id])\n  toda_id        String\n  toda           Toda     @relation(fields: [toda_id], references: [id])\n  queue_position Int\n  joined_at      DateTime @default(now())\n}\n\nmodel RideRequest {\n  id                  String    @id @default(uuid())\n  booking_code        String    @unique\n  passenger_id        String\n  toda_id             String\n  toda                Toda      @relation(fields: [toda_id], references: [id])\n  pickup_location_id  String\n  pickup_location     Location  @relation(\"PickupLocation\", fields: [pickup_location_id], references: [id])\n  dropoff_location_id String\n  dropoff_location    Location  @relation(\"DropoffLocation\", fields: [dropoff_location_id], references: [id])\n  status              String // pending, accepted, picked_up, completed, cancelled\n  estimated_fare      Float\n  estimated_time      Int\n  route_distance      Float?\n  route_duration      Float?\n  route_geometry      String?\n  trider_id           String?\n  trider              Trider?   @relation(fields: [trider_id], references: [id])\n  created_at          DateTime  @default(now())\n  accepted_at         DateTime?\n  picked_up_at        DateTime?\n  completed_at        DateTime?\n  cancelled_at        DateTime?\n  cancellation_reason String?\n}\n",
   "inlineSchemaHash": "23f23dad8ebff331e85c606733eb5aa3f4590da95fddcaaad50d4c1689b77ae9",
-  "copyEngine": false
+  "copyEngine": true
 }
 
 const fs = require('fs')
@@ -290,3 +290,9 @@ const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)
 
+// file annotations for bundling tools to include these files
+path.join(__dirname, "libquery_engine-darwin-arm64.dylib.node");
+path.join(process.cwd(), "prisma/generated/client/libquery_engine-darwin-arm64.dylib.node")
+// file annotations for bundling tools to include these files
+path.join(__dirname, "schema.prisma");
+path.join(process.cwd(), "prisma/generated/client/schema.prisma")

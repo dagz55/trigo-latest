@@ -5,7 +5,7 @@ import type React from "react"
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Users, Headset, Bike, ShieldCheck, ArrowRight } from "lucide-react"
+import { Users, PhoneCall, Bike, ShieldCheck, ArrowRight } from "lucide-react"
 
 interface RoleCardProps {
   title: string
@@ -61,7 +61,7 @@ export function RoleNavigation() {
     {
       title: "Dispatcher",
       description: "Manage ride assignments",
-      icon: <Headset className="h-6 w-6 text-white" />,
+      icon: <PhoneCall className="h-6 w-6 text-white" />,
       href: "/dispatcher",
       color: "bg-amber-500",
     },
