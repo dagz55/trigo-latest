@@ -1,0 +1,60 @@
+.markerContainer {
+  position: relative;
+}
+
+.markerIcon {
+  height: 2rem;
+  width: 2rem;
+}
+
+.markerIconBlue {
+  color: #3b82f6;
+}
+
+.markerIconRed {
+  color: #ef4444;
+}
+
+.markerIconGray {
+  color: #6b7280;
+}
+
+.markerLabel {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  background-color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  white-space: nowrap;
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.markerLabelBlue {
+  color: #3b82f6;
+}
+
+.markerLabelRed {
+  color: #ef4444;
+}
+
+.markerLabelGray {
+  color: #6b7280;
+}
+
+.popupContent {
+  padding: 0.25rem;
+}
+
+.popupTitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.popupCoordinates {
+  font-size: 0.75rem;
+  color: #6b7280;
+} 

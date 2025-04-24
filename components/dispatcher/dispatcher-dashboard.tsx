@@ -1,16 +1,21 @@
 "use client"
 
-import MapboxMap from "@/components/map/mapbox-map"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { TodaSelector } from "@/components/toda/toda-selector";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { type UserProfile } from "@/contexts/user-context"; // Import UserProfile
-import { supabase } from "@/lib/supabase-client"
+import { supabase } from "@/lib/supabase-client";
 import { Loader2 } from "lucide-react"; // Add Loader2 and Navigation
-import { useEffect, useState } from "react"
+import dynamic from 'next/dynamic';
+import { useEffect, useState } from "react";
 import { toast } from "sonner"; // Import toast directly
-import { useUser } from "@/contexts/user-context"
-import { TodaSelector } from "@/components/toda/toda-selector"
+
+// Import MapboxMap dynamically with no SSR
+const MapboxMap = dynamic(
+  () => import('@/components/map/mapbox-map'),
+  { ssr: false, loading: () => <div className="h-full flex items-center justify-center">Loading map...</div> }
+)
 
 interface OnlineTrider {
   id: string

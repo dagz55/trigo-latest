@@ -1,0 +1,119 @@
+2025-04-21 21:35:27,899 - INFO - Using package manager: pnpm
+2025-04-21 21:35:27,910 - INFO - Starting installation process...
+2025-04-21 21:35:27,910 - INFO - 
+Installing core modules...
+2025-04-21 21:35:27,910 - INFO - Installing next@^14.2.28 (Attempt 1/3)
+2025-04-21 21:35:48,785 - INFO - Successfully installed next
+2025-04-21 21:35:48,785 - INFO - Installing react@^18 (Attempt 1/3)
+2025-04-21 21:35:52,193 - INFO - Successfully installed react
+2025-04-21 21:35:52,194 - INFO - Installing react-dom@^18 (Attempt 1/3)
+2025-04-21 21:35:54,848 - INFO - Successfully installed react-dom
+2025-04-21 21:35:54,848 - INFO - Installing typescript@^5 (Attempt 1/3)
+2025-04-21 21:35:57,733 - INFO - Successfully installed typescript
+2025-04-21 21:35:57,734 - INFO - 
+Installing ui modules...
+2025-04-21 21:35:57,734 - INFO - Installing tailwindcss@^3.4.17 (Attempt 1/3)
+2025-04-21 21:36:00,768 - INFO - Successfully installed tailwindcss
+2025-04-21 21:36:00,769 - INFO - Installing @radix-ui/react-accordion@^1.2.2 (Attempt 1/3)
+2025-04-21 21:36:02,784 - INFO - Successfully installed @radix-ui/react-accordion
+2025-04-21 21:36:02,784 - INFO - Installing @radix-ui/react-alert-dialog@^1.1.4 (Attempt 1/3)
+2025-04-21 21:36:04,721 - INFO - Successfully installed @radix-ui/react-alert-dialog
+2025-04-21 21:36:04,721 - INFO - Installing @radix-ui/react-avatar@^1.1.2 (Attempt 1/3)
+2025-04-21 21:36:07,107 - INFO - Successfully installed @radix-ui/react-avatar
+2025-04-21 21:36:07,107 - INFO - Installing @radix-ui/react-dialog@^1.1.4 (Attempt 1/3)
+2025-04-21 21:36:09,279 - INFO - Successfully installed @radix-ui/react-dialog
+2025-04-21 21:36:09,280 - INFO - Installing @radix-ui/react-dropdown-menu@^2.1.4 (Attempt 1/3)
+2025-04-21 21:36:11,346 - INFO - Successfully installed @radix-ui/react-dropdown-menu
+2025-04-21 21:36:11,346 - INFO - Installing @radix-ui/react-label@^2.1.1 (Attempt 1/3)
+2025-04-21 21:36:13,659 - INFO - Successfully installed @radix-ui/react-label
+2025-04-21 21:36:13,659 - INFO - Installing @radix-ui/react-separator@^1.1.1 (Attempt 1/3)
+2025-04-21 21:36:15,531 - INFO - Successfully installed @radix-ui/react-separator
+2025-04-21 21:36:15,531 - INFO - Installing @radix-ui/react-slot@^1.1.1 (Attempt 1/3)
+2025-04-21 21:36:17,919 - INFO - Successfully installed @radix-ui/react-slot
+2025-04-21 21:36:17,920 - INFO - Installing @radix-ui/react-toast@^1.2.4 (Attempt 1/3)
+2025-04-21 21:36:20,008 - INFO - Successfully installed @radix-ui/react-toast
+2025-04-21 21:36:20,008 - INFO - Installing class-variance-authority@^0.7.1 (Attempt 1/3)
+2025-04-21 21:36:22,349 - INFO - Successfully installed class-variance-authority
+2025-04-21 21:36:22,350 - INFO - Installing clsx@^2.1.1 (Attempt 1/3)
+2025-04-21 21:36:24,335 - INFO - Successfully installed clsx
+2025-04-21 21:36:24,335 - INFO - Installing tailwind-merge@^2.5.5 (Attempt 1/3)
+2025-04-21 21:36:25,919 - INFO - Successfully installed tailwind-merge
+2025-04-21 21:36:25,919 - INFO - Installing tailwindcss-animate@^1.0.7 (Attempt 1/3)
+2025-04-21 21:36:28,931 - INFO - Successfully installed tailwindcss-animate
+2025-04-21 21:36:28,931 - INFO - Installing lucide-react@^0.454.0 (Attempt 1/3)
+2025-04-21 21:36:31,004 - INFO - Successfully installed lucide-react
+2025-04-21 21:36:31,004 - INFO - 
+Installing auth modules...
+2025-04-21 21:36:31,005 - INFO - Installing @supabase/ssr@^0.6.1 (Attempt 1/3)
+2025-04-21 21:36:33,694 - INFO - Successfully installed @supabase/ssr
+2025-04-21 21:36:33,694 - INFO - 
+Installing form modules...
+2025-04-21 21:36:33,695 - INFO - Installing react-hook-form@^7.54.1 (Attempt 1/3)
+2025-04-21 21:36:37,202 - INFO - Successfully installed react-hook-form
+2025-04-21 21:36:37,203 - INFO - Installing @hookform/resolvers@^3.9.1 (Attempt 1/3)
+2025-04-21 21:36:39,829 - INFO - Successfully installed @hookform/resolvers
+2025-04-21 21:36:39,829 - INFO - Installing zod@^3.24.1 (Attempt 1/3)
+2025-04-21 21:36:42,799 - INFO - Successfully installed zod
+2025-04-21 21:36:42,800 - INFO - 
+Installing utilities modules...
+2025-04-21 21:36:42,800 - INFO - Installing next-themes@latest (Attempt 1/3)
+2025-04-21 21:36:44,993 - INFO - Successfully installed next-themes
+2025-04-21 21:36:44,993 - INFO - Installing sonner@^1.7.1 (Attempt 1/3)
+2025-04-21 21:36:47,648 - INFO - Successfully installed sonner
+2025-04-21 21:36:47,648 - INFO - Installing date-fns@4.1.0 (Attempt 1/3)
+2025-04-21 21:36:49,887 - INFO - Successfully installed date-fns
+2025-04-21 21:36:49,887 - INFO - Installing recharts@2.15.0 (Attempt 1/3)
+2025-04-21 21:36:51,768 - INFO - Successfully installed recharts
+2025-04-21 21:36:51,769 - INFO - 
+Installing dev modules...
+2025-04-21 21:36:51,769 - INFO - Installing @types/node@^22 (Attempt 1/3)
+2025-04-21 21:36:54,079 - INFO - Successfully installed @types/node
+2025-04-21 21:36:54,080 - INFO - Installing @types/react@^18 (Attempt 1/3)
+2025-04-21 21:36:56,575 - INFO - Successfully installed @types/react
+2025-04-21 21:36:56,576 - INFO - Installing @types/react-dom@^18 (Attempt 1/3)
+2025-04-21 21:36:58,913 - INFO - Successfully installed @types/react-dom
+2025-04-21 21:36:58,913 - INFO - Installing postcss@^8 (Attempt 1/3)
+2025-04-21 21:37:01,321 - INFO - Successfully installed postcss
+2025-04-21 21:37:01,321 - INFO - Installing autoprefixer@^10.4.20 (Attempt 1/3)
+2025-04-21 21:37:03,823 - INFO - Successfully installed autoprefixer
+2025-04-21 21:37:05,058 - INFO - Initialized Tailwind CSS configuration
+2025-04-21 21:37:05,058 - INFO - 
+All modules installed successfully!
+2025-04-21 21:37:05,058 - INFO - 
+Running initial build...
+2025-04-21 21:37:12,224 - ERROR - Build failed: Failed to compile.
+
+./components/layout/header.tsx
+Module not found: Can't resolve '@/components/ui/theme-toggle'
+
+https://nextjs.org/docs/messages/module-not-found
+
+./components/map/dispatcher-map.tsx
+Module not found: Can't resolve 'react-map-gl'
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./app/dispatcher/dashboard/page.tsx
+
+./components/map/mapbox-map.tsx
+Module not found: Can't resolve 'react-map-gl'
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./app/profile/page.tsx
+
+./app/api/check-verification/route.js
+Module not found: Can't resolve 'twilio'
+
+https://nextjs.org/docs/messages/module-not-found
+
+./app/api/send-verification/route.js
+Module not found: Can't resolve 'twilio'
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+> Build failed because of webpack errors
+

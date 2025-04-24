@@ -1,228 +1,246 @@
-# TriGo - Location-based TODA Ride Hailing App
+# TriGo - Authentication Module
 
-TriGo is a modern ride-hailing platform specifically designed for Tricycle Operators and Drivers Associations (TODA) in the Philippines. The application connects passengers with local tricycle drivers, providing an efficient, affordable, and accessible transportation solution.
+TriGo is a flexible, modern, and fully-featured authentication module that can be easily integrated into any existing web application. It provides a beautiful, role-based login experience with multiple authentication methods (email/password and phone OTP).
 
-![TriGo Logo](public/images/trigo-logo.png)
+![TriGo Login](https://i.imgur.com/tGzNxZa.png)
+
+## Tech Stack
+
+- **Framework**: Next.js 13+ (App Router)
+- **Styling**: Tailwind CSS
+- **Components**: Modern UI with role-based authentication
+- **Icons**: Lucide React
+- **Form Validation**: Zod
+- **Animation**: Canvas-based background and CSS animations
+- **Typescript**: Full type safety throughout
 
 ## Features
 
-### Multi-role System
+- **Role-based Authentication**: Separate login flows for different user types
+- **Multiple Auth Methods**: 
+  - Email/Password login
+  - Phone OTP verification
+- **Modern UI/UX**: 
+  - Beautiful animated background
+  - Interactive role cards with flip effect
+  - Responsive design for all devices
+- **Form Validation**: 
+  - Real-time validation feedback
+  - Error handling for all form inputs
+- **Account Management**:
+  - Password reset workflow
+  - Account creation flow
 
-- **Passengers**: Book rides, track triders, save locations
-- **Triders**: Manage ride requests, track earnings, update status
-- **Dispatchers**: Monitor operations, manage queue, track rides
-- **Administrators**: System configuration, user management, analytics
-
-### Smart Location Services
-
-- Real-time location tracking
-- Auto-detection for pickup locations
-- Place search with Mapbox integration
-- Terminal exit selection
-- Saved locations management
-- Popular destinations
-
-### Ride Management
-
-- Intelligent queue system for triders
-- Real-time ride tracking
-- Accurate fare estimation
-- Multiple payment options
-- Ride history and analytics
-- Status updates and notifications
-
-### Enhanced User Experience
-
-- Modern, responsive design
-- Dark mode support
-- Real-time updates
-- Interactive maps
-- Smooth animations
-- Cross-device compatibility
-
-## Recent Updates (April 2025)
-
-A significant refactoring and enhancement effort was undertaken to improve the application's stability, error handling, and maintainability. Key improvements include:
-
-- Migration to the latest Supabase SSR library for authentication
-- Enhanced error handling across components and API routes using standardized responses and user-friendly toast notifications
-- Improved type safety throughout the codebase
-- Added more detailed logging for easier debugging
-- Enhanced map features with custom markers, animations, and improved error handling
-- Implemented various loading indicators for better user experience
-- Resolved various build errors and component-specific bugs
-- (See `CHANGELOG.md` for detailed changes)
-
-## Technologies
-
-- **Frontend**:
-  - Next.js 15.2.4 (App Router)
-  - React 18.2.0 with TypeScript 5
-  - Tailwind CSS 3.4.17 for styling
-  - shadcn/ui components
-  - Mapbox GL for mapping capabilities
-
-- **Backend**:
-  - Supabase (PostgreSQL)
-  - Prisma ORM 6.6.0
-  - Real-time subscriptions
-  - Row Level Security
-  - PostGIS for location data
-
-- **Maps & Location**:
-  - Mapbox GL JS for interactive maps
-  - Mapbox Geocoding API for location search
-  - Mapbox Directions API for route planning
-  - Mapbox Matrix API for fare and time calculation
-  - Custom markers and popups
-  - Real-time location tracking
-  - Fallback demo mode for testing
-
-- **Authentication**:
-  - Supabase Auth
-  - Role-based access control
-  - Secure sessions
-
-## Getting Started
+## Installation Requirements
 
 ### Prerequisites
 
-- Node.js 20.19 or higher
-- npm, yarn, or pnpm
-- Supabase account
-- Mapbox access token with:
-  - Maps API
-  - Geocoding API
-  - Directions API
-  - Matrix API
+- Node.js 18.17.0 or later
+- npm 9.6.7 or later
 
-### Environment Setup
+### Dependencies
 
-1. Clone the repository:
+```json
+{
+  "dependencies": {
+    "@hookform/resolvers": "^3.9.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.446.0",
+    "next": "13.5.1",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-hook-form": "^7.53.0",
+    "tailwind-merge": "^2.5.2",
+    "tailwindcss": "3.3.3",
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^3.23.8"
+  }
+}
+```
 
-   ```bash
-   git clone https://github.com/dagz55/trigo-latest.git
-   cd trigo-latest
-   ```
+### Installation
 
+1. Clone the repository or copy the required files
 2. Install dependencies:
 
-   ```bash
-   npm install
-   # or
-   yarn install
-   # or
-   pnpm install
-   ```
-
-3. Create `.env.local` file:
-
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL="your_supabase_url"
-   NEXT_PUBLIC_SUPABASE_ANON_KEY="your_supabase_anon_key"
-   NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN="your_mapbox_access_token"
-   ```
-
-4. Configure Mapbox:
-   - Create a Mapbox account at mapbox.com
-   - Create a new access token with the required scopes
-   - Set token restrictions to your domain if needed
-
-### Running the App
-
-1. Start the development server:
-
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   # or
-   pnpm dev
-   ```
-
-2. Access the application:
-   - Local: [http://localhost:3000](http://localhost:3000) (or :3001 if 3000 is in use)
-   - Network: [http://192.168.1.101:3000](http://192.168.1.101:3000) (or :3001)
-
-### Test Accounts
-
-#### Passenger
-
-```text
-Email: passenger.test@trigo.ph
-Password: Passenger123!
+```bash
+npm install
 ```
 
-#### Trider
+3. Add custom configuration if needed
+4. Start the development server:
 
-```text
-Email: trider1.test@trigo.ph
-Password: Trider123!
+```bash
+npm run dev
 ```
 
-```text
-Email: trider2.test@trigo.ph
-Password: Trider123!
+## Integration Guide
+
+### Adding to an Existing React/Next.js Application
+
+#### 1. Copy Required Files
+
+Start by copying these key component directories and files to your project:
+
+- `components/Logo.tsx`
+- `components/LoginForm.tsx`
+- `components/RoleCard.tsx`
+- `components/RoleSelection.tsx`
+- `components/BackgroundAnimation.tsx`
+- `lib/constants.ts`
+- `lib/types.ts`
+- `lib/utils.ts`
+
+#### 2. Update Dependencies
+
+Ensure your project has the necessary dependencies:
+
+```bash
+npm install lucide-react zod clsx tailwind-merge
 ```
 
-#### Dispatcher
+#### 3. Configure Tailwind CSS
 
-```text
-Email: dispatcher.test@trigo.ph
-Password: Dispatcher123!
+Make sure your `tailwind.config.js` includes the necessary configuration:
+
+```js
+module.exports = {
+  content: [
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  theme: {
+    extend: {
+      // Copy the custom animations and other theme extensions
+    }
+  }
+}
 ```
 
-#### Administrator
+#### 4. Customize User Roles
 
-```text
-Email: admin.test@trigo.ph
-Password: Admin123!
+Edit the roles in `lib/constants.ts` to match your application's user types:
+
+```typescript
+export const roles: Role[] = [
+  { 
+    id: 'customer', 
+    name: 'Customer',
+    icon: User, 
+    route: '/customer/dashboard',
+    description: 'Access your account and orders',
+  },
+  // Add additional roles as needed
+];
 ```
 
-## Documentation
+#### 5. Connect Authentication Logic
 
-- [Passenger Guide](README_passengers.md)
-- [Trider Guide](README_triders.md)
-- [Dispatcher Guide](README_dispatchers.md)
-- [Administrator Guide](README_admin.md)
+Update the login form handlers in `components/LoginForm.tsx` to connect with your authentication service:
 
-## Development
-
-### Project Structure
-
-```text
-trigo-latest/
-├── app/                 # Next.js app router pages
-├── components/          # React components
-├── contexts/            # React contexts
-├── hooks/               # Custom React hooks
-├── lib/                 # Utility functions
-├── prisma/              # Prisma ORM schema and client
-├── public/              # Static assets
-├── styles/              # Global styles
-├── supabase/            # Database migrations
-└── types/               # TypeScript type definitions
+```typescript
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  // Validate form data with zod
+  try {
+    loginSchema.parse(formData);
+    setErrors({});
+  } catch (error) {
+    // Handle validation errors
+  }
+  
+  // Connect to your authentication API
+  setIsLoading(true);
+  try {
+    // Replace with your API call
+    const response = await yourAuthService.login(formData);
+    
+    // Handle successful login
+    router.push(route);
+  } catch (error) {
+    setLoginError("Login failed. Please check your credentials.");
+  } finally {
+    setIsLoading(false);
+  }
+};
 ```
 
-### Key Components
+#### 6. Add the Login Page
 
-- `app/`: Route handlers and page components
-- `components/`: Reusable UI components
-- `components/ui/`: UI component library based on shadcn/ui
-- `lib/`: Helper functions and API clients
-- `prisma/`: Database schema and client
-- `supabase/`: Database schema and migrations
+Create a page component that uses the TriGo authentication:
 
-## Support
+```tsx
+import Logo from "@/components/Logo";
+import RoleSelection from "@/components/RoleSelection";
+import BackgroundAnimation from "@/components/BackgroundAnimation";
 
-For technical support or feature requests:
+export default function LoginPage() {
+  return (
+    <main className="min-h-screen w-full relative flex flex-col items-center justify-center overflow-hidden py-12">
+      <BackgroundAnimation />
+      
+      <div className="container mx-auto px-4 py-8 z-10 max-w-7xl">
+        <Logo />
+        <RoleSelection />
+      </div>
+    </main>
+  );
+}
+```
 
-- Create an issue in the repository
-- Contact [support@trigo.ph](mailto:support@trigo.ph)
-- Join our Discord community
+### Integration with Non-React Applications
+
+For non-React applications, you have two options:
+
+#### Option 1: Embed as a Standalone Application
+
+1. Build the TriGo authentication module as a standalone Next.js app
+2. Embed it in your application using an iframe or redirect users to it
+3. Use cookies or localStorage to maintain session state between applications
+
+#### Option 2: Convert to Your Framework
+
+1. Use the design and logic as a reference
+2. Recreate the components in your framework of choice (Vue, Angular, etc.)
+3. Adapt the form handling and validation logic to your framework's patterns
+
+## Customization
+
+### Themes and Colors
+
+Customize the color scheme by modifying the role-specific styling functions in `components/RoleCard.tsx` and `components/LoginForm.tsx`:
+
+```typescript
+function getRoleButtonBg(roleId: string): string {
+  switch(roleId) {
+    case 'passenger': return 'bg-orange-500/20';
+    case 'trider': return 'bg-cyan-500/20'; 
+    // Modify with your custom colors
+    default: return 'bg-cyan-500/20';
+  }
+}
+```
+
+### Branding
+
+To customize the branding:
+
+1. Update the `Logo.tsx` component with your own logo and branding
+2. Modify the color schemes in the CSS variables
+3. Update the background animation colors in `BackgroundAnimation.tsx`
+
+## Best Practices for Integration
+
+1. **Authentication State Management**: Use a global state management solution (React Context, Redux, Zustand) to manage authentication state
+2. **Route Protection**: Implement route guards to protect authenticated routes
+3. **Token Management**: Securely store and refresh authentication tokens
+4. **Error Handling**: Provide clear error messages for authentication failures
+5. **Accessibility**: Ensure all components meet WCAG accessibility standards
+6. **Responsive Design**: Test on various screen sizes to ensure proper display
 
 ## License
 
-Copyright © 2025 TriGo. All rights reserved.
-
-Last updated: April 13, 2025
+MIT

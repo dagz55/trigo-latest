@@ -1,5 +1,6 @@
 "use client"
 
+import BackgroundAnimation from "@/components/BackgroundAnimation"
 import { Header } from "@/components/layout/header"
 import { TodaPreferences } from "@/components/profile/toda-preferences"
 import { Button } from "@/components/ui/button"
@@ -10,33 +11,44 @@ import { LoadingOverlay } from "@/components/ui/loading-overlay"
 import { LoadingPage } from "@/components/ui/loading-page"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useUser } from "@/contexts/user-context"
-import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft, Briefcase, Home, LogOut, MapPin, Star, User } from "lucide-react"
 import dynamic from 'next/dynamic'
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { TodaSelector } from "@/components/toda/toda-selector"
-import { supabase } from "@/lib/supabase-client"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
-const MapboxMap = dynamic(() =>
-  import('@/components/map/mapbox-map').then(mod => mod.default),
-  {
-    ssr: false, // Ensure it only renders client-side
-    loading: () => <div className="flex items-center justify-center h-[150px] bg-muted text-muted-foreground">Loading Map...</div>
-  }
-)
+// Simplified dynamic import for the mock map component
+const MapboxMap = dynamic(() => import('@/components/map/mapbox-map'), {
+  loading: () => <div className="h-64 flex items-center justify-center bg-gray-700/50 rounded-lg">Loading map...</div>,
+  ssr: false,
+});
 
 export default function ProfilePage() {
   const { user, updateUserProfile, logout, loading } = useUser()
   const router = useRouter()
-  const { toast } = useToast()
   const [isUpdating, setIsUpdating] = useState(false)
-  const [name, setName] = useState(user?.name || "")
-  const [phone, setPhone] = useState(user?.phone || "")
-  const [homeAddress, setHomeAddress] = useState(user?.homeLocation?.address || "")
-  const [workAddress, setWorkAddress] = useState(user?.workLocation?.address || "")
+  const [mounted, setMounted] = useState(false)
+  const [name, setName] = useState("")
+  const [phone, setPhone] = useState("")
+  const [homeAddress, setHomeAddress] = useState("")
+  const [workAddress, setWorkAddress] = useState("")
+  
+  useEffect(() => {
+    setMounted(true)
+    
+    if (user) {
+      setName(user.name || "")
+      setPhone(user.phone || "")
+      setHomeAddress(user.homeLocation?.address || "")
+      setWorkAddress(user.terminalExit?.address || "")
+    }
+  }, [user])
+
+  // Wait for component to mount before rendering to avoid hydration issues
+  if (!mounted) {
+    return <LoadingPage message="Loading profile..." />
+  }
 
   // Redirect if not logged in
   if (!loading && !user) {
@@ -63,16 +75,9 @@ export default function ProfilePage() {
         name,
         phone,
       })
-      toast({
-        title: "Profile Updated",
-        description: "Your profile information has been updated successfully.",
-      })
+      toast.success("Your profile information has been updated successfully.")
     } catch (error) {
-      toast({
-        title: "Update Failed",
-        description: "There was an error updating your profile. Please try again.",
-        variant: "destructive",
-      })
+      toast.error("There was an error updating your profile. Please try again.")
     } finally {
       setIsUpdating(false)
     }
@@ -83,48 +88,56 @@ export default function ProfilePage() {
   }
 
   return (
-    <>
+    <main className="min-h-screen w-full relative flex flex-col items-start overflow-hidden">
+      <BackgroundAnimation />
+      
       <Header />
-      <div className="container max-w-4xl mx-auto py-8">
+      
+      <div className="container max-w-5xl mx-auto py-8 px-4 z-10 pt-20">
         {isUpdating && <LoadingOverlay message="Updating profile..." />}
 
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
             <Link href={user?.role === "passenger" ? "/passenger" : user?.role === "trider" ? "/trider" : "/dashboard"}>
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/10">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>
             </Link>
-            <h1 className="text-3xl font-bold">My Profile</h1>
+            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-violet-300">My Profile</h1>
           </div>
-          <Button variant="outline" size="sm" onClick={handleLogout}>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleLogout}
+            className="border-red-500/30 text-red-400 hover:bg-red-950/20 hover:text-red-300"
+          >
             <LogOut className="h-4 w-4 mr-2" />
             Sign Out
           </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="md:col-span-1">
+          <Card className="md:col-span-1 bg-black/20 backdrop-blur-sm border border-white/10 shadow-xl">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <User className="h-5 w-5 text-primary" />
-                <CardTitle>Account Info</CardTitle>
+                <User className="h-5 w-5 text-purple-400" />
+                <CardTitle className="text-white/90">Account Info</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm font-medium">Email</p>
-                  <p className="text-sm text-muted-foreground">{user?.email}</p>
+                  <p className="text-sm font-medium text-white/80">Email</p>
+                  <p className="text-sm text-white/60">{user?.email}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium">Role</p>
-                  <p className="text-sm text-muted-foreground capitalize">{user?.role}</p>
+                  <p className="text-sm font-medium text-white/80">Role</p>
+                  <p className="text-sm text-white/60 capitalize">{user?.role}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium">Member Since</p>
-                  <p className="text-sm text-muted-foreground">January 2023</p>
+                  <p className="text-sm font-medium text-white/80">Member Since</p>
+                  <p className="text-sm text-white/60">January 2023</p>
                 </div>
               </div>
             </CardContent>
@@ -132,71 +145,90 @@ export default function ProfilePage() {
 
           <div className="md:col-span-2">
             <Tabs defaultValue="personal">
-              <TabsList className="mb-4">
-                <TabsTrigger value="personal">Personal Info</TabsTrigger>
-                <TabsTrigger value="locations">Saved Locations</TabsTrigger>
-                <TabsTrigger value="preferences">Preferences</TabsTrigger>
+              <TabsList className="mb-4 bg-black/30 backdrop-blur-sm">
+                <TabsTrigger value="personal" className="data-[state=active]:bg-purple-500/20">Personal Info</TabsTrigger>
+                <TabsTrigger value="locations" className="data-[state=active]:bg-purple-500/20">Saved Locations</TabsTrigger>
+                <TabsTrigger value="preferences" className="data-[state=active]:bg-purple-500/20">Preferences</TabsTrigger>
               </TabsList>
 
               <TabsContent value="personal">
-                <Card>
+                <Card className="bg-black/20 backdrop-blur-sm border border-white/10 shadow-xl">
                   <CardHeader>
-                    <CardTitle>Personal Information</CardTitle>
-                    <CardDescription>Update your personal details</CardDescription>
+                    <CardTitle className="text-white/90">Personal Information</CardTitle>
+                    <CardDescription className="text-white/60">Update your personal details</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="name">Full Name</Label>
+                      <Label htmlFor="name" className="text-white/80">Full Name</Label>
                       <Input
                         id="name"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="Enter your full name"
+                        className="bg-gray-800/50 border-gray-700 focus:border-purple-500/50 text-white placeholder:text-gray-500"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number</Label>
+                      <Label htmlFor="phone" className="text-white/80">Phone Number</Label>
                       <Input
                         id="phone"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="Enter your phone number"
+                        className="bg-gray-800/50 border-gray-700 focus:border-purple-500/50 text-white placeholder:text-gray-500"
                       />
                     </div>
                   </CardContent>
                   <CardFooter>
-                    <Button onClick={handleUpdateProfile}>Save Changes</Button>
+                    <Button 
+                      onClick={handleUpdateProfile}
+                      className="bg-gradient-to-r from-purple-600 to-violet-500 hover:from-purple-700 hover:to-violet-600 transition-all duration-300"
+                    >
+                      Save Changes
+                    </Button>
                   </CardFooter>
                 </Card>
               </TabsContent>
 
               <TabsContent value="locations">
-                <Card>
+                <Card className="bg-black/20 backdrop-blur-sm border border-white/10 shadow-xl">
                   <CardHeader>
-                    <CardTitle>Saved Locations</CardTitle>
-                    <CardDescription>Manage your frequently used locations</CardDescription>
+                    <CardTitle className="text-white/90">Saved Locations</CardTitle>
+                    <CardDescription className="text-white/60">Manage your frequently used locations</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="space-y-4">
                       <div className="flex items-center gap-2">
-                        <Home className="h-5 w-5 text-primary" />
-                        <h3 className="font-medium">Home Location</h3>
+                        <Home className="h-5 w-5 text-purple-400" />
+                        <h3 className="font-medium text-white/80">Home Location</h3>
                       </div>
 
                       {user?.homeLocation ? (
                         <div className="space-y-3">
-                          <MapboxMap
-                            center={{ lat: user.homeLocation.lat, lng: user.homeLocation.lng }}
-                            markers={[{ lat: user.homeLocation.lat, lng: user.homeLocation.lng, title: "Home", type: "terminal" }]}
-                            height="150px"
-                            zoom={16}
-                          />
-                          <div className="p-3 bg-muted rounded-md">
+                          <div className="mt-4">
+                            <h2 className="text-lg font-semibold text-white/90">Home Location</h2>
+                            <div className="h-64 rounded-lg overflow-hidden">
+                              <MapboxMap
+                                center={{ lat: user.homeLocation.lat, lng: user.homeLocation.lng }}
+                                zoom={14}
+                                height="256px"
+                                markers={[
+                                  {
+                                    lat: user.homeLocation.lat,
+                                    lng: user.homeLocation.lng,
+                                    title: "Home",
+                                    type: "terminal" as "terminal"
+                                  }
+                                ]}
+                              />
+                            </div>
+                          </div>
+                          <div className="p-3 bg-gray-800/50 rounded-md">
                             <div className="flex items-start">
-                              <MapPin className="w-4 h-4 mt-1 mr-2 text-primary" />
+                              <MapPin className="w-4 h-4 mt-1 mr-2 text-purple-400" />
                               <div>
-                                <p className="text-sm font-medium">{user.homeLocation.address}</p>
-                                <p className="text-xs text-muted-foreground">
+                                <p className="text-sm font-medium text-white/80">{user.homeLocation.address}</p>
+                                <p className="text-xs text-white/60">
                                   Lat: {user.homeLocation.lat.toFixed(6)}, Lng: {user.homeLocation.lng.toFixed(6)}
                                 </p>
                               </div>
@@ -204,9 +236,13 @@ export default function ProfilePage() {
                           </div>
                         </div>
                       ) : (
-                        <div className="p-4 bg-muted/50 rounded-md text-center">
-                          <p className="text-sm text-muted-foreground">No home location set</p>
-                          <Button variant="outline" size="sm" className="mt-2">
+                        <div className="p-4 bg-gray-800/30 rounded-md text-center">
+                          <p className="text-sm text-white/60">No home location set</p>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="mt-2 border-purple-500/30 text-purple-400 hover:bg-purple-950/20"
+                          >
                             Add Home Location
                           </Button>
                         </div>
@@ -215,76 +251,52 @@ export default function ProfilePage() {
 
                     <div className="space-y-4">
                       <div className="flex items-center gap-2">
-                        <Briefcase className="h-5 w-5 text-primary" />
-                        <h3 className="font-medium">Work Location</h3>
+                        <Briefcase className="h-5 w-5 text-purple-400" />
+                        <h3 className="font-medium text-white/80">Terminal Exit</h3>
                       </div>
 
-                      {user?.workLocation ? (
+                      {user?.terminalExit ? (
                         <div className="space-y-3">
-                          <MapboxMap
-                            center={{ lat: user.workLocation.lat, lng: user.workLocation.lng }}
-                            markers={[{ lat: user.workLocation.lat, lng: user.workLocation.lng, title: "Work", type: "terminal" }]}
-                            height="150px"
-                            zoom={16}
-                          />
-                          <div className="p-3 bg-muted rounded-md">
+                          <div className="mt-4">
+                            <h2 className="text-lg font-semibold text-white/90">Terminal Exit Location</h2>
+                            <div className="h-64 rounded-lg overflow-hidden">
+                              <MapboxMap
+                                center={{ lat: user.terminalExit.lat, lng: user.terminalExit.lng }}
+                                zoom={14}
+                                height="256px"
+                                markers={[
+                                  {
+                                    lat: user.terminalExit.lat,
+                                    lng: user.terminalExit.lng,
+                                    title: "Terminal Exit",
+                                    type: "terminal" as "terminal"
+                                  }
+                                ]}
+                              />
+                            </div>
+                          </div>
+                          <div className="p-3 bg-gray-800/50 rounded-md">
                             <div className="flex items-start">
-                              <MapPin className="w-4 h-4 mt-1 mr-2 text-primary" />
+                              <MapPin className="w-4 h-4 mt-1 mr-2 text-purple-400" />
                               <div>
-                                <p className="text-sm font-medium">{user.workLocation.address}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  Lat: {user.workLocation.lat.toFixed(6)}, Lng: {user.workLocation.lng.toFixed(6)}
+                                <p className="text-sm font-medium text-white/80">{user.terminalExit.address}</p>
+                                <p className="text-xs text-white/60">
+                                  Lat: {user.terminalExit.lat.toFixed(6)}, Lng: {user.terminalExit.lng.toFixed(6)}
                                 </p>
                               </div>
                             </div>
                           </div>
                         </div>
                       ) : (
-                        <div className="p-4 bg-muted/50 rounded-md text-center">
-                          <p className="text-sm text-muted-foreground">No work location set</p>
-                          <Button variant="outline" size="sm" className="mt-2">
-                            Add Work Location
+                        <div className="p-4 bg-gray-800/30 rounded-md text-center">
+                          <p className="text-sm text-white/60">No terminal exit location set</p>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="mt-2 border-purple-500/30 text-purple-400 hover:bg-purple-950/20"
+                          >
+                            Add Terminal Exit
                           </Button>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Star className="h-5 w-5 text-primary" />
-                          <h3 className="font-medium">Favorite Locations</h3>
-                        </div>
-                        <Button variant="outline" size="sm">
-                          Add New
-                        </Button>
-                      </div>
-
-                      {user?.favoriteLocations && user.favoriteLocations.length > 0 ? (
-                        <div className="space-y-3">
-                          {user.favoriteLocations.map((location, index) => (
-                            <div key={index} className="p-3 bg-muted rounded-md">
-                              <div className="flex items-start">
-                                <MapPin className="w-4 h-4 mt-1 mr-2 text-primary" />
-                                <div className="flex-1">
-                                  <p className="text-sm font-medium">{location.address}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    Lat: {location.lat.toFixed(6)}, Lng: {location.lng.toFixed(6)}
-                                  </p>
-                                </div>
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                  <Star className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="p-4 bg-muted/50 rounded-md text-center">
-                          <p className="text-sm text-muted-foreground">No favorite locations saved</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Add locations you visit frequently for quick access
-                          </p>
                         </div>
                       )}
                     </div>
@@ -293,57 +305,36 @@ export default function ProfilePage() {
               </TabsContent>
 
               <TabsContent value="preferences">
-                <div className="space-y-6">
-                  {/* TODA Preferences */}
-                  <TodaPreferences />
-
-                  {/* App Preferences */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>App Preferences</CardTitle>
-                      <CardDescription>Customize your app experience</CardDescription>
-                    </CardHeader>
-                    <CardContent>
+                <Card className="bg-black/20 backdrop-blur-sm border border-white/10 shadow-xl">
+                  <CardHeader>
+                    <CardTitle className="text-white/90">Preferences</CardTitle>
+                    <CardDescription className="text-white/60">Customize your experience</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {user?.role === "passenger" && (
                       <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">Dark Mode</p>
-                            <p className="text-sm text-muted-foreground">Switch between light and dark themes</p>
-                          </div>
-                          <Button variant="outline">Toggle Theme</Button>
+                        <div className="flex items-center gap-2">
+                          <Star className="h-5 w-5 text-purple-400" />
+                          <h3 className="font-medium text-white/80">Preferred TODA</h3>
                         </div>
-
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">Notifications</p>
-                            <p className="text-sm text-muted-foreground">Manage your notification preferences</p>
-                          </div>
-                          <Button variant="outline">Configure</Button>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">Language</p>
-                            <p className="text-sm text-muted-foreground">Choose your preferred language</p>
-                          </div>
-                          <select
-                            aria-label="Select language"
-                            className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                          >
-                            <option>English</option>
-                            <option>Filipino</option>
-                          </select>
-                        </div>
+                        
+                        <TodaPreferences 
+                          userId={user.id} 
+                          preferredTodaId={user.preferredTodaId} 
+                          onUpdate={() => {
+                            toast.success("Preferences updated successfully")
+                          }}
+                        />
                       </div>
-                    </CardContent>
-                  </Card>
-                </div>
+                    )}
+                  </CardContent>
+                </Card>
               </TabsContent>
             </Tabs>
           </div>
         </div>
       </div>
-    </>
+    </main>
   )
 }
 

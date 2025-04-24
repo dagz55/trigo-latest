@@ -17,23 +17,22 @@ import { LoadingOverlay } from "@/components/ui/loading-overlay"
 import { useUser } from "@/contexts/user-context"
 // import { useToast } from "@/hooks/use-toast" // Remove useToast hook
 import { getLocationsByCity, supabase, type Location } from "@/lib/supabase-client"
-import { Calendar, Check, Clock, Loader2, MapPin, Navigation, X } from "lucide-react"
+import { Loader2, MapPin, Navigation, X } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"; // Import toast directly
 // Import the TerminalExits component
 import { TerminalExits } from "@/components/passenger/terminal-exits"
 // Import the SavedLocations component
-import { SavedLocations } from "@/components/passenger/saved-locations"
 // Import dynamically
 import { debounce } from 'lodash'
 import dynamic from 'next/dynamic'
 import { v4 as uuidv4 } from 'uuid'
 
-const MapboxMap = dynamic(() =>
+const MapboxMap = dynamic(() => 
   import('@/components/map/mapbox-map').then(mod => mod.default),
-  {
+  { 
     ssr: false, // Ensure it only renders client-side
-    loading: () => <div className="flex items-center justify-center h-full bg-muted text-muted-foreground">Loading Map...</div>
+    loading: () => <div className="flex items-center justify-center h-full bg-muted text-muted-foreground">Loading Map...</div> 
   }
 )
 
@@ -61,15 +60,15 @@ export function PassengerBooking() {
   const [routeGeojson, setRouteGeojson] = useState<any>(null)
   const [routeDistance, setRouteDistance] = useState<number | null>(null)
   const [routeDuration, setRouteDuration] = useState<number | null>(null)
-  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({
-    lat: 14.4507, // Talon Kuatro center
+  const [mapCenter, setMapCenter] = useState({
+    lat: 14.5995,
     lng: 120.9826,
   })
   const [mapMarkers, setMapMarkers] = useState<Array<{
     lat: number
     lng: number
     title: string
-    type: 'pickup' | 'dropoff' | 'terminal'
+    type?: string
   }>>([])
   const [isMapPinningMode, setIsMapPinningMode] = useState(false)
   const [mapClickEnabled, setMapClickEnabled] = useState(false)
@@ -149,7 +148,7 @@ export function PassengerBooking() {
         city: "Las Piñas City", // Assume city/barangay or fetch if needed
         barangay: "Talon Kuatro", // Assume city/barangay or fetch if needed
         // Use the correct DB enum value
-        type: 'custom',
+        type: 'custom', 
         // Other fields like toda_id, created_at are optional or not applicable here
       };
       setSelectedPickup(homeAsLocation);
@@ -255,7 +254,7 @@ export function PassengerBooking() {
 
       // First, check if the location is already saved by the user
       const { data: existingData, error: checkError } = await supabase
-        .from('saved_locations')
+          .from('saved_locations')
         .select('*')
         .eq('user_id', userId)
         .eq('location_id', location.id);
@@ -305,11 +304,11 @@ export function PassengerBooking() {
       // Fallback approach if user context is not available
       // Try to insert directly into saved_locations
       const { error: insertError } = await supabase
-        .from('saved_locations')
+          .from('saved_locations')
         .insert([{
           user_id: userId,
           location_id: location.id,
-          created_at: new Date().toISOString()
+            created_at: new Date().toISOString()
         }]);
 
       if (insertError) {
@@ -318,9 +317,9 @@ export function PassengerBooking() {
       }
 
       // Success handling
-      toast.success("Location Saved", {
+        toast.success("Location Saved", {
         description: "Location has been added to your saved locations"
-      });
+        });
 
       // Clean up UI state
       setShowSaveLocationDialog(false);
@@ -339,7 +338,7 @@ export function PassengerBooking() {
     if (!mapClickEnabled) return;
 
     const { lat, lng } = event.lngLat;
-
+    
     // Create a new location from the clicked point with proper UUID
     const clickedLocation: Location = {
       id: uuidv4(), // Generate proper UUID instead of map- prefix
@@ -354,10 +353,10 @@ export function PassengerBooking() {
 
     // Store the location temporarily
     setTempDropoffLocation(clickedLocation);
-
+    
     // Show the save location dialog
     setShowSaveLocationDialog(true);
-
+    
     // Disable map clicking mode
     setMapClickEnabled(false);
     setIsMapPinningMode(false);
@@ -408,137 +407,131 @@ export function PassengerBooking() {
   };
 
   // Update the detectCurrentLocation function
-  const detectCurrentLocation = useCallback(
-    async (locationType: "pickup" | "dropoff") => {
-      if (isLocating) {
-        return; // Prevent multiple simultaneous calls
-      }
-
+  const detectCurrentLocation = async (locationType: 'pickup' | 'dropoff') => {
       setIsLocating(true);
 
       try {
-        // Check for geolocation support
-        if (!navigator.geolocation) {
-          throw new Error("Your browser doesn't support location detection.");
+      // Add Navigator lock handling
+      if (navigator.permissions) {
+        const permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
+        if (permissionStatus.state === 'denied') {
+          toast({
+            title: "Location Access Denied",
+            description: "Please enable location access in your browser settings.",
+            variant: "destructive"
+          });
+          setIsLocating(false);
+          return;
         }
-
-        // Wrap geolocation in a promise with timeout
-        const getPositionPromise = new Promise<GeolocationPosition>((resolve, reject) => {
-          const timeoutId = setTimeout(() => {
-            reject(new Error("Location request timed out. Please try again."));
-          }, 15000); // 15 second timeout
-
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              clearTimeout(timeoutId);
-              resolve(position);
-            },
-            (error) => {
-              clearTimeout(timeoutId);
-              reject(error);
-            },
-            {
-              enableHighAccuracy: true,
-              timeout: 15000,
-              maximumAge: 0
-            }
-          );
+      }
+      
+      const position = await getCurrentPosition().catch(error => {
+        console.error('Error getting current position:', error);
+        toast({
+          title: "Location Error",
+          description: error.message || "Couldn't get your current location.",
+          variant: "destructive"
         });
-
-        const position = await getPositionPromise;
-        console.log("Got position:", position.coords.latitude, position.coords.longitude);
-
-        // Create location data object with proper UUID
-        const locationData: Location = {
-          id: uuidv4(), // Generate proper UUID instead of timestamp
-          name: "Current Location",
-          address: "Current Location",
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          city: "Las Piñas City", // Default to app's service area
-          barangay: "Talon Kuatro", // Default to app's service area
-          type: 'custom',
+        throw error; // Re-throw to be caught by outer catch block
+      });
+      
+      const { latitude, longitude } = position.coords;
+      
+      // Format coordinates for geocoding API
+      const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+      if (!mapboxToken) {
+        throw new Error("Mapbox token not found");
+      }
+      
+      // Get location name from coordinates using Mapbox Geocoding API
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxToken}&types=address,poi,neighborhood,locality`
+      );
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch location name');
+      }
+      
+      const data = await response.json();
+      
+      // Extract location name and address
+      let locationName = "Current Location";
+      let fullAddress = "";
+      
+      if (data.features && data.features.length > 0) {
+        const feature = data.features[0];
+        locationName = feature.text || "Current Location";
+        fullAddress = feature.place_name || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+      }
+      
+      // Create location object
+      const location = {
+          id: `current-${Date.now()}`,
+        name: locationName,
+        address: fullAddress,
+        latitude,
+        longitude,
+        city: "Las Piñas City", // Default city
+        barangay: "Talon Kuatro", // Default barangay
+        type: "custom" as LocationType
         };
-
-        // First update the map center to ensure it's visible immediately
-        const newCenter = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        };
-
-        setMapCenter(newCenter);
-        console.log("Map center updated to current location:", newCenter);
 
         // Update state based on location type
-        if (locationType === "pickup") {
-          setSelectedPickup(locationData);
-          setPickupLocation("Current Location");
+      if (locationType === 'pickup') {
+        setSelectedPickup(location);
+        setPickupLocation(location.name);
           setShowPickupResults(false);
-
-          // Update markers after setting the center
-          setMapMarkers(prev => [
-            {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-              title: "Pickup",
-              type: "pickup"
-            },
-            ...prev.filter(m => m.type !== "pickup")
-          ]);
         } else {
-          setSelectedDropoff(locationData);
-          setDropoffLocation("Current Location");
+        setSelectedDropoff(location);
+        setDropoffLocation(location.name);
           setShowDropoffResults(false);
-
-          // Update markers after setting the center
-          setMapMarkers(prev => [
-            ...prev.filter(m => m.type !== "dropoff"),
-            {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-              title: "Dropoff",
-              type: "dropoff"
-            }
-          ]);
+      }
+      
+      // If both locations are selected, fetch route data
+      if (
+        (locationType === 'pickup' && selectedDropoff) ||
+        (locationType === 'dropoff' && selectedPickup)
+      ) {
+        const startLocation = locationType === 'pickup' ? location : selectedPickup!;
+        const endLocation = locationType === 'pickup' ? selectedDropoff! : location;
+        
+        await fetchRouteData(
+          startLocation.latitude,
+          startLocation.longitude,
+          endLocation.latitude,
+          endLocation.longitude
+        );
+      }
+      
+      // Save location to user profile for future use
+      if (user) {
+        try {
+          await saveLocationToProfile(location);
+        } catch (error) {
+          console.error('Failed to save location to profile:', error);
+          // Don't throw error here, just log it
         }
-
-        toast.success("Location Set", {
-          description: `Your current location has been set as the ${locationType} location.`
-        });
-
-      } catch (error) {
-        console.error("Location detection error:", error);
-
-        let errorMessage = "Unable to get your location. ";
-
-        if (error instanceof GeolocationPositionError) {
-          switch (error.code) {
-            case GeolocationPositionError.PERMISSION_DENIED:
-              errorMessage += "Please enable location access in your browser settings.";
-              break;
-            case GeolocationPositionError.POSITION_UNAVAILABLE:
-              errorMessage += "Location service is unavailable. Please try again later.";
-              break;
-            case GeolocationPositionError.TIMEOUT:
-              errorMessage += "Location request timed out. Please try again.";
-              break;
-            default:
-              errorMessage += "An unknown error occurred.";
-          }
-        } else if (error instanceof Error) {
-          errorMessage += error.message;
-        }
-
-        toast.error("Location Error", {
-          description: errorMessage
-        });
-
+      }
+    } catch (error) {
+      console.error('Error detecting current location:', error);
+      toast({
+        title: "Location Error",
+        description: (error as Error).message || "Couldn't detect your current location.",
+        variant: "destructive"
+      });
       } finally {
         setIsLocating(false);
       }
-    },
-    [isLocating, setMapCenter, setMapMarkers] // Add dependencies
-  );
+  };
+
+  // Add a useEffect to get current location when the component mounts
+  useEffect(() => {
+    // Only auto-detect location if we don't already have a pickup set 
+    // and user didn't explicitly set a location
+    if (!selectedPickup && !pickupLocation) {
+      detectCurrentLocation("pickup");
+    }
+  }, [selectedPickup, pickupLocation, detectCurrentLocation]); // Add proper dependencies
 
   // Select a location from search results
   const handleSelectPickup = (location: Location) => {
@@ -1133,15 +1126,15 @@ export function PassengerBooking() {
         // First attempt with full payload
         console.log("Attempting to insert booking with full payload");
         const result = await supabase
-          .from('bookings')
+        .from('bookings')
           .insert(bookingPayload)
-          .select()
-          .single();
+        .select()
+        .single();
 
         booking = result.data;
         bookingError = result.error;
 
-        if (bookingError) {
+      if (bookingError) {
           console.error("Error inserting booking with full payload:", bookingError);
 
           // Check if it's a schema cache issue
@@ -1250,7 +1243,7 @@ export function PassengerBooking() {
                 if (currentBooking && currentBooking.status === 'pending' && !currentBooking.assigned_to) {
                   await notifyDispatcher(booking.id);
                 }
-              } catch (error) {
+    } catch (error) {
                 console.error("Error checking booking status:", error);
                 // Notify dispatcher anyway as a fallback
                 await notifyDispatcher(booking.id);
@@ -1296,15 +1289,15 @@ export function PassengerBooking() {
     const endCoords = `${end.longitude},${end.latitude}`;
     const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${startCoords};${endCoords}?geometries=geojson&overview=full&access_token=${mapboxToken}`;
 
-    const response = await fetch(url);
-    const data = await response.json();
+      const response = await fetch(url);
+      const data = await response.json();
 
     if (!data.routes?.length) {
       throw new Error(data.message || "No route found");
     }
 
-    const route = data.routes[0];
-    return {
+        const route = data.routes[0];
+        return {
       geojson: route.geometry,
       distance: route.distance,
       duration: route.duration,
@@ -1420,7 +1413,7 @@ export function PassengerBooking() {
         lat: selectedPickup.latitude,
         lng: selectedPickup.longitude,
         title: selectedPickup.name || 'Pickup Location',
-        type: 'pickup' as const
+        type: 'pickup' as const 
       })
     }
 
@@ -1431,7 +1424,7 @@ export function PassengerBooking() {
         lat: selectedDropoff.latitude,
         lng: selectedDropoff.longitude,
         title: selectedDropoff.name || 'Drop-off Location',
-        type: 'dropoff' as const
+        type: 'dropoff' as const 
       })
     }
 
@@ -1441,7 +1434,7 @@ export function PassengerBooking() {
         lat: terminal.latitude,
         lng: terminal.longitude,
         title: terminal.name,
-        type: 'terminal' as const
+        type: 'terminal' as const 
       })
     })
     console.log("Adding terminal markers:", terminalExits.length)
@@ -1457,11 +1450,178 @@ export function PassengerBooking() {
       console.log("Centering map on first terminal:", terminalExits[0].name)
       setMapCenter({ lat: terminalExits[0].latitude, lng: terminalExits[0].longitude })
     } else {
-      console.log("Using default map center.")
-      // Keep default center if no pickup or terminals
-      setMapCenter({ lat: 14.4507, lng: 120.9826 })
+       console.log("Using default map center.")
+       // Keep default center if no pickup or terminals
+       setMapCenter({ lat: 14.4507, lng: 120.9826 })
     }
   }, [selectedPickup, selectedDropoff, terminalExits]) // Add proper dependencies
+
+  // Define the updateMarkersFromLocations function
+  const updateMarkersFromLocations = useCallback(() => {
+    const markers = [];
+    
+    // Add pickup marker if we have it
+    if (selectedPickup) {
+      markers.push({
+        lat: selectedPickup.latitude,
+        lng: selectedPickup.longitude,
+        type: 'pickup',
+        title: selectedPickup.name
+      });
+    }
+    
+    // Add dropoff marker if we have it
+    if (selectedDropoff) {
+      markers.push({
+        lat: selectedDropoff.latitude,
+        lng: selectedDropoff.longitude,
+        type: 'dropoff',
+        title: selectedDropoff.name
+      });
+    }
+    
+    // Update the markers state
+    setMapMarkers(markers);
+    
+    // If we have both pickup and dropoff, update the map center to focus on both points
+    if (selectedPickup && selectedDropoff) {
+      // Calculate the midpoint
+      const midLat = (selectedPickup.latitude + selectedDropoff.latitude) / 2;
+      const midLng = (selectedPickup.longitude + selectedDropoff.longitude) / 2;
+      setMapCenter({ lat: midLat, lng: midLng });
+      
+      // Create a simple geojson for the route
+      if (!routeGeojson) {
+        fetchRouteData(
+          selectedPickup.latitude, 
+          selectedPickup.longitude, 
+          selectedDropoff.latitude, 
+          selectedDropoff.longitude
+        );
+      }
+    } else if (selectedPickup) {
+      // Only pickup location set, center on it
+      setMapCenter({ lat: selectedPickup.latitude, lng: selectedPickup.longitude });
+    } else if (selectedDropoff) {
+      // Only dropoff location set, center on it
+      setMapCenter({ lat: selectedDropoff.latitude, lng: selectedDropoff.longitude });
+    }
+  }, [selectedPickup, selectedDropoff, routeGeojson]);
+  
+  // Add function to fetch route data from Mapbox Directions API
+  const fetchRouteData = async (startLat: number, startLng: number, endLat: number, endLng: number) => {
+    try {
+      const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+      if (!mapboxToken) {
+        console.error("Mapbox token not found");
+        toast({
+          title: "Map Error",
+          description: "Unable to load map service. Please try again later.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Add error handling with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      try {
+        const response = await fetch(
+          `https://api.mapbox.com/directions/v5/mapbox/driving/${startLng},${startLat};${endLng},${endLat}?geometries=geojson&alternatives=true&overview=full&access_token=${mapboxToken}`,
+          { signal: controller.signal }
+        );
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch route data: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        if (data.routes && data.routes.length > 0) {
+          // Find the shortest route by distance
+          const shortestRoute = data.routes.reduce((shortest, current) => 
+            current.distance < shortest.distance ? current : shortest, data.routes[0]);
+          
+          // Create GeoJSON for the route
+          const geojson = {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'LineString',
+              coordinates: shortestRoute.geometry.coordinates
+            }
+          };
+          
+          setRouteGeojson(geojson);
+          
+          // Update route distance and duration
+          if (shortestRoute.distance && shortestRoute.duration) {
+            setRouteDistance(shortestRoute.distance);
+            setRouteDuration(shortestRoute.duration);
+          }
+          
+          return { 
+            distance: shortestRoute.distance,
+            duration: shortestRoute.duration,
+            geometry: shortestRoute.geometry
+          };
+        }
+      } catch (fetchError) {
+        if (fetchError.name === 'AbortError') {
+          console.error('Route fetch request timed out');
+          toast({
+            title: "Route Error",
+            description: "Route calculation timed out. Please try again.",
+            variant: "destructive"
+          });
+        } else {
+          throw fetchError; // Re-throw to be caught by outer catch
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching route data:', error);
+      toast({
+        title: "Route Error",
+        description: "Couldn't calculate the route. Using straight line instead.",
+        variant: "destructive"
+      });
+      
+      // Create a simple straight line as fallback
+      const geojson = {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'LineString',
+          coordinates: [
+            [startLng, startLat],
+            [endLng, endLat]
+          ]
+        }
+      };
+      setRouteGeojson(geojson);
+      
+      // Calculate straight-line distance as fallback
+      const distance = calculateDistance(startLat, startLng, endLat, endLng) * 1000; // Convert km to meters
+      setRouteDistance(distance);
+      
+      // Estimate duration based on average speed of 20 km/h (tricycle)
+      const duration = (distance / 1000) / 20 * 3600; // hours to seconds
+      setRouteDuration(duration);
+      
+      return { 
+        distance,
+        duration,
+        geometry: geojson.geometry
+      };
+    }
+  };
+
+  // Add useEffect to update markers whenever locations change
+  useEffect(() => {
+    updateMarkersFromLocations();
+  }, [selectedPickup, selectedDropoff, updateMarkersFromLocations]);
 
   return (
     <>
@@ -1469,505 +1629,385 @@ export function PassengerBooking() {
         <LoadingOverlay message={bookingSuccess ? "Finalizing your booking..." : "Finding available triders..."} />
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="md:col-span-1">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Booking Form */}
+        <Card className="bg-black/30 backdrop-blur-md border border-green-500/20 shadow-lg">
           <CardHeader>
-            <CardTitle>Book a Ride</CardTitle>
-            <CardDescription>Enter your pickup and dropoff locations</CardDescription>
+            <CardTitle className="text-white">Book a Ride</CardTitle>
+            <CardDescription className="text-white/70">Enter your pickup and dropoff locations</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {!bookingSuccess ? (
-              <>
+          <CardContent>
+            <div className="space-y-4">
+              {/* Pickup Location */}
                 <div className="space-y-2">
-                  <Label htmlFor="pickup">Pickup Location</Label>
+                <Label htmlFor="pickup" className="text-white/80">Pickup Location</Label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <MapPin className="h-5 w-5 text-green-400" />
                     </div>
                     <Input
                       id="pickup"
                       placeholder="Enter pickup location"
                       value={pickupLocation}
                       onChange={(e) => handlePickupSearch(e.target.value)}
-                      className="pl-10 pr-20"
-                      disabled={bookingSuccess}
+                    onFocus={() => setShowPickupResults(pickupSearchResults.length > 0)}
+                    className="pl-10 bg-gray-800/50 border-gray-700 focus:border-green-500/50 text-white placeholder:text-gray-500"
                     />
-                    <div className="absolute inset-y-0 right-0 flex items-center">
-                      {selectedPickup && (
+                  {pickupLocation.length > 0 && (
                         <button
                           type="button"
-                          className="p-1 mr-1"
                           onClick={handleClearPickup}
-                          disabled={bookingSuccess}
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white"
                           aria-label="Clear pickup location"
                         >
-                          <X className="h-4 w-4 text-muted-foreground" />
+                      <X className="h-4 w-4" />
                         </button>
                       )}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 mr-1"
-                        onClick={() => detectCurrentLocation("pickup")}
-                        disabled={isLocating || bookingSuccess}
-                      >
-                        {isLocating ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                        ) : (
-                          <Navigation className="h-3 w-3 mr-1" />
-                        )}
-                        Current Location
-                      </Button>
                     </div>
-                  </div>
+                
+                {/* Pickup Search Results */}
                   {showPickupResults && pickupSearchResults.length > 0 && (
-                    <div className="absolute z-10 mt-1 w-full bg-card rounded-md shadow-lg border">
-                      <ul className="py-1 text-sm">
-                        {pickupSearchResults.map((location: Location) => (
+                  <div className="absolute z-10 mt-1 w-full bg-gray-800/95 border border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto">
+                    <ul className="py-1">
+                      {pickupSearchResults.map((location) => (
                           <li
                             key={location.id}
-                            className="px-4 py-2 hover:bg-muted cursor-pointer"
+                          className="px-4 py-2 hover:bg-gray-700/50 cursor-pointer text-white flex items-start"
                             onClick={() => handleSelectPickup(location)}
                           >
+                          <MapPin className="h-5 w-5 text-green-400 mr-2 mt-0.5 flex-shrink-0" />
+                          <div>
                             <div className="font-medium">{location.name}</div>
-                            <div className="text-xs text-muted-foreground">{location.address}</div>
+                            <div className="text-sm text-white/60">{location.address}</div>
+                          </div>
                           </li>
                         ))}
                       </ul>
                     </div>
                   )}
+                
+                {/* Quick Actions */}
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="border-green-500/30 text-green-400 hover:bg-green-500/10"
+                    onClick={() => setMapClickEnabled(true)}
+                  >
+                    <MapPin className="h-4 w-4 mr-1" />
+                    Pin on Map
+                  </Button>
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm" 
+                    className="border-green-500/30 text-green-400 hover:bg-green-500/10"
+                    onClick={() => detectCurrentLocation("pickup")}
+                    disabled={isLocating}
+                  >
+                    {isLocating ? (
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    ) : (
+                      <Navigation className="h-4 w-4 mr-1" />
+                    )}
+                    Current Location
+                  </Button>
+                </div>
                 </div>
 
+              {/* Dropoff Location */}
                 <div className="space-y-2">
-                  <Label htmlFor="dropoff">Dropoff Location</Label>
+                <Label htmlFor="dropoff" className="text-white/80">Dropoff Location</Label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <Navigation className="h-4 w-4 text-muted-foreground" />
+                    <MapPin className="h-5 w-5 text-green-400" />
                     </div>
                     <Input
                       id="dropoff"
-                      placeholder="Enter dropoff location or pin on map"
+                    placeholder="Enter dropoff location"
                       value={dropoffLocation}
                       onChange={(e) => handleDropoffSearch(e.target.value)}
-                      className="pl-10 pr-32"
-                      disabled={bookingSuccess || isMapPinningMode}
+                    onFocus={() => setShowDropoffResults(dropoffSearchResults.length > 0)}
+                    className="pl-10 bg-gray-800/50 border-gray-700 focus:border-green-500/50 text-white placeholder:text-gray-500"
                     />
-                    <div className="absolute inset-y-0 right-0 flex items-center">
-                      {selectedDropoff && (
+                  {dropoffLocation.length > 0 && (
                         <button
                           type="button"
-                          className="p-1 mr-1"
                           onClick={handleClearDropoff}
-                          disabled={bookingSuccess}
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white"
                           aria-label="Clear dropoff location"
                         >
-                          <X className="h-4 w-4 text-muted-foreground" />
+                      <X className="h-4 w-4" />
                         </button>
                       )}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 mr-1"
-                        onClick={() => {
-                          if (terminalExits.length > 0) {
-                            setSelectedDropoff(terminalExits[0]);
-                            setDropoffLocation(terminalExits[0].name);
-                            setShowDropoffResults(false);
-                            toast.info("Terminal Selected", {
-                              description: `${terminalExits[0].name} has been set as your drop-off location.`,
-                            });
-                          } else {
-                            toast.warning("No Terminals", {
-                              description: "No terminal exits are available."
-                            });
-                          }
-                        }}
-                        disabled={bookingSuccess || isMapPinningMode}
-                      >
-                        <Navigation className="h-3 w-3 mr-1" />
-                        Terminal Exit
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={isMapPinningMode ? "secondary" : "ghost"}
-                        size="sm"
-                        className="h-8"
-                        onClick={() => {
-                          const newPinningMode = !isMapPinningMode;
-                          setIsMapPinningMode(newPinningMode);
-                          setMapClickEnabled(newPinningMode);
-                          if (newPinningMode) {
-                            toast.info("Map Pinning Mode", {
-                              description: "Click anywhere on the map to set your drop-off location."
-                            });
-                            // Set cursor to crosshair when pinning mode is active
-                            document.body.style.cursor = 'crosshair';
-                          } else {
-                            // Reset cursor when pinning mode is deactivated
-                            document.body.style.cursor = 'default';
-                          }
-                        }}
-                        disabled={bookingSuccess}
-                      >
-                        <MapPin className="h-3 w-3 mr-1" />
-                        Pin
-                      </Button>
                     </div>
-                  </div>
+                
+                {/* Dropoff Search Results */}
                   {showDropoffResults && dropoffSearchResults.length > 0 && (
-                    <div className="absolute z-10 mt-1 w-full bg-card rounded-md shadow-lg border">
-                      <ul className="py-1 text-sm">
-                        {dropoffSearchResults.map((location: Location) => (
+                  <div className="absolute z-10 mt-1 w-full bg-gray-800/95 border border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto">
+                    <ul className="py-1">
+                      {dropoffSearchResults.map((location) => (
                           <li
                             key={location.id}
-                            className="px-4 py-2 hover:bg-muted cursor-pointer"
+                          className="px-4 py-2 hover:bg-gray-700/50 cursor-pointer text-white flex items-start"
                             onClick={() => handleSelectDropoff(location)}
                           >
+                          <MapPin className="h-5 w-5 text-green-400 mr-2 mt-0.5 flex-shrink-0" />
+                          <div>
                             <div className="font-medium">{location.name}</div>
-                            <div className="text-xs text-muted-foreground">{location.address}</div>
+                            <div className="text-sm text-white/60">{location.address}</div>
+                          </div>
                           </li>
                         ))}
                       </ul>
                     </div>
                   )}
-                </div>
-
-                {!bookingSuccess && (
-                  <div className="mt-4">
-                    <SavedLocations
-                      onSelect={(location) => {
-                        setSelectedPickup(location)
-                        setPickupLocation(location.name)
-                        setShowPickupResults(false)
-
-                        // Use direct toast import
-                        toast.info("Location Selected", {
-                          description: `${location.name} has been set as your pickup location.`,
-                        })
-                      }}
-                    />
-                  </div>
-                )}
-
-                {!bookingSuccess && (
-                  <div className="mt-4 space-y-4">
-                    {/* TODA Selector */}
-                    <div>
-                      <Label htmlFor="toda-selector" className="text-sm font-medium mb-2 block">
-                        Select TODA (Tricycle Operators and Drivers Association)
-                      </Label>
-                      <TodaSelector
-                        selectedTodaId={selectedTodaId}
-                        onSelect={(todaId) => {
-                          setSelectedTodaId(todaId);
-
-                          // Get the TODA name from the database
-                          supabase
-                            .from('todas')
-                            .select('name')
-                            .eq('id', todaId)
-                            .single()
-                            .then(({ data, error }) => {
-                              if (!error && data) {
-                                setSelectedTodaName(data.name);
-                              }
-                            });
-
-                          // Also save as user preference if user is logged in
-                          if (user?.id) {
-                            // Update user's preferred TODA in the database
-                            supabase
-                              .from('profiles')
-                              .update({ preferred_toda_id: todaId })
-                              .eq('id', user.id)
-                              .then(({ error }) => {
-                                if (error) {
-                                  console.warn('Could not save TODA preference:', error);
-                                } else {
-                                  console.log('TODA preference saved to profile');
-                                }
-                              });
-                          }
-
-                          toast.success("TODA Selected", {
-                            description: "Your preferred TODA has been set for this booking."
-                          });
-                        }}
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Selecting a TODA will prioritize triders from this association.
-                      </p>
-                    </div>
-
-                    {/* Terminal Exits */}
-                    <div>
-                      <TerminalExits
-                        onSelect={(terminal) => {
-                          setSelectedDropoff(terminal)
-                          setDropoffLocation(terminal.name)
-                          setShowDropoffResults(false)
-
-                          // Use direct toast import
-                          toast.info("Terminal Selected", {
-                            description: `${terminal.name} has been set as your drop-off location.`,
-                          })
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="space-y-4 py-4">
-                <div className="flex items-center justify-center">
-                  <div className="h-16 w-16 rounded-full bg-yellow-100 flex items-center justify-center">
-                    {bookingStatus === 'waiting' ? (
-                      <Loader2 className="h-8 w-8 text-yellow-600 animate-spin" />
+                
+                {/* Quick Actions */}
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="border-green-500/30 text-green-400 hover:bg-green-500/10"
+                    onClick={() => setIsMapPinningMode(true)}
+                  >
+                    <MapPin className="h-4 w-4 mr-1" />
+                    Pin on Map
+                  </Button>
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm" 
+                    className="border-green-500/30 text-green-400 hover:bg-green-500/10"
+                    onClick={() => detectCurrentLocation("dropoff")}
+                    disabled={isLocating}
+                  >
+                    {isLocating ? (
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                     ) : (
-                      <Check className="h-8 w-8 text-green-600" />
+                      <Navigation className="h-4 w-4 mr-1" />
                     )}
+                    Current Location
+                  </Button>
                   </div>
                 </div>
-                <div className="text-center">
-                  <h3 className="text-lg font-medium">Booking Confirmed!</h3>
-                  <p className="text-sm text-yellow-600 font-medium">
-                    {bookingStatus === 'waiting'
-                      ? "Waiting for a trider to accept your request..."
-                      : "Your ride has been accepted!"}
-                  </p>
-                </div>
-                <div className="p-4 bg-muted rounded-md">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium">Booking Code:</span>
-                    <span className="text-sm font-bold">{bookingCode}</span>
-                  </div>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium">Estimated Arrival:</span>
-                    <span className="text-sm">{estimatedTime}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Estimated Fare:</span>
-                    <span className="text-sm">{estimatedFare}</span>
-                  </div>
-                </div>
-                <div className="text-center text-sm text-muted-foreground">
-                  {bookingStatus === 'waiting' ? (
-                    <>
-                      <p>Please wait while we find a trider for you.</p>
-                      <p>This usually takes 1-2 minutes.</p>
-                    </>
-                  ) : (
-                    <>
-                      <p>A trider has accepted your request.</p>
-                      <p>Please be ready at your pickup location.</p>
-                    </>
-                  )}
-                </div>
+              
+              {/* TODA Selection */}
+              <div className="space-y-2 mt-4">
+                <Label htmlFor="toda-selection" className="text-white/80">Select TODA</Label>
+                <TodaSelector 
+                  selectedTodaId={selectedTodaId} 
+                  onSelect={setSelectedTodaId}
+                />
+                <p className="text-xs text-white/60 mt-1">
+                  Choosing a TODA will prioritize triders from that association
+                </p>
               </div>
-            )}
+            </div>
           </CardContent>
           <CardFooter>
-            {!bookingSuccess ? (
-              <Button
-                className="w-full"
-                onClick={handleBookRide}
-                disabled={!selectedPickup || !selectedDropoff || isLoading}
-              >
-                Book Ride
-              </Button>
-            ) : (
-              <Button className="w-full" variant="outline" onClick={handleNewBooking}>
-                Book Another Ride
-              </Button>
-            )}
-          </CardFooter>
-        </Card>
-
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>Map View</CardTitle>
-            <CardDescription>View your route on the map</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0 overflow-hidden rounded-b-lg">
-            <div className="relative w-full h-[400px] rounded-lg overflow-hidden">
-              {/* Use the MapboxMap component */}
-              <MapboxMap
-                center={mapCenter}
-                markers={mapMarkers}
-                routeGeojson={routeGeojson}
-                height="400px"
-                zoom={16}
-                onClick={handleMapClick}
-                style={{ cursor: mapClickEnabled ? 'crosshair' : 'grab' }}
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Booking Confirmation Dialog */}
-      <Dialog 
-        open={showConfirmation} 
-        onOpenChange={(open) => {
-          if (!open) {
-            setShowConfirmation(false);
-          }
-        }}
-      >
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Confirm Your Booking</DialogTitle>
-            <DialogDescription>Please review your ride details before confirming</DialogDescription>
-            <button
-              onClick={() => setShowConfirmation(false)}
-              className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
-            >
-              <X className="h-4 w-4" />
-              <span className="sr-only">Close</span>
-            </button>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <div className="flex">
-                <MapPin className="h-5 w-5 mr-2 text-green-600 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-medium">Pickup Location</p>
-                  <p className="text-sm text-muted-foreground">{selectedPickup?.name}</p>
-                  <p className="text-xs text-muted-foreground">{selectedPickup?.address}</p>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex">
-                <Navigation className="h-5 w-5 mr-2 text-red-600 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-medium">Dropoff Location</p>
-                  <p className="text-sm text-muted-foreground">{selectedDropoff?.name}</p>
-                  <p className="text-xs text-muted-foreground">{selectedDropoff?.address}</p>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-4 pt-2">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 bg-muted rounded-md">
-                  <div className="flex items-center">
-                    <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Estimated Time</p>
-                      <p className="text-sm font-medium">{estimatedTime}</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-3 bg-muted rounded-md">
-                  <div className="flex items-center">
-                    <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Estimated Fare</p>
-                      <p className="text-sm font-medium">{estimatedFare}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Show selected TODA */}
-              <div className="p-3 bg-muted rounded-md">
-                <p className="text-xs text-muted-foreground mb-1">Selected TODA</p>
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium">
-                    {selectedTodaId ? (
-                      selectedTodaName || "Custom TODA Selected"
-                    ) : "Using Nearest TODA"}
-                  </p>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => {
-                      // Open the TODA selector section
-                      setShowConfirmation(false);
-                    }}
-                  >
-                    Change
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowConfirmation(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleConfirmBooking}
-              disabled={isLoading}
+            <Button
+              onClick={handleBookRide}
+              disabled={!selectedPickup || !selectedDropoff || isLoading}
+              className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
             >
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Confirming...
+                  Finding riders...
                 </>
               ) : (
-                'Confirm Booking'
+                "Book Ride"
               )}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </CardFooter>
+        </Card>
 
-      {/* Add Save Location Dialog */}
-      <Dialog open={showSaveLocationDialog} onOpenChange={setShowSaveLocationDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Save Location</DialogTitle>
-            <DialogDescription>
-              Would you like to save this as your default exit point?
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="flex items-center space-x-2">
-              <MapPin className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">Custom Location</p>
-                <p className="text-sm text-muted-foreground">
-                  {tempDropoffLocation?.latitude.toFixed(6)}, {tempDropoffLocation?.longitude.toFixed(6)}
-                </p>
+        {/* Map View */}
+        <Card className="bg-black/30 backdrop-blur-md border border-green-500/20 shadow-lg overflow-hidden">
+          <CardHeader className="pb-0">
+            <CardTitle className="text-white">Map View</CardTitle>
+            <CardDescription className="text-white/70">View your route on the map</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0 pt-4">
+            <div className="h-[400px] overflow-hidden rounded-lg">
+              <MapboxMap
+                center={mapCenter}
+                zoom={14}
+                markers={mapMarkers}
+                routeGeojson={routeGeojson}
+                height="100%"
+                onClick={(e) => {
+                  if (mapClickEnabled) {
+                    // Map click handler code
+                  }
+                }}
+                onMove={(e) => {
+                  // Optional: Handle map movement
+                }}
+              />
+            </div>
+          </CardContent>
+          {routeDistance && routeDuration && (
+            <CardFooter className="flex flex-col items-start pt-3">
+              <div className="flex items-center justify-between w-full">
+                <div className="text-white/70">
+                  <span className="text-white font-medium">Distance:</span> {(routeDistance / 1000).toFixed(1)} km
+                </div>
+                <div className="text-white/70">
+                  <span className="text-white font-medium">Est. time:</span> {Math.ceil(routeDuration / 60)} min
+                </div>
+              </div>
+            </CardFooter>
+          )}
+        </Card>
+        
+        {/* Terminal Exits Card */}
+        <div className="lg:col-span-2">
+          <TerminalExits 
+            terminals={terminalExits} 
+            onSelect={(terminal) => {
+              setSelectedDropoff(terminal);
+              setDropoffLocation(terminal.name);
+              updateMarkersFromLocations();
+            }}
+            currentSelection={selectedDropoff}
+          />
+        </div>
+        
+        {/* Confirmation Dialog */}
+        <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+          <DialogContent className="bg-gray-900 border-green-500/30 text-white">
+            <DialogHeader>
+              <DialogTitle>Confirm Your Ride</DialogTitle>
+              <DialogDescription className="text-white/70">
+                Review the details of your booking below.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <h4 className="font-medium text-white/80">Pickup Location</h4>
+                <div className="flex items-start">
+                  <MapPin className="h-5 w-5 text-green-400 mt-0.5 mr-2 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">{selectedPickup?.name}</p>
+                    <p className="text-sm text-white/60">{selectedPickup?.address}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <h4 className="font-medium text-white/80">Dropoff Location</h4>
+                <div className="flex items-start">
+                  <MapPin className="h-5 w-5 text-green-400 mt-0.5 mr-2 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">{selectedDropoff?.name}</p>
+                    <p className="text-sm text-white/60">{selectedDropoff?.address}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 pt-2">
+                <div className="p-3 bg-gray-800/50 rounded-lg">
+                  <p className="text-sm text-white/70">Estimated Time</p>
+                  <p className="text-lg font-medium text-white">{estimatedTime}</p>
+                </div>
+                <div className="p-3 bg-gray-800/50 rounded-lg">
+                  <p className="text-sm text-white/70">Estimated Fare</p>
+                  <p className="text-lg font-medium text-white">{estimatedFare}</p>
+                </div>
+              </div>
+              
+              {selectedTodaName && (
+                <div className="p-3 bg-gray-800/50 rounded-lg">
+                  <p className="text-sm text-white/70">Selected TODA</p>
+                  <p className="text-white">{selectedTodaName}</p>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setShowConfirmation(false)}
+                className="border-gray-700 text-white/70 hover:bg-gray-800 hover:text-white"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleConfirmBooking}
+                disabled={isLoading}
+                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  "Confirm Booking"
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Add Save Location Dialog */}
+        <Dialog open={showSaveLocationDialog} onOpenChange={setShowSaveLocationDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Save Location</DialogTitle>
+              <DialogDescription>
+                Would you like to save this as your default exit point?
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="flex items-center space-x-2">
+                <MapPin className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Custom Location</p>
+                  <p className="text-sm text-muted-foreground">
+                    {tempDropoffLocation?.latitude.toFixed(6)}, {tempDropoffLocation?.longitude.toFixed(6)}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                // Just set as current dropoff without saving
-                if (tempDropoffLocation) {
-                  setSelectedDropoff(tempDropoffLocation);
-                  setDropoffLocation("Custom Location");
-                  setShowDropoffResults(false);
-                }
-                setShowSaveLocationDialog(false);
-              }}
-            >
-              Don't Save
-            </Button>
-            <Button
-              onClick={() => {
-                if (tempDropoffLocation) {
-                  // Save to profile and set as current dropoff
-                  saveLocationToProfile(tempDropoffLocation);
-                  setSelectedDropoff(tempDropoffLocation);
-                  setDropoffLocation("Custom Location");
-                  setShowDropoffResults(false);
-                }
-                setShowSaveLocationDialog(false);
-              }}
-            >
-              Save as Default
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  // Just set as current dropoff without saving
+                  if (tempDropoffLocation) {
+                    setSelectedDropoff(tempDropoffLocation);
+                    setDropoffLocation("Custom Location");
+                    setShowDropoffResults(false);
+                  }
+                  setShowSaveLocationDialog(false);
+                }}
+              >
+                Don't Save
+              </Button>
+              <Button
+                onClick={() => {
+                  if (tempDropoffLocation) {
+                    // Save to profile and set as current dropoff
+                    saveLocationToProfile(tempDropoffLocation);
+                    setSelectedDropoff(tempDropoffLocation);
+                    setDropoffLocation("Custom Location");
+                    setShowDropoffResults(false);
+                  }
+                  setShowSaveLocationDialog(false);
+                }}
+              >
+                Save as Default
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </>
   )
 }

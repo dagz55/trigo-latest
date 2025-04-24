@@ -1,8 +1,8 @@
 import { createClient } from "@supabase/supabase-js"
 
 // Create a single supabase client for interacting with your database
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.warn("Supabase URL or Anon Key is missing. Check your environment variables.")
@@ -280,18 +280,23 @@ export async function getTridersByToda(toda_id: string): Promise<Trider[]> {
 }
 
 export async function getOnlineTriders(toda_id: string): Promise<Trider[]> {
-  const { data, error } = await supabase
-    .from('triders')
-    .select('*')
-    .eq('toda_id', toda_id)
-    .eq('status', 'online')
-    .order('last_online', { ascending: true })
+  try {
+    const { data, error } = await supabase
+      .from('triders')
+      .select('*')
+      .eq('toda_id', toda_id)
+      .eq('status', 'online')
+      .order('last_online', { ascending: true });
 
-  if (error) {
-    console.error(`Error fetching online triders for TODA ${toda_id}:`, error)
-    throw error
+    if (error) {
+      console.error(`Error fetching online triders for TODA ${toda_id}:`, error);
+      return []; // Return empty array instead of throwing
+    }
+    return data || [];
+  } catch (err) {
+    console.error(`Exception fetching online triders for TODA ${toda_id}:`, err);
+    return []; // Return empty array on any exception
   }
-  return data
 }
 
 export async function getTriderQueue(toda_id: string): Promise<TriderQueueItem[]> {

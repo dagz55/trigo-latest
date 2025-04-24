@@ -1,21 +1,33 @@
+import userConfig from './v0-user-next.config.mjs';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   images: {
-    domains: ['localhost', 'nlkxmqyhrrezjhoztlxy.supabase.co'],
-    unoptimized: true
+    unoptimized: true,
   },
-  // Simplified experimental flags
   experimental: {
-    webpackBuildWorker: false
+    webpackBuildWorker: true,
+    parallelServerBuildTraces: true,
+    parallelServerCompiles: true,
   },
-  webpack: (config, { dev, isServer }) => {
-    config.resolve.fallback = { 
-      fs: false,
-      path: false
-    };
-    return config;
+}
+
+// Merge user config with default config
+for (const key in userConfig) {
+  if (typeof nextConfig[key] === 'object' && !Array.isArray(nextConfig[key])) {
+    nextConfig[key] = {
+      ...nextConfig[key],
+      ...userConfig[key],
+    }
+  } else {
+    nextConfig[key] = userConfig[key]
   }
 }
 
-export default nextConfig;
+export default nextConfig

@@ -1,51 +1,30 @@
-import "@/app/globals.css"
-import 'mapbox-gl/dist/mapbox-gl.css'
-import { SupabaseProvider } from "@/components/supabase-provider"
-import { ThemeProvider } from "@/components/theme-provider"
-import { Toaster } from "@/components/ui/sonner"
-import { UserProvider } from "@/contexts/user-context"
-import { initializeDatabase } from '@/lib/init-db'
-import type { Metadata } from 'next'
+import './globals.css';
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import { cn } from '@/lib/utils';
 
-// Initialize database only on server side
-if (typeof window === 'undefined') {
-  initializeDatabase().catch(console.error)
-}
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "Trigo Ride Hailing",
-  description: "Location-based TODA rider and dispatcher system",
-  icons: {
-    icon: "/images/trigo-logo.png",
-  },
-}
+  title: 'TriGo - Travel Together, Go Further',
+  description: 'The modern transportation platform connecting passengers, riders, dispatchers, and administrators',
+  keywords: 'transportation, ridesharing, mobility, travel platform',
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <SupabaseProvider>
-            <UserProvider>
-              {children}
-              <Toaster />
-            </UserProvider>
-          </SupabaseProvider>
-        </ThemeProvider>
+    <html lang="en" className="dark">
+      <head>
+        <meta name="theme-color" content="#111827" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
+      <body className={cn(inter.className, 'bg-gray-900 antialiased')}>
+        {children}
       </body>
     </html>
-  )
+  );
 }
-
-
-
-import './globals.css'

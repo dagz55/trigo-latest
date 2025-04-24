@@ -1,14 +1,16 @@
+import Logo from "@/components/Logo";
+import RoleSelection from "@/components/RoleSelection";
+import BackgroundAnimation from "@/components/BackgroundAnimation";
+
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm">
-        <h1 className="text-4xl font-bold text-center mb-8">
-          Welcome to TriGo
-        </h1>
-        <p className="text-center text-xl mb-4">
-          Location-based TODA rider and dispatcher system
-        </p>
+    <main className="min-h-screen w-full relative flex flex-col items-center justify-center overflow-hidden py-12">
+      <BackgroundAnimation />
+      
+      <div className="container mx-auto px-4 py-8 z-10 max-w-7xl">
+        <Logo />
+        <RoleSelection />
       </div>
     </main>
-  )
+  );
 }

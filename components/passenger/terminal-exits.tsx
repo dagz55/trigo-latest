@@ -7,13 +7,22 @@ import { useEffect, useState } from "react"
 
 interface TerminalExitsProps {
   onSelect: (location: Location) => void
+  terminals?: Location[]
+  currentSelection?: Location | null
 }
 
-export function TerminalExits({ onSelect }: TerminalExitsProps) {
+export function TerminalExits({ onSelect, terminals: externalTerminals, currentSelection }: TerminalExitsProps) {
   const [terminalExits, setTerminalExits] = useState<Location[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // If terminals are provided externally, use them
+    if (externalTerminals && externalTerminals.length > 0) {
+      setTerminalExits(externalTerminals);
+      setLoading(false);
+      return;
+    }
+
     const fetchTerminalExits = async () => {
       try {
         const locations = await getLocationsByCity('Las Piñas City')
@@ -30,7 +39,7 @@ export function TerminalExits({ onSelect }: TerminalExitsProps) {
     }
 
     fetchTerminalExits()
-  }, [])
+  }, [externalTerminals])
 
   // Calculate distance from a fixed reference point in Talon 4
   const calculateDistance = (lat: number, lng: number) => {
@@ -66,7 +75,9 @@ export function TerminalExits({ onSelect }: TerminalExitsProps) {
           terminalExits.map((terminal) => (
             <div
               key={terminal.id}
-              className="flex items-start space-x-2 p-2 rounded-lg hover:bg-accent cursor-pointer transition-colors"
+              className={`flex items-start space-x-2 p-2 rounded-lg hover:bg-accent cursor-pointer transition-colors ${
+                currentSelection?.id === terminal.id ? 'bg-accent/50' : ''
+              }`}
               onClick={() => onSelect(terminal)}
             >
               <MapPin className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />

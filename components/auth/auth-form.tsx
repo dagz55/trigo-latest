@@ -1,20 +1,20 @@
-"xcuse client"
+"use client"
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
-import { Loader2 } from "lucide-react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { useUser } from "@/contexts/user-context"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TrigoLoadingSpinner } from "@/components/ui/trigo-loading-spinner"
+import { useUser } from "@/contexts/user-context"
 import { supabase } from "@/lib/supabase-client"
-import { toast } from "sonner" // Import toast
+import { Loader2 } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { toast } from "sonner"; // Import toast
 
 export default function AuthForm() {
   const [email, setEmail] = useState("")
@@ -196,9 +196,9 @@ export default function AuthForm() {
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full max-w-md mx-auto backdrop-blur-sm bg-black/20 rounded-xl border border-white/10 shadow-xl">
       {loading && (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm rounded-xl">
           <TrigoLoadingSpinner size="lg" />
           <p className="mt-4 text-muted-foreground">Authenticating...</p>
         </div>
@@ -206,11 +206,11 @@ export default function AuthForm() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <CardHeader>
-          <CardTitle className="text-2xl text-center">Welcome to Trigo</CardTitle>
-          <CardDescription className="text-center">Sign in or create an account to get started</CardDescription>
-          <TabsList className="grid w-full grid-cols-2 mt-4">
-            <TabsTrigger value="signin">Sign In</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
+          <CardTitle className="text-2xl text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-violet-300">Login to Trigo</CardTitle>
+          <CardDescription className="text-center text-white/80">Sign in or create an account to get started</CardDescription>
+          <TabsList className="grid w-full grid-cols-2 mt-4 bg-gray-900/50">
+            <TabsTrigger value="signin" className="data-[state=active]:bg-purple-500/20">Sign In</TabsTrigger>
+            <TabsTrigger value="signup" className="data-[state=active]:bg-purple-500/20">Sign Up</TabsTrigger>
           </TabsList>
         </CardHeader>
         <CardContent>
@@ -221,7 +221,7 @@ export default function AuthForm() {
           <TabsContent value="signin">
             <form onSubmit={handleSignIn} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email-signin">Email</Label>
+                <Label htmlFor="email-signin" className="text-white/80">Email</Label>
                 <Input
                   id="email-signin"
                   type="email"
@@ -229,10 +229,11 @@ export default function AuthForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  className="bg-gray-800/50 border-gray-700 focus:border-purple-500/50 text-white placeholder:text-gray-500"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password-signin">Password</Label>
+                <Label htmlFor="password-signin" className="text-white/80">Password</Label>
                 <Input
                   id="password-signin"
                   type="password"
@@ -240,25 +241,56 @@ export default function AuthForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  className="bg-gray-800/50 border-gray-700 focus:border-purple-500/50 text-white placeholder:text-gray-500"
                 />
               </div>
               <div className="text-right">
-                <Link href="/auth/reset-password" className="text-sm text-primary hover:underline">
+                <Link href="/auth/reset-password" className="text-sm text-purple-400 hover:text-purple-300 hover:underline">
                   Forgot password? Reset here
                 </Link>
               </div>
               {/* Remove Remember Me checkbox */}
               {/* <div className="flex items-center space-x-2 mb-2"> ... </div> */}
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : "Sign In"}
+              <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-violet-500 hover:from-purple-700 hover:to-violet-600 transition-all duration-300">
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  "Sign In"
+                )}
               </Button>
+
+              <div className="text-center pt-2 text-xs text-gray-400">
+                Dont have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("signup")}
+                  className="text-purple-400 hover:text-purple-300 hover:underline focus:outline-none"
+                >
+                  Sign up now
+                </button>
+              </div>
             </form>
           </TabsContent>
 
           <TabsContent value="signup">
             <form onSubmit={handleSignUp} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email-signup">Email</Label>
+                <Label htmlFor="name-signup" className="text-white/80">Full Name</Label>
+                <Input
+                  id="name-signup"
+                  type="text"
+                  placeholder="Enter your full name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  className="bg-gray-800/50 border-gray-700 focus:border-purple-500/50 text-white placeholder:text-gray-500"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email-signup" className="text-white/80">Email</Label>
                 <Input
                   id="email-signup"
                   type="email"
@@ -266,10 +298,11 @@ export default function AuthForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  className="bg-gray-800/50 border-gray-700 focus:border-purple-500/50 text-white placeholder:text-gray-500"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password-signup">Password</Label>
+                <Label htmlFor="password-signup" className="text-white/80">Password</Label>
                 <Input
                   id="password-signup"
                   type="password"
@@ -277,21 +310,11 @@ export default function AuthForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  className="bg-gray-800/50 border-gray-700 focus:border-purple-500/50 text-white placeholder:text-gray-500"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Enter your full name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="phone" className="text-white/80">Phone Number</Label>
                 <Input
                   id="phone"
                   type="tel"
@@ -299,38 +322,51 @@ export default function AuthForm() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   required
+                  className="bg-gray-800/50 border-gray-700 focus:border-purple-500/50 text-white placeholder:text-gray-500"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="role">I am a:</Label>
+                <Label htmlFor="role" className="text-white/80">Account Type</Label>
                 <select
                   id="role"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
-                  required
-                  aria-label="I am a:" // Add aria-label for accessibility
+                  className="w-full p-2 rounded-md border bg-gray-800/50 border-gray-700 focus:border-purple-500/50 text-white"
+                  aria-label="Account Type"
                 >
                   <option value="passenger">Passenger</option>
-                  <option value="rider">Rider/Driver</option>
+                  <option value="rider">Rider</option>
                   <option value="dispatcher">Dispatcher</option>
                 </select>
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
-                Sign Up
+
+              <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-violet-500 hover:from-purple-700 hover:to-violet-600 transition-all duration-300">
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating account...
+                  </>
+                ) : (
+                  "Create Account"
+                )}
               </Button>
+
+              <div className="text-center pt-2 text-xs text-gray-400">
+                Already have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("signin")}
+                  className="text-purple-400 hover:text-purple-300 hover:underline focus:outline-none"
+                >
+                  Sign in instead
+                </button>
+              </div>
             </form>
           </TabsContent>
         </CardContent>
-        <CardFooter className="flex justify-center">
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-2">
-              By continuing, you agree to our Terms of Service and Privacy Policy
-            </p>
-            <Link href="/" className="text-sm text-primary hover:underline">
-              Back to Home
-            </Link>
+        <CardFooter className="flex justify-center border-t border-white/10 pt-4 text-white/60">
+          <div className="text-xs">
+            &copy; {new Date().getFullYear()} Trigo Transportation. All rights reserved.
           </div>
         </CardFooter>
       </Tabs>

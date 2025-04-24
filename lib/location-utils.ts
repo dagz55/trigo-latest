@@ -1,5 +1,5 @@
-import { supabase } from './supabase-client'
-import { toast } from 'sonner'
+import { toast } from 'sonner';
+import { supabase } from './supabase-client';
 
 /**
  * Updates the user's location in the database
@@ -25,19 +25,15 @@ export async function updateUserLocation(
   }
 
   try {
-    const { error } = await supabase
-      .from('user_locations')
-      .upsert({
-        user_id: userId,
-        latitude,
-        longitude,
-        accuracy: accuracy || null,
-        heading: heading || null,
-        speed: speed || null,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'user_id'
-      })
+    // Call the PostgreSQL function to update location using PostGIS
+    const { error } = await supabase.rpc('update_user_location', {
+      p_user_id: userId,
+      p_latitude: latitude,
+      p_longitude: longitude, 
+      p_accuracy: accuracy || null,
+      p_heading: heading || null,
+      p_speed: speed || null
+    });
 
     if (error) {
       console.error('Error updating location in database:', error)

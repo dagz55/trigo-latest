@@ -1,21 +1,27 @@
 "use client"
 
-import { useState } from "react"
+import { TodaSelector } from "@/components/toda/toda-selector"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { TodaSelector } from "@/components/toda/toda-selector"
-import { supabase } from "@/lib/supabase-client"
-import { toast } from "sonner"
 import { useUser } from "@/contexts/user-context"
+import { supabase } from "@/lib/supabase-client"
 import { Loader2 } from "lucide-react"
+import { useState } from "react"
+import { toast } from "sonner"
 
-export function TodaPreferences() {
-  const { user, updateUser } = useUser()
-  const [selectedTodaId, setSelectedTodaId] = useState<string | null>(user?.preferredTodaId || null)
+interface TodaPreferencesProps {
+  userId: string;
+  preferredTodaId: string | null;
+  onUpdate?: () => void;
+}
+
+export function TodaPreferences({ userId, preferredTodaId, onUpdate }: TodaPreferencesProps) {
+  const { updateUser } = useUser()
+  const [selectedTodaId, setSelectedTodaId] = useState<string | null>(preferredTodaId || null)
   const [saving, setSaving] = useState(false)
 
   const handleSave = async () => {
-    if (!user?.id) {
+    if (!userId) {
       toast.error("You must be logged in to save preferences")
       return
     }
@@ -29,21 +35,22 @@ export function TodaPreferences() {
         .update({
           preferred_toda_id: selectedTodaId
         })
-        .eq("id", user.id)
+        .eq("id", userId)
 
       if (error) throw error
 
       // Update the user context
       updateUser({ preferredTodaId: selectedTodaId })
 
-      toast.success("TODA preference saved", {
-        description: "Your preferred TODA has been updated."
-      })
+      toast.success("TODA preference saved")
+      
+      // Call the callback if provided
+      if (onUpdate) {
+        onUpdate()
+      }
     } catch (error) {
       console.error("Error saving TODA preference:", error)
-      toast.error("Failed to save preference", {
-        description: "Please try again or contact support."
-      })
+      toast.error("Failed to save preference")
     } finally {
       setSaving(false)
     }
@@ -60,14 +67,14 @@ export function TodaPreferences() {
       <CardContent>
         <div className="space-y-4">
           <div>
-            <p className="text-sm font-medium mb-2">Preferred TODA</p>
+            <p className="text-sm font-medium mb-2 text-white/80">Preferred TODA</p>
             <TodaSelector 
               selectedTodaId={selectedTodaId} 
               onSelect={setSelectedTodaId}
               disabled={saving}
             />
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-white/60">
             Setting a preferred TODA will prioritize triders from this association when booking rides.
           </p>
         </div>
@@ -75,7 +82,8 @@ export function TodaPreferences() {
       <CardFooter>
         <Button 
           onClick={handleSave} 
-          disabled={saving || selectedTodaId === user?.preferredTodaId}
+          disabled={saving || selectedTodaId === preferredTodaId}
+          className="bg-gradient-to-r from-purple-600 to-violet-500 hover:from-purple-700 hover:to-violet-600 transition-all duration-300"
         >
           {saving ? (
             <>
