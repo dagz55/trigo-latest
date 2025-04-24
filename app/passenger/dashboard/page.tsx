@@ -35,7 +35,7 @@ export default function PassengerDashboard() {
         const { data: { session } } = await supabase.auth.getSession()
         
         if (!session) {
-          router.push("/login")
+          router.push("/")
           return
         }
 

@@ -1,4 +1,65 @@
+"use client"
+
+import { supabase } from "@/lib/supabase-client"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { toast } from "sonner"
+
 export default function DispatcherDashboard() {
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (!session) {
+          router.push("/")
+          return
+        }
+
+        // Get user profile data
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", session.user.id)
+          .single()
+
+        if (profileError) {
+          throw profileError
+        }
+
+        // Check if user role is dispatcher
+        if (profileData.role !== "dispatcher") {
+          toast.error("Access denied", {
+            description: "You do not have permission to access this page."
+          })
+          router.push("/")
+          return
+        }
+      } catch (error) {
+        console.error("Session check error:", error)
+        toast.error("Error loading dashboard")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    checkSession()
+  }, [router])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="flex flex-col items-center">
+          <div className="w-16 h-16 border-t-4 border-yellow-500 border-solid rounded-full animate-spin"></div>
+          <p className="mt-4 text-lg text-white">Loading dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-900 text-white p-8">
       <div className="max-w-4xl mx-auto">
@@ -34,5 +95,5 @@ export default function DispatcherDashboard() {
         </div>
       </div>
     </div>
-  );
+  )
 }
