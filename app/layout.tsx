@@ -1,7 +1,8 @@
-import './globals.css';
+import { UserProvider } from '@/contexts/user-context';
+import { cn } from '@/lib/utils';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { cn } from '@/lib/utils';
+import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -19,11 +20,12 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
-        <meta name="theme-color" content="#111827" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body className={cn(inter.className, 'bg-gray-900 antialiased')}>
-        {children}
+        <UserProvider>
+          {children}
+        </UserProvider>
       </body>
     </html>
   );

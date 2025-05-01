@@ -31,37 +31,40 @@ export default function PassengerDashboard() {
 
   useEffect(() => {
     const checkSession = async () => {
+      setIsLoading(true);
       try {
-        const { data: { session } } = await supabase.auth.getSession()
-        
-        if (!session) {
-          router.push("/")
-          return
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+        if (userError || !user) {
+          console.error("Error fetching user or user not found:", userError);
+          toast.error("Authentication failed. Please log in again.");
+          router.push("/");
+          return;
         }
 
-        // Get user profile data
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("*")
-          .eq("id", session.user.id)
-          .single()
+          .eq("id", user.id)
+          .single();
 
         if (profileError) {
-          throw profileError
+          console.error("Error fetching profile:", profileError);
+          toast.error("Error loading profile data.");
+          router.push("/roles");
+          return;
         }
 
-        // Check if user role is passenger
         if (profileData.role !== "passenger") {
           toast.error("Access denied", {
             description: "You do not have permission to access this page."
-          })
-          router.push("/roles")
-          return
+          });
+          router.push("/roles");
+          return;
         }
 
-        setUserData(profileData)
+        setUserData(profileData);
         
-        // Get ride history
         const { data: rides, error: ridesError } = await supabase
           .from("rides")
           .select(`
@@ -76,12 +79,12 @@ export default function PassengerDashboard() {
               last_name
             )
           `)
-          .eq("passenger_id", session.user.id)
+          .eq("passenger_id", user.id)
           .order("created_at", { ascending: false })
           .limit(10)
 
         if (ridesError) {
-          throw ridesError
+          throw ridesError;
         }
 
         const formattedRides = rides.map(ride => ({
@@ -98,7 +101,6 @@ export default function PassengerDashboard() {
 
         setRideHistory(formattedRides)
 
-        // Check for pending ride
         const pendingRide = formattedRides.find(ride => 
           ["requested", "accepted", "picked_up"].includes(ride.status)
         )
@@ -107,9 +109,9 @@ export default function PassengerDashboard() {
           setPendingRide(pendingRide)
         }
 
-      } catch (error) {
-        console.error("Session check error:", error)
-        toast.error("Error loading dashboard")
+      } catch (error: any) {
+        console.error("Dashboard loading error:", error);
+        toast.error("Error loading dashboard data", { description: error?.message || 'Unknown error' });
       } finally {
         setIsLoading(false)
       }

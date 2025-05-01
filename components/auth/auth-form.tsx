@@ -13,7 +13,7 @@ import { supabase } from "@/lib/supabase-client"
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"; // Import toast
 
 export default function AuthForm() {
@@ -23,11 +23,6 @@ export default function AuthForm() {
   const [phone, setPhone] = useState("")
   const [role, setRole] = useState("passenger")
   const [loading, setLoading] = useState(false)
-  // Remove message and error states, use toast instead
-  // const [message, setMessage] = useState<string | null>(null)
-  // const [error, setError] = useState<string | null>(null)
-  // Remove rememberMe state
-  // const [rememberMe, setRememberMe] = useState(false)
   const router = useRouter()
   const { setUser } = useUser()
   const [activeTab, setActiveTab] = useState<string>("signin")
@@ -41,7 +36,7 @@ export default function AuthForm() {
     }
   }, [])
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleSignIn = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     console.log("Attempting sign in for:", email)
@@ -60,7 +55,6 @@ export default function AuthForm() {
       }
 
       if (!authData.user) {
-        // Should not happen if error is null, but good practice to check
         console.error("Sign in error: No user data returned despite no error.")
         toast.error("Sign in failed: An unexpected error occurred.")
         setLoading(false)
@@ -69,75 +63,59 @@ export default function AuthForm() {
 
       console.log("Sign in successful for user:", authData.user.id)
 
-      // Fetch user profile from profiles table
-      console.log("Fetching profile for user:", authData.user.id)
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("role, full_name, phone") // Select only needed fields
+        .select("role, full_name, phone")
         .eq("id", authData.user.id)
         .single()
 
       if (profileError) {
         console.error("Error fetching profile after sign in:", profileError.message)
-        // Decide how to handle this: show error? Log out?
-        // For now, show error and don't proceed with context/redirect
-        toast.error(`Error fetching profile: ${profileError.message}. Please try again later.`)
-        // Optionally sign the user out if profile is critical
-        // await supabase.auth.signOut();
+        toast.error(`Error fetching profile: ${profileError.message}. Please try again later or contact support.`)
         setLoading(false)
         return
       }
 
       if (!profileData) {
         console.error("Profile not found for user:", authData.user.id)
-        toast.error("User profile not found. Please contact support.")
-        // Optionally sign the user out
-        // await supabase.auth.signOut();
+        await supabase.auth.signOut();
+        toast.error("User profile not found. You have been logged out. Please contact support.")
         setLoading(false)
         return
       }
 
       console.log("Profile fetched successfully:", profileData)
 
-      // Set user with profile data in context
+      // Set user context
       setUser({
         id: authData.user.id,
         email: authData.user.email || "",
-        role: profileData.role || "passenger", // Default role if missing?
+        role: profileData.role || "passenger",
         name: profileData.full_name,
         phone: profileData.phone,
       })
       console.log("User context set.")
 
-      // Redirect based on user role
+      // Determine redirect path
       const userRole = profileData.role
-      let redirectPath = "/dashboard" // Default redirect
-      if (userRole === "passenger") {
-        redirectPath = "/passenger"
-      } else if (userRole === "rider") {
-        redirectPath = "/trider"
-      } else if (userRole === "dispatcher") {
-        redirectPath = "/dispatcher"
-      } else if (userRole === "admin") {
-        redirectPath = "/admin" // Add admin redirect if applicable
-      }
+      let redirectPath = "/dashboard"
+      if (userRole === "passenger") redirectPath = "/passenger/dashboard"
+      else if (userRole === "rider") redirectPath = "/trider/dashboard"
+      else if (userRole === "dispatcher") redirectPath = "/dispatcher/dashboard"
+      else if (userRole === "admin") redirectPath = "/admin/dashboard"
 
-      console.log(`Redirecting to ${redirectPath} for role ${userRole}`)
+      console.log(`Preparing redirect to ${redirectPath} for role ${userRole}`)
       toast.success("Sign in successful!")
 
-      // Use router.replace for better history management after login
-      // No need for setTimeout unless showing a message briefly before redirect
-      router.replace(redirectPath)
-      // setLoading(false) // No need to set loading false if redirecting immediately
+      // Navigate directly
+      router.replace(redirectPath);
 
     } catch (error: any) {
-      // Catch any unexpected errors not handled above
       console.error("Unexpected error during sign in:", error)
       toast.error(error.message || "An unexpected error occurred during sign in")
       setLoading(false)
     }
-    // Removed finally block as setLoading is handled within try/catch paths
-  }
+  }, [email, password, setUser, router]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -145,7 +123,6 @@ export default function AuthForm() {
     console.log("Attempting sign up for:", email, "as role:", role)
 
     try {
-      // Register the user with Supabase
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -165,29 +142,24 @@ export default function AuthForm() {
         return
       }
 
-      // Check if user needs verification
       if (signUpData.user && signUpData.user.identities?.length === 0) {
-         // This might indicate an issue like email already exists but unverified
          console.warn("Sign up warning: User created but might need verification or already exists.", signUpData);
          toast.warning("Account may already exist or require verification. Please check your email or try signing in.");
       } else if (signUpData.user) {
         console.log("Sign up successful for:", email, "User ID:", signUpData.user.id)
         toast.success("Account created successfully! Please check your email for verification.")
-        // Optionally clear form fields
         setEmail("")
         setPassword("")
         setName("")
         setPhone("")
         setRole("passenger")
-        setActiveTab("signin") // Switch to signin tab after successful signup
+        setActiveTab("signin")
       } else {
-         // Handle cases where sign up might seem successful but no user object is returned
          console.warn("Sign up warning: No user data returned after sign up.", signUpData);
          toast.warning("Sign up process completed, but confirmation is pending. Please check your email.");
       }
 
     } catch (error: any) {
-      // Catch any unexpected errors
       console.error("Unexpected error during sign up:", error)
       toast.error(error.message || "An unexpected error occurred during sign up")
     } finally {
@@ -214,10 +186,6 @@ export default function AuthForm() {
           </TabsList>
         </CardHeader>
         <CardContent>
-          {/* Remove message and error divs */}
-          {/* {message && <div className="p-3 mb-4 text-sm text-green-700 bg-green-100 rounded-md">{message}</div>} */}
-          {/* {error && <div className="p-3 mb-4 text-sm text-red-700 bg-red-100 rounded-md">{error}</div>} */}
-
           <TabsContent value="signin">
             <form onSubmit={handleSignIn} className="space-y-4">
               <div className="space-y-2">
@@ -249,8 +217,6 @@ export default function AuthForm() {
                   Forgot password? Reset here
                 </Link>
               </div>
-              {/* Remove Remember Me checkbox */}
-              {/* <div className="flex items-center space-x-2 mb-2"> ... </div> */}
               <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-violet-500 hover:from-purple-700 hover:to-violet-600 transition-all duration-300">
                 {loading ? (
                   <>
@@ -272,6 +238,47 @@ export default function AuthForm() {
                   Sign up now
                 </button>
               </div>
+              
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-gray-700"></span>
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-gray-900 px-2 text-gray-400">Or continue with</span>
+                </div>
+              </div>
+              
+              <Button
+                variant="outline"
+                type="button"
+                className="w-full bg-transparent border-gray-700 hover:bg-gray-800 text-white"
+                disabled={loading}
+                onClick={() => {
+                  setLoading(true);
+                  (async () => {
+                    try {
+                      const { data, error } = await supabase.auth.signInWithOAuth({
+                        provider: 'google',
+                        options: {
+                          redirectTo: `${window.location.origin}/auth/callback`,
+                        },
+                      });
+                      
+                      if (error) {
+                        throw error;
+                      }
+                    } catch (error: any) {
+                      setLoading(false);
+                      toast.error("Google sign in failed", {
+                        description: "An error occurred during sign in with Google.",
+                      });
+                      console.error("OAuth error:", error);
+                    }
+                  })();
+                }}
+              >
+                Sign in with Google
+              </Button>
             </form>
           </TabsContent>
 
@@ -361,6 +368,47 @@ export default function AuthForm() {
                   Sign in instead
                 </button>
               </div>
+              
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-gray-700"></span>
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-gray-900 px-2 text-gray-400">Or continue with</span>
+                </div>
+              </div>
+              
+              <Button
+                variant="outline"
+                type="button"
+                className="w-full bg-transparent border-gray-700 hover:bg-gray-800 text-white"
+                disabled={loading}
+                onClick={() => {
+                  setLoading(true);
+                  (async () => {
+                    try {
+                      const { data, error } = await supabase.auth.signInWithOAuth({
+                        provider: 'google',
+                        options: {
+                          redirectTo: `${window.location.origin}/auth/callback`,
+                        },
+                      });
+                      
+                      if (error) {
+                        throw error;
+                      }
+                    } catch (error: any) {
+                      setLoading(false);
+                      toast.error("Google sign in failed", {
+                        description: "An error occurred during sign in with Google.",
+                      });
+                      console.error("OAuth error:", error);
+                    }
+                  })();
+                }}
+              >
+                Sign up with Google
+              </Button>
             </form>
           </TabsContent>
         </CardContent>

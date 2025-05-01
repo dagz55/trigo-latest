@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { Role } from "@/lib/constants";
+import { useState } from "react";
 import LoginForm from "./LoginForm";
 
 interface RoleCardProps {
@@ -45,7 +45,7 @@ export default function RoleCard({ role }: RoleCardProps) {
             absolute inset-0 backface-hidden cursor-pointer
             ${getRoleGlassBg(role.id)} 
             border ${getRoleBorderGlow(role.id)} rounded-xl overflow-hidden
-            shadow-xl transition-all duration-300 flex flex-col items-center 
+            shadow-xl transition-opacity, transform, border-color duration-300 flex flex-col items-center 
             justify-center text-center p-8 backdrop-blur-sm animate-shine
           `}
           onClick={handleFlip}
@@ -60,10 +60,11 @@ export default function RoleCard({ role }: RoleCardProps) {
           
           <div className="mt-auto">
             <button 
-              className={`px-4 py-2 ${getRoleButtonBg(role.id)} ${getRoleButtonText(role.id)} rounded-lg hover:${getRoleButtonHoverBg(role.id)} transition-colors flex items-center justify-center gap-2 group-hover:scale-105 duration-300`}
+              className={`px-4 py-2 ${getRoleButtonBg(role.id)} ${getRoleButtonText(role.id)} rounded-lg hover:${getRoleButtonHoverBg(role.id)} transition-colors, transform duration-300 flex items-center justify-center gap-2 group-hover:scale-105`}
+              style={{ willChange: 'transform, background-color' }}
             >
               <span>Select Role</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 group-hover:translate-x-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 group-hover:translate-x-1" style={{ willChange: 'transform' }}>
                 <path d="m9 18 6-6-6-6" />
               </svg>
             </button>

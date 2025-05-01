@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { supabase } from "@/lib/supabase-client"
 import { cn } from "@/lib/utils"
+import { useRouter } from "next/navigation"
 import type React from "react"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -17,6 +18,7 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
   const [email, setEmail] = useState<string>("")
   const [password, setPassword] = useState<string>("")
   const [isSignUp, setIsSignUp] = useState<boolean>(false)
+  const router = useRouter()
 
   async function onSubmit(event: React.SyntheticEvent) {
     event.preventDefault()
@@ -53,10 +55,41 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
           throw error
         }
 
-        // The callback handler will handle redirect
+        // Fetch user profile to determine the role
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          throw new Error("User not found after authentication");
+        }
+
+        // Get the user's profile to determine the role
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+          
+        if (profileError) {
+          throw new Error("Could not determine user role");
+        }
+
+        // Determine redirect path based on role
+        let redirectPath = "/dashboard"; // Default redirect
+        if (profileData.role === "passenger") {
+          redirectPath = "/passenger/dashboard";
+        } else if (profileData.role === "rider" || profileData.role === "trider") {
+          redirectPath = "/trider/dashboard";
+        } else if (profileData.role === "dispatcher") {
+          redirectPath = "/dispatcher/dashboard";
+        } else if (profileData.role === "admin") {
+          redirectPath = "/admin/dashboard";
+        }
+
         toast.success("Login successful", {
           description: "Redirecting you to your dashboard...",
         })
+        
+        // Redirect the user to their dashboard
+        router.replace(redirectPath);
       }
     } catch (error: any) {
       toast.error(isSignUp ? "Sign up failed" : "Login failed", {
@@ -166,26 +199,30 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
         variant="outline"
         type="button"
         disabled={isLoading}
-        onClick={async () => {
-          try {
-            setIsLoading(true);
-            const { data, error } = await supabase.auth.signInWithOAuth({
-              provider: 'google',
-              options: {
-                redirectTo: `${window.location.origin}/auth/callback`,
-              },
-            });
+        onClick={() => {
+          setIsLoading(true);
+          // Use a separate async function to handle OAuth sign-in
+          // This prevents React Suspense issues
+          (async () => {
+            try {
+              const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                  redirectTo: `${window.location.origin}/auth/callback`,
+                },
+              });
 
-            if (error) {
-              throw error;
+              if (error) {
+                throw error;
+              }
+            } catch (error) {
+              setIsLoading(false);
+              toast.error("Google sign in failed", {
+                description: "An error occurred during sign in with Google.",
+              });
+              console.error("OAuth error:", error);
             }
-          } catch (error) {
-            toast.error("Google sign in failed", {
-              description: "An error occurred during sign in with Google.",
-            });
-            console.error("OAuth error:", error);
-            setIsLoading(false);
-          }
+          })();
         }}
       >
         Google
