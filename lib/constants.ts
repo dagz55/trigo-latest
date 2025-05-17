@@ -1,21 +1,45 @@
+import { User, Bike, PhoneCall, Settings } from "lucide-react";
 
+export type Role = {
+  id: string;
+  name: string;
+  icon: any;
+  route: string;
+  description: string;
+  color?: string;
+};
 
-// Hardcoded API keys and URLs for development purposes only
-// In production, these should be environment variables
-// export const GOOGLE_MAPS_API_KEY = "AIzaSyCTe26ELY4ESk4xlf6oO2tXpDvmZKrZ0hg"
-export const VERCEL_URL = "https://v0-trigo-app.vercel.app/"
-
-// Helper function to get environment variables with fallbacks
-export function getEnvVariable(key: string, fallback: string): string {
-  const value = process.env[key]
-  if (!value && process.env.NODE_ENV !== "development") {
-    console.warn(`Environment variable ${key} is not set. Using fallback.`)
+export const roles: Role[] = [
+  { 
+    id: 'passenger', 
+    name: 'Passenger',
+    icon: User, 
+    route: '/passenger/dashboard',
+    description: 'Book rides and track your journey',
+    color: 'orange'
+  },
+  { 
+    id: 'trider', 
+    name: 'Trider',
+    icon: Bike, 
+    route: '/trider/dashboard',
+    description: 'Accept ride requests and manage trips',
+    color: 'cyan'
+  },
+  { 
+    id: 'dispatcher', 
+    name: 'Dispatcher',
+    icon: PhoneCall, 
+    route: '/dispatcher/dashboard',
+    description: 'Coordinate rides and manage operations',
+    color: 'yellow'
+  },
+  { 
+    id: 'admin', 
+    name: 'Admin',
+    icon: Settings, 
+    route: '/admin/dashboard',
+    description: 'Oversee system and access all features',
+    color: 'green'
   }
-  return value || fallback
-}
-
-// Get Vercel URL with fallback
-export function getVercelUrl(): string {
-  return getEnvVariable("VERCEL_URL", VERCEL_URL)
-}
-
+];

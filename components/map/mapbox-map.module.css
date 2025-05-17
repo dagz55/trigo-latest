@@ -1,6 +1,10 @@
 .mapContainer {
   width: 100%;
-  /* Height applied via prop */
+  height: 100%;
+}
+
+.mapWrapper {
+  height: var(--container-height, 400px);
 }
 
 .mapInner {

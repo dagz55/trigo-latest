@@ -1,20 +1,20 @@
-"xcuse client"
+"use client"
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
-import { Loader2 } from "lucide-react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { useUser } from "@/contexts/user-context"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TrigoLoadingSpinner } from "@/components/ui/trigo-loading-spinner"
+import { useUser } from "@/contexts/user-context"
 import { supabase } from "@/lib/supabase-client"
-import { toast } from "sonner" // Import toast
+import { Loader2 } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useCallback, useEffect, useState } from "react"
+import { toast } from "sonner"; // Import toast
 
 export default function AuthForm() {
   const [email, setEmail] = useState("")
@@ -23,11 +23,6 @@ export default function AuthForm() {
   const [phone, setPhone] = useState("")
   const [role, setRole] = useState("passenger")
   const [loading, setLoading] = useState(false)
-  // Remove message and error states, use toast instead
-  // const [message, setMessage] = useState<string | null>(null)
-  // const [error, setError] = useState<string | null>(null)
-  // Remove rememberMe state
-  // const [rememberMe, setRememberMe] = useState(false)
   const router = useRouter()
   const { setUser } = useUser()
   const [activeTab, setActiveTab] = useState<string>("signin")
@@ -41,7 +36,7 @@ export default function AuthForm() {
     }
   }, [])
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleSignIn = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     console.log("Attempting sign in for:", email)
@@ -60,7 +55,6 @@ export default function AuthForm() {
       }
 
       if (!authData.user) {
-        // Should not happen if error is null, but good practice to check
         console.error("Sign in error: No user data returned despite no error.")
         toast.error("Sign in failed: An unexpected error occurred.")
         setLoading(false)
@@ -69,75 +63,59 @@ export default function AuthForm() {
 
       console.log("Sign in successful for user:", authData.user.id)
 
-      // Fetch user profile from profiles table
-      console.log("Fetching profile for user:", authData.user.id)
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("role, full_name, phone") // Select only needed fields
+        .select("role, full_name, phone")
         .eq("id", authData.user.id)
         .single()
 
       if (profileError) {
         console.error("Error fetching profile after sign in:", profileError.message)
-        // Decide how to handle this: show error? Log out?
-        // For now, show error and don't proceed with context/redirect
-        toast.error(`Error fetching profile: ${profileError.message}. Please try again later.`)
-        // Optionally sign the user out if profile is critical
-        // await supabase.auth.signOut();
+        toast.error(`Error fetching profile: ${profileError.message}. Please try again later or contact support.`)
         setLoading(false)
         return
       }
 
       if (!profileData) {
         console.error("Profile not found for user:", authData.user.id)
-        toast.error("User profile not found. Please contact support.")
-        // Optionally sign the user out
-        // await supabase.auth.signOut();
+        await supabase.auth.signOut();
+        toast.error("User profile not found. You have been logged out. Please contact support.")
         setLoading(false)
         return
       }
 
       console.log("Profile fetched successfully:", profileData)
 
-      // Set user with profile data in context
+      // Set user context
       setUser({
         id: authData.user.id,
         email: authData.user.email || "",
-        role: profileData.role || "passenger", // Default role if missing?
+        role: profileData.role || "passenger",
         name: profileData.full_name,
         phone: profileData.phone,
       })
       console.log("User context set.")
 
-      // Redirect based on user role
+      // Determine redirect path
       const userRole = profileData.role
-      let redirectPath = "/dashboard" // Default redirect
-      if (userRole === "passenger") {
-        redirectPath = "/passenger"
-      } else if (userRole === "rider") {
-        redirectPath = "/trider"
-      } else if (userRole === "dispatcher") {
-        redirectPath = "/dispatcher"
-      } else if (userRole === "admin") {
-        redirectPath = "/admin" // Add admin redirect if applicable
-      }
+      let redirectPath = "/dashboard"
+      if (userRole === "passenger") redirectPath = "/passenger/dashboard"
+      else if (userRole === "rider") redirectPath = "/trider/dashboard"
+      else if (userRole === "dispatcher") redirectPath = "/dispatcher/dashboard"
+      else if (userRole === "admin") redirectPath = "/admin/dashboard"
 
-      console.log(`Redirecting to ${redirectPath} for role ${userRole}`)
+      console.log(`Preparing redirect to ${redirectPath} for role ${userRole}`)
       toast.success("Sign in successful!")
 
-      // Use router.replace for better history management after login
-      // No need for setTimeout unless showing a message briefly before redirect
-      router.replace(redirectPath)
-      // setLoading(false) // No need to set loading false if redirecting immediately
+      // Navigate directly
+      router.replace(redirectPath);
 
     } catch (error: any) {
-      // Catch any unexpected errors not handled above
       console.error("Unexpected error during sign in:", error)
       toast.error(error.message || "An unexpected error occurred during sign in")
       setLoading(false)
     }
-    // Removed finally block as setLoading is handled within try/catch paths
-  }
+  }, [email, password, setUser, router]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -145,7 +123,6 @@ export default function AuthForm() {
     console.log("Attempting sign up for:", email, "as role:", role)
 
     try {
-      // Register the user with Supabase
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -165,29 +142,24 @@ export default function AuthForm() {
         return
       }
 
-      // Check if user needs verification
       if (signUpData.user && signUpData.user.identities?.length === 0) {
-         // This might indicate an issue like email already exists but unverified
          console.warn("Sign up warning: User created but might need verification or already exists.", signUpData);
          toast.warning("Account may already exist or require verification. Please check your email or try signing in.");
       } else if (signUpData.user) {
         console.log("Sign up successful for:", email, "User ID:", signUpData.user.id)
         toast.success("Account created successfully! Please check your email for verification.")
-        // Optionally clear form fields
         setEmail("")
         setPassword("")
         setName("")
         setPhone("")
         setRole("passenger")
-        setActiveTab("signin") // Switch to signin tab after successful signup
+        setActiveTab("signin")
       } else {
-         // Handle cases where sign up might seem successful but no user object is returned
          console.warn("Sign up warning: No user data returned after sign up.", signUpData);
          toast.warning("Sign up process completed, but confirmation is pending. Please check your email.");
       }
 
     } catch (error: any) {
-      // Catch any unexpected errors
       console.error("Unexpected error during sign up:", error)
       toast.error(error.message || "An unexpected error occurred during sign up")
     } finally {
@@ -196,9 +168,9 @@ export default function AuthForm() {
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full max-w-md mx-auto backdrop-blur-sm bg-black/20 rounded-xl border border-white/10 shadow-xl">
       {loading && (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm rounded-xl">
           <TrigoLoadingSpinner size="lg" />
           <p className="mt-4 text-muted-foreground">Authenticating...</p>
         </div>
@@ -206,22 +178,18 @@ export default function AuthForm() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <CardHeader>
-          <CardTitle className="text-2xl text-center">Welcome to Trigo</CardTitle>
-          <CardDescription className="text-center">Sign in or create an account to get started</CardDescription>
-          <TabsList className="grid w-full grid-cols-2 mt-4">
-            <TabsTrigger value="signin">Sign In</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
+          <CardTitle className="text-2xl text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-violet-300">Login to Trigo</CardTitle>
+          <CardDescription className="text-center text-white/80">Sign in or create an account to get started</CardDescription>
+          <TabsList className="grid w-full grid-cols-2 mt-4 bg-gray-900/50">
+            <TabsTrigger value="signin" className="data-[state=active]:bg-purple-500/20">Sign In</TabsTrigger>
+            <TabsTrigger value="signup" className="data-[state=active]:bg-purple-500/20">Sign Up</TabsTrigger>
           </TabsList>
         </CardHeader>
         <CardContent>
-          {/* Remove message and error divs */}
-          {/* {message && <div className="p-3 mb-4 text-sm text-green-700 bg-green-100 rounded-md">{message}</div>} */}
-          {/* {error && <div className="p-3 mb-4 text-sm text-red-700 bg-red-100 rounded-md">{error}</div>} */}
-
           <TabsContent value="signin">
             <form onSubmit={handleSignIn} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email-signin">Email</Label>
+                <Label htmlFor="email-signin" className="text-white/80">Email</Label>
                 <Input
                   id="email-signin"
                   type="email"
@@ -229,10 +197,11 @@ export default function AuthForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  className="bg-gray-800/50 border-gray-700 focus:border-purple-500/50 text-white placeholder:text-gray-500"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password-signin">Password</Label>
+                <Label htmlFor="password-signin" className="text-white/80">Password</Label>
                 <Input
                   id="password-signin"
                   type="password"
@@ -240,17 +209,75 @@ export default function AuthForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  className="bg-gray-800/50 border-gray-700 focus:border-purple-500/50 text-white placeholder:text-gray-500"
                 />
               </div>
               <div className="text-right">
-                <Link href="/auth/reset-password" className="text-sm text-primary hover:underline">
+                <Link href="/auth/reset-password" className="text-sm text-purple-400 hover:text-purple-300 hover:underline">
                   Forgot password? Reset here
                 </Link>
               </div>
-              {/* Remove Remember Me checkbox */}
-              {/* <div className="flex items-center space-x-2 mb-2"> ... </div> */}
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : "Sign In"}
+              <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-violet-500 hover:from-purple-700 hover:to-violet-600 transition-all duration-300">
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  "Sign In"
+                )}
+              </Button>
+
+              <div className="text-center pt-2 text-xs text-gray-400">
+                Dont have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("signup")}
+                  className="text-purple-400 hover:text-purple-300 hover:underline focus:outline-none"
+                >
+                  Sign up now
+                </button>
+              </div>
+              
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-gray-700"></span>
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-gray-900 px-2 text-gray-400">Or continue with</span>
+                </div>
+              </div>
+              
+              <Button
+                variant="outline"
+                type="button"
+                className="w-full bg-transparent border-gray-700 hover:bg-gray-800 text-white"
+                disabled={loading}
+                onClick={() => {
+                  setLoading(true);
+                  (async () => {
+                    try {
+                      const { data, error } = await supabase.auth.signInWithOAuth({
+                        provider: 'google',
+                        options: {
+                          redirectTo: `${window.location.origin}/auth/callback`,
+                        },
+                      });
+                      
+                      if (error) {
+                        throw error;
+                      }
+                    } catch (error: any) {
+                      setLoading(false);
+                      toast.error("Google sign in failed", {
+                        description: "An error occurred during sign in with Google.",
+                      });
+                      console.error("OAuth error:", error);
+                    }
+                  })();
+                }}
+              >
+                Sign in with Google
               </Button>
             </form>
           </TabsContent>
@@ -258,7 +285,19 @@ export default function AuthForm() {
           <TabsContent value="signup">
             <form onSubmit={handleSignUp} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email-signup">Email</Label>
+                <Label htmlFor="name-signup" className="text-white/80">Full Name</Label>
+                <Input
+                  id="name-signup"
+                  type="text"
+                  placeholder="Enter your full name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  className="bg-gray-800/50 border-gray-700 focus:border-purple-500/50 text-white placeholder:text-gray-500"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email-signup" className="text-white/80">Email</Label>
                 <Input
                   id="email-signup"
                   type="email"
@@ -266,10 +305,11 @@ export default function AuthForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  className="bg-gray-800/50 border-gray-700 focus:border-purple-500/50 text-white placeholder:text-gray-500"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password-signup">Password</Label>
+                <Label htmlFor="password-signup" className="text-white/80">Password</Label>
                 <Input
                   id="password-signup"
                   type="password"
@@ -277,21 +317,11 @@ export default function AuthForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  className="bg-gray-800/50 border-gray-700 focus:border-purple-500/50 text-white placeholder:text-gray-500"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Enter your full name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="phone" className="text-white/80">Phone Number</Label>
                 <Input
                   id="phone"
                   type="tel"
@@ -299,38 +329,92 @@ export default function AuthForm() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   required
+                  className="bg-gray-800/50 border-gray-700 focus:border-purple-500/50 text-white placeholder:text-gray-500"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="role">I am a:</Label>
+                <Label htmlFor="role" className="text-white/80">Account Type</Label>
                 <select
                   id="role"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
-                  required
-                  aria-label="I am a:" // Add aria-label for accessibility
+                  className="w-full p-2 rounded-md border bg-gray-800/50 border-gray-700 focus:border-purple-500/50 text-white"
+                  aria-label="Account Type"
                 >
                   <option value="passenger">Passenger</option>
-                  <option value="rider">Rider/Driver</option>
+                  <option value="rider">Rider</option>
                   <option value="dispatcher">Dispatcher</option>
                 </select>
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
-                Sign Up
+
+              <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-violet-500 hover:from-purple-700 hover:to-violet-600 transition-all duration-300">
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating account...
+                  </>
+                ) : (
+                  "Create Account"
+                )}
+              </Button>
+
+              <div className="text-center pt-2 text-xs text-gray-400">
+                Already have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("signin")}
+                  className="text-purple-400 hover:text-purple-300 hover:underline focus:outline-none"
+                >
+                  Sign in instead
+                </button>
+              </div>
+              
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-gray-700"></span>
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-gray-900 px-2 text-gray-400">Or continue with</span>
+                </div>
+              </div>
+              
+              <Button
+                variant="outline"
+                type="button"
+                className="w-full bg-transparent border-gray-700 hover:bg-gray-800 text-white"
+                disabled={loading}
+                onClick={() => {
+                  setLoading(true);
+                  (async () => {
+                    try {
+                      const { data, error } = await supabase.auth.signInWithOAuth({
+                        provider: 'google',
+                        options: {
+                          redirectTo: `${window.location.origin}/auth/callback`,
+                        },
+                      });
+                      
+                      if (error) {
+                        throw error;
+                      }
+                    } catch (error: any) {
+                      setLoading(false);
+                      toast.error("Google sign in failed", {
+                        description: "An error occurred during sign in with Google.",
+                      });
+                      console.error("OAuth error:", error);
+                    }
+                  })();
+                }}
+              >
+                Sign up with Google
               </Button>
             </form>
           </TabsContent>
         </CardContent>
-        <CardFooter className="flex justify-center">
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-2">
-              By continuing, you agree to our Terms of Service and Privacy Policy
-            </p>
-            <Link href="/" className="text-sm text-primary hover:underline">
-              Back to Home
-            </Link>
+        <CardFooter className="flex justify-center border-t border-white/10 pt-4 text-white/60">
+          <div className="text-xs">
+            &copy; {new Date().getFullYear()} Trigo Transportation. All rights reserved.
           </div>
         </CardFooter>
       </Tabs>

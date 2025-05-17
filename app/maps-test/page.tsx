@@ -1,14 +1,20 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { CheckCircle, XCircle, AlertTriangle, RefreshCw } from "lucide-react"
 import { Header } from "@/components/layout/header"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import MapboxMap from "@/components/map/mapbox-map"
 import { getMapboxToken } from "@/lib/maps-client"
+import { AlertTriangle, CheckCircle, RefreshCw, XCircle } from "lucide-react"
+import dynamic from 'next/dynamic'
+import { useEffect, useState } from "react"
+
+// Import MapboxMap dynamically with no SSR
+const MapboxMap = dynamic(
+  () => import('@/components/map/mapbox-map'),
+  { ssr: false, loading: () => <div className="h-full flex items-center justify-center">Loading map...</div> }
+)
 
 export default function MapsTestPage() {
   const [isLoading, setIsLoading] = useState(true)

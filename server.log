@@ -1,0 +1,664 @@
+
+> my-v0-project@0.1.0 dev
+> next dev
+
+ ⚠ Port 3000 is in use, trying 3001 instead.
+ ⚠ Port 3001 is in use, trying 3002 instead.
+ ⚠ Port 3002 is in use, trying 3003 instead.
+  ▲ Next.js 14.2.28
+  - Local:        http://localhost:3003
+  - Environments: .env.local, .env
+
+ ✓ Starting...
+ ✓ Ready in 1657ms
+ ✓ Compiled /middleware in 377ms (143 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 2.2s (660 modules)
+Supabase client initialized with URL: https://nlkxmqyhrrez...
+ GET / 200 in 2474ms
+ ✓ Compiled in 321ms (316 modules)
+ ○ Compiling /profile ...
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+Supabase client initialized with URL: https://nlkxmqyhrrez...
+ ⨯ components/ui/trigo-loading-spinner.tsx (15:29) @ useTheme
+ ⨯ TypeError: (0 , _components_theme_provider__WEBPACK_IMPORTED_MODULE_3__.useTheme) is not a function
+    at TrigoLoadingSpinner (./components/ui/trigo-loading-spinner.tsx:17:91)
+digest: "79392517"
+[0m [90m 13 |[39m [36mexport[39m [36mfunction[39m [33mTrigoLoadingSpinner[39m({ size [33m=[39m [32m"md"[39m[33m,[39m className[33m,[39m textClassName }[33m:[39m [33mTrigoLoadingSpinnerProps[39m) {[0m
+[0m [90m 14 |[39m   [36mconst[39m [rotation[33m,[39m setRotation] [33m=[39m useState([35m0[39m)[0m
+[0m[31m[1m>[22m[39m[90m 15 |[39m   [36mconst[39m { theme } [33m=[39m useTheme()[0m
+[0m [90m    |[39m                             [31m[1m^[22m[39m[0m
+[0m [90m 16 |[39m   [36mconst[39m isDarkMode [33m=[39m theme [33m===[39m [32m"dark"[39m[0m
+[0m [90m 17 |[39m[0m
+[0m [90m 18 |[39m   [90m// Animation for rotation[39m[0m
+ GET /profile 500 in 2306ms
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-page.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-page.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+Supabase client initialized with URL: https://nlkxmqyhrrez...
+ GET /?ide_webview_request_time=1745306064692 200 in 1110ms
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+ ⚠ ./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+
+./components/ui/trigo-loading-spinner.tsx
+Attempted import error: 'useTheme' is not exported from '@/components/theme-provider' (imported as 'useTheme').
+
+Import trace for requested module:
+./components/ui/trigo-loading-spinner.tsx
+./components/ui/loading-overlay.tsx
+./app/profile/page.tsx
+Supabase client initialized with URL: https://nlkxmqyhrrez...
+ GET / 200 in 138ms
+ ✓ Compiled / in 522ms (482 modules)
+ ✓ Compiled in 188ms (482 modules)
+ ✓ Compiled in 175ms (482 modules)
+[?25h

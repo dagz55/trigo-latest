@@ -2,7 +2,6 @@
 
 import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react"
-import { useTheme } from "@/components/theme-provider"
 
 interface TrigoLoadingSpinnerProps {
   size?: "sm" | "md" | "lg" | "xl"
@@ -12,8 +11,6 @@ interface TrigoLoadingSpinnerProps {
 
 export function TrigoLoadingSpinner({ size = "md", className, textClassName }: TrigoLoadingSpinnerProps) {
   const [rotation, setRotation] = useState(0)
-  const { theme } = useTheme()
-  const isDarkMode = theme === "dark"
 
   // Animation for rotation
   useEffect(() => {

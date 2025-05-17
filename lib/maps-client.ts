@@ -45,3 +45,86 @@ export function formatDistance(distance: number): string {
   }
   return `${distance.toFixed(1)} km`;
 }
+
+// Fetch route data from Mapbox Directions API
+export async function fetchRouteData(
+  startLat: number, 
+  startLng: number, 
+  endLat: number, 
+  endLng: number
+): Promise<{
+  routeGeojson: any;
+  distance: number;
+  duration: number;
+}> {
+  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+  
+  if (!mapboxToken) {
+    throw new Error("Mapbox token not found");
+  }
+  
+  // Set up a controller for timeouts
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+  
+  try {
+    const response = await fetch(
+      `https://api.mapbox.com/directions/v5/mapbox/driving/${startLng},${startLat};${endLng},${endLat}?geometries=geojson&alternatives=false&overview=full&access_token=${mapboxToken}`,
+      { signal: controller.signal }
+    );
+    
+    clearTimeout(timeoutId);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch route data: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    
+    if (!data.routes || data.routes.length === 0) {
+      throw new Error("No routes found");
+    }
+    
+    const route = data.routes[0];
+    
+    // Convert to GeoJSON format for MapboxMap component
+    const routeGeojson = {
+      type: 'Feature',
+      properties: {},
+      geometry: route.geometry
+    };
+    
+    return {
+      routeGeojson,
+      distance: route.distance, // in meters
+      duration: route.duration // in seconds
+    };
+  } catch (error) {
+    console.error('Error fetching route data:', error);
+    
+    // Create a fallback simple straight line between points
+    const fallbackGeojson = {
+      type: 'Feature',
+      properties: {},
+      geometry: {
+        type: 'LineString',
+        coordinates: [
+          [startLng, startLat],
+          [endLng, endLat]
+        ]
+      }
+    };
+    
+    // Use haversine formula for fallback distance calculation
+    const fallbackDistance = calculateDistance(startLat, startLng, endLat, endLng) * 1000; // Convert km to meters
+    
+    // Estimate duration based on average speed of 20 km/h (typical tricycle speed)
+    const fallbackDuration = (fallbackDistance / 1000) / 20 * 3600; // hours to seconds
+    
+    return {
+      routeGeojson: fallbackGeojson,
+      distance: fallbackDistance,
+      duration: fallbackDuration
+    };
+  }
+}

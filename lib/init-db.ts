@@ -1,9 +1,10 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
 // Keep the original client for potential other uses if needed,
 // but we'll create a service client specifically for initialization.
 // import { supabase } from './supabase-client'
 
 let isInitialized = false;
+const isDevelopment = process.env.NODE_ENV === 'development';
 
 // This function assumes migrations have run and tables ('todas', 'locations') exist.
 // It primarily checks if the default TODA and a specific location exist,
@@ -21,10 +22,18 @@ export async function initializeDatabase() {
 
   if (!supabaseUrl || !serviceKey) {
     console.error('Missing required environment variables for database initialization');
+    
+    // In development, we'll mark as initialized anyway to prevent repeated errors
+    if (isDevelopment) {
+      console.warn('Development mode: Bypassing database initialization due to missing env variables');
+      isInitialized = true;
+    }
+    
     return;
   }
 
   try {
+    // Create admin client with proper configuration
     const supabaseAdmin = createClient(supabaseUrl, serviceKey, {
       auth: {
         autoRefreshToken: false,
@@ -40,6 +49,11 @@ export async function initializeDatabase() {
       .limit(1);
 
     if (testError) {
+      if (isDevelopment) {
+        console.warn('Development mode: Database connection test failed, but continuing anyway');
+        isInitialized = true;
+        return;
+      }
       throw new Error(`Admin client connection test failed: ${testError.message}`);
     }
 
@@ -48,6 +62,11 @@ export async function initializeDatabase() {
     
   } catch (error) {
     console.error('Database initialization error:', error);
-    // Don't throw, just log the error
+    
+    // In development, mark as initialized to prevent repeated errors
+    if (isDevelopment) {
+      console.warn('Development mode: Setting database as initialized despite errors');
+      isInitialized = true;
+    }
   }
 }

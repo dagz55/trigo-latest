@@ -1,0 +1,3 @@
+[submodule "mapbox-navigation-ios"]
+	path = mapbox-navigation-ios
+	url = https://github.com/mapbox/mapbox-navigation-ios.git
