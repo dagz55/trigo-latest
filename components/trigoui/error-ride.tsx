@@ -19,4 +19,3 @@ export function ErrorRide({ error }: ErrorRideProps) {
     </div>
   )
 }
-

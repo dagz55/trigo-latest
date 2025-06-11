@@ -66,4 +66,3 @@ export const SavedLocationButton = ({ onSelect, className = "" }: SavedLocationB
     </button>
   )
 }
-

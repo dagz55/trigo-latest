@@ -2,14 +2,14 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff, Lock, Mail, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { PhoneInput } from "@/components/login/phone-input"
+import { PhoneInput } from "./phone-input"
 import { GoogleSignInButton } from "./google-sign-in-button"
 import { Separator } from "@/components/ui/separator"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -19,6 +19,19 @@ export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [loginMethod, setLoginMethod] = useState<"email" | "phone" | "username">("email")
+
+  // Check for registration success message
+  const [showRegistrationSuccess, setShowRegistrationSuccess] = useState(false)
+
+  useEffect(() => {
+    // Check if user was redirected from registration
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get("registered") === "true") {
+      setShowRegistrationSuccess(true)
+      // Clear the URL parameter
+      window.history.replaceState({}, "", "/login")
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,6 +56,14 @@ export function LoginForm() {
     <Card className="border-trigo-200 dark:border-trigo-800 shadow-lg">
       <CardHeader>
         <CardTitle className="text-xl">Sign In</CardTitle>
+        {showRegistrationSuccess && (
+          <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+            <p className="text-sm text-green-700 dark:text-green-300">
+              Account created successfully! Please sign in to continue.
+            </p>
+          </div>
+        )}
         <CardDescription>Choose your preferred login method</CardDescription>
       </CardHeader>
       <CardContent>
@@ -211,4 +232,3 @@ export function LoginForm() {
     </Card>
   )
 }
-

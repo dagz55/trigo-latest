@@ -65,4 +65,3 @@ export function TriGOLoading({ size = 24, color = "#8b5cf6", fullPage = false, s
     </div>
   )
 }
-

@@ -48,4 +48,3 @@ export function calculateFare(distanceInKm: number): number {
 
   return baseFare + additionalFare
 }
-

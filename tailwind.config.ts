@@ -53,13 +53,18 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        purple: {
-          400: "#c084fc",
-          500: "#a855f7",
-          600: "#9333ea",
-          700: "#7e22ce",
-          800: "#6b21a8",
-          900: "#581c87",
+        // TriGO brand colors - Purple theme
+        trigo: {
+          50: "#f5f3ff",
+          100: "#ede9fe",
+          200: "#ddd6fe",
+          300: "#c4b5fd",
+          400: "#a78bfa",
+          500: "#8b5cf6", // Main brand color - purple
+          600: "#7c3aed",
+          700: "#6d28d9",
+          800: "#5b21b6",
+          900: "#4c1d95",
         },
       },
       borderRadius: {
@@ -76,31 +81,27 @@ const config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        "spin-slow": {
-          "0%": { transform: "rotate(0deg)" },
-          "100%": { transform: "rotate(360deg)" },
-        },
-        "spin-slow-reverse": {
-          "0%": { transform: "rotate(0deg)" },
-          "100%": { transform: "rotate(-360deg)" },
-        },
-        "triangle-run": {
-          "0%": { transform: "rotate(0deg)" },
-          "33.33%": { transform: "rotate(120deg)" },
-          "66.66%": { transform: "rotate(240deg)" },
-          "100%": { transform: "rotate(360deg)" },
+        "pulse-glow": {
+          "0%, 100%": {
+            boxShadow: "0 0 10px 2px rgba(139, 92, 246, 0.3), 0 0 20px 4px rgba(139, 92, 246, 0.2)",
+          },
+          "50%": {
+            boxShadow: "0 0 15px 3px rgba(139, 92, 246, 0.4), 0 0 30px 6px rgba(139, 92, 246, 0.3)",
+          },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "spin-slow": "spin-slow 3s linear infinite",
-        "spin-slow-reverse": "spin-slow-reverse 2s linear infinite",
-        "triangle-run": "triangle-run 1.5s linear infinite",
+        "pulse-glow": "pulse-glow 2s infinite",
       },
-      rotate: {
-        "120": "120deg",
-        "240": "240deg",
+      boxShadow: {
+        "glow-sm": "0 0 8px 2px rgba(139, 92, 246, 0.3)",
+        glow: "0 0 15px 3px rgba(139, 92, 246, 0.4), 0 0 30px 6px rgba(139, 92, 246, 0.2)",
+        "glow-lg": "0 0 20px 5px rgba(139, 92, 246, 0.5), 0 0 40px 8px rgba(139, 92, 246, 0.3)",
+        "glow-dark-sm": "0 0 8px 2px rgba(167, 139, 250, 0.3)",
+        "glow-dark": "0 0 15px 3px rgba(167, 139, 250, 0.4), 0 0 30px 6px rgba(167, 139, 250, 0.2)",
+        "glow-dark-lg": "0 0 20px 5px rgba(167, 139, 250, 0.5), 0 0 40px 8px rgba(167, 139, 250, 0.3)",
       },
     },
   },
@@ -108,4 +109,3 @@ const config = {
 } satisfies Config
 
 export default config
-

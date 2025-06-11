@@ -116,4 +116,3 @@ export function SettingsRide({ settings, onSettingsChange }: SettingsRideProps) 
     </div>
   )
 }
-

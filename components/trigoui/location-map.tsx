@@ -72,4 +72,3 @@ export default function LocationMap({ userLocation, selectedTODA, isLoading, api
     </div>
   )
 }
-
